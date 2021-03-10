@@ -1,25 +1,37 @@
 // On load
 $(function () {
+    loadName();
+
     //Ajax call to get the list of jobs
     $.ajax({
         type: 'get',
         url: '/job/list',
         success: function (jobsData) {
-            console.log(jobsData);
             let jobListElement = $('#job-list-container');
 
             jobListElement.empty(); //Remove the child nodes
 
-            jobsData.forEach(async job => {
-                let element = await createJobElement(job);
+            if (!jobsData || jobsData.length === 0) {
+                let element = $(`<div class="card">` +
+                    '<div class="card-body">' +
+                    `<h5 class="card-text mb-0 text-center">No Jobs Available</h5>` +
+                    '</div>' +
+                    '</div>');
                 element.fadeOut(0);
+                jobListElement.removeClass('card-columns');
                 jobListElement.append(element);
                 element.fadeIn(500);
-            })
+            } else {
+                jobListElement.addClass('card-columns');
+                jobsData.forEach(async job => {
+                    let element = await createJobElement(job);
+                    element.fadeOut(0);
+                    jobListElement.append(element);
+                    element.fadeIn(500);
+                })
+            }
         }
     })
-
-    loadName();
 })
 
 //Preloads the image so that the browser doesnt reflow the content
@@ -36,12 +48,12 @@ const loadImage = (src, alt, classes) =>
 ;
 
 async function createJobElement(job) {
-    let image = await loadImage(job.imageUrl, job.name, "card-img-top");
+    let image = await loadImage(job.imageSequence[0].imageUrl, job.name, "card-img-top");
 
     let element = $(`<div class="card">` +
         '<div class="card-body">' +
         `<h5 class="card-text mb-0">${job.name}</h5>` +
-        `<a href="${job.url}" class="stretched-link"></a>` +
+        `<a href="/job/${job.id}" class="stretched-link"></a>` +
         '</div>' +
         '</div>');
     element.prepend(image);
