@@ -1,5 +1,6 @@
 // On load
 $(function () {
+    //Ajax call to get the list of jobs
     $.ajax({
         type: 'get',
         url: '/job/list',
@@ -19,6 +20,7 @@ $(function () {
     })
 })
 
+//Preloads the image so that the browser doesnt reflow the content
 const loadImage = (src, alt, classes) =>
     new Promise((resolve, reject) => {
         const img = new Image();
