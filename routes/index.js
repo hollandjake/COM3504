@@ -3,8 +3,8 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Image Browsing' });
-
+  let name = 'John Smith';
+  res.render('index', { title: 'Image Browsing', name: name });
 });
 
 /* GET login page. */
