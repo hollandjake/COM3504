@@ -17,6 +17,8 @@ $(function () {
             })
         }
     })
+
+    loadName();
 })
 
 const loadImage = (src, alt, classes) =>
@@ -42,4 +44,16 @@ async function createJobElement(job) {
         '</div>');
     element.prepend(image);
     return element;
+}
+
+async function loadName() {
+    // Get name from IndexedDB and show it on the nav bar
+    let name = await getPID('name');
+    if (name) {
+        let nameElement = document.getElementById('nav-name');
+        nameElement.innerHTML = name;
+        nameElement.style.display = 'block';
+    } else {
+        window.location.href = "/login";
+    }
 }
