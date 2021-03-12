@@ -4,6 +4,7 @@ let db;
 
 const PIDS_DB_NAME= 'db_pids';
 const PIDS_STORE_NAME= 'store_pids';
+const LOG = false;
 
 /**
  * it inits the database
@@ -19,7 +20,7 @@ async function initDatabase(){
                 }
             }
         });
-        console.log('db created');
+        if (LOG) console.log('db created');
     }
 }
 window.initDatabase= initDatabase;
@@ -33,7 +34,7 @@ async function storePID(PID, value) {
     let data = {};
     data.value = value;
     data.PID = PID;
-    console.log('inserting: '+JSON.stringify(data));
+    if (LOG) console.log('inserting: '+JSON.stringify(data));
     if (!db)
         await initDatabase();
     if (db) {
@@ -42,7 +43,7 @@ async function storePID(PID, value) {
             let store = await tx.objectStore(PIDS_STORE_NAME);
             await store.put(data);
             await  tx.complete;
-            console.log('added item to the store! '+ JSON.stringify(data));
+            if (LOG) console.log('added item to the store! '+ JSON.stringify(data));
         } catch(error) {
             localStorage.setItem(PID, JSON.stringify(data));
         };
@@ -65,24 +66,24 @@ async function getPID(PID) {
             let tx = await db.transaction(PIDS_STORE_NAME, 'readonly');
             let store = await tx.objectStore(PIDS_STORE_NAME);
             const resultObject = await store.get(PID);
-            console.log(resultObject);
+            if (LOG) console.log(resultObject);
             await tx.complete;
             if (resultObject && resultObject.value) {
                 value = resultObject.value;
             } else {
                 const valueLocal = localStorage.getItem(PID).value;
                 if (valueLocal == null)
-                    console.log('local storage for '+PID+' does not exist');
+                    if (LOG) console.log('local storage for '+PID+' does not exist');
                 else
                     value = valueLocal;
             }
         } catch (error) {
-            console.log(error);
+            if (LOG) console.log(error);
         }
     } else {
         const valueLocal = localStorage.getItem(PID).value;
         if (valueLocal == null)
-            console.log('local storage for '+PID+' does not exist');
+            if (LOG) console.log('local storage for '+PID+' does not exist');
         else
             value = valueLocal;
     }

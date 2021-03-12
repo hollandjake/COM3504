@@ -2,8 +2,6 @@ $(async function () {
     //check for support
     if ('indexedDB' in window) {
         await initDatabase();
-    } else {
-        console.log('This browser doesn\'t support IndexedDB');
     }
     //if they already have a name send them to index
     let name = await getPID('name');
