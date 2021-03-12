@@ -18,6 +18,8 @@ $(function () {
             })
         }
     })
+
+    loadName();
 })
 
 //Preloads the image so that the browser doesnt reflow the content
@@ -44,4 +46,16 @@ async function createJobElement(job) {
         '</div>');
     element.prepend(image);
     return element;
+}
+
+async function loadName() {
+    // Get name from IndexedDB and show it on the nav bar
+    let name = await getPID('name');
+    if (name) {
+        let nameElement = $('#nav-name');
+        nameElement.text(name);
+        nameElement.toggleClass('invisible visible');
+    } else {
+        window.location.replace('/login');
+    }
 }
