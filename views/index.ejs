@@ -4,8 +4,10 @@
     <%- include('components/head'); %>
 
     <link rel='stylesheet' href='/stylesheets/index.css'/>
+    <script src="/socket.io/socket.io.js"></script>
 
-    <script src="/javascripts/index/index.js"></script>
+    <script src="/javascripts/index/index.js" type="module"></script>
+    <script src="/javascripts/index/jobSocket.js" type="module"></script>
 </head>
 <body>
     <%- include('components/navbar'); %>
@@ -15,5 +17,7 @@
     <div class="container pt-5">
         <div class="card-columns" id="job-list-container"></div>
     </div>
+
+    <button class="btn btn-primary" id="create-job-button">Create</button>
 </body>
 </html>

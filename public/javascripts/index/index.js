@@ -1,3 +1,5 @@
+import {getPID} from "../databases/indexedDB.js";
+
 // On load
 $(function () {
     loadName();
@@ -25,9 +27,11 @@ $(function () {
                 jobListElement.addClass('card-columns');
                 jobsData.forEach(async job => {
                     let element = await createJobElement(job);
-                    element.fadeOut(0);
-                    jobListElement.append(element);
-                    element.fadeIn(500);
+                    if (element) {
+                        element.fadeOut(0);
+                        jobListElement.append(element);
+                        element.fadeIn(500);
+                    }
                 })
             }
         }
@@ -45,20 +49,27 @@ const loadImage = (src, alt, classes) =>
         img.onerror = reject;
         img.src = src;
     })
-;
 
 async function createJobElement(job) {
-    let image = await loadImage(job.imageSequence[0].imageUrl, job.name, "card-img-top");
+    if (job.imageSequence.length > 0) {
+        let image = await loadImage(job.imageSequence[0].imageUrl, job.name, "img img-fluid");
+        let element = $(`<div class="card">` +
+            '<div class="card-body">' +
+            `<h5 class="card-text mb-0">${job.name}</h5>` +
+            `<a href="/job/${job.id}" class="stretched-link"></a>` +
+            '</div>' +
+            '</div>');
 
-    let element = $(`<div class="card">` +
-        '<div class="card-body">' +
-        `<h5 class="card-text mb-0">${job.name}</h5>` +
-        `<a href="/job/${job.id}" class="stretched-link"></a>` +
-        '</div>' +
-        '</div>');
-    element.prepend(image);
-    return element;
+        let imageContainer = $('<div class="card-img-bottom square-image"></div>');
+        imageContainer.append(image);
+
+        element.prepend(imageContainer);
+        return element;
+    }
+    return null;
 }
+
+export {createJobElement};
 
 async function loadName() {
     // Get name from IndexedDB and show it on the nav bar
