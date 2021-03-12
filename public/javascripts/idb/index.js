@@ -1,5 +1,5 @@
-import { w as wrap, r as replaceTraps } from "./wrap-idb-value.js?module";
-export { u as unwrap, w as wrap } from "./wrap-idb-value.js?module";
+import { w as wrap, r as replaceTraps } from "./wrap-idb-value.js";
+export { u as unwrap, w as wrap } from "./wrap-idb-value.js";
 
 /**
 * Open a database.

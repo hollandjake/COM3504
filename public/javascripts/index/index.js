@@ -50,10 +50,10 @@ async function loadName() {
     // Get name from IndexedDB and show it on the nav bar
     let name = await getPID('name');
     if (name) {
-        let nameElement = document.getElementById('nav-name');
-        nameElement.innerHTML = name;
-        nameElement.style.display = 'block';
+        let nameElement = $('#nav-name');
+        nameElement.text(name);
+        nameElement.toggleClass('invisible visible');
     } else {
-        window.location.href = "/login";
+        window.location.replace('/login');
     }
 }
