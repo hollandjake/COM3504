@@ -1,3 +1,5 @@
+import {initDatabase, getPID, storePID} from "../databases/indexedDB.js";
+
 $(async function () {
     //check for support
     if ('indexedDB' in window) {
@@ -10,16 +12,21 @@ $(async function () {
     }
 })
 
-async function loginFormSubmit() {
-    let name = $('#inputName').val();
-    if (name != null) {
-        //Simple validation
-        name = name.trim();
-        if (name.length > 0) {
-            await storePID('name', name);
-            window.location.replace('/');
-        } else {
-            $('#inputName').addClass('is-invalid');
+$(function() {
+    $('#login-form').submit(function(e) {
+        e.preventDefault();
+
+        let inputNameField = $('#inputName');
+        let name = inputNameField.val();
+
+        if (name != null) {
+            //Simple validation
+            name = name.trim();
+            if (name.length > 0) {
+                storePID('name', name).then(() => window.location.replace('/'));
+            } else {
+                inputNameField.addClass('is-invalid');
+            }
         }
-    }
-}
+    })
+})

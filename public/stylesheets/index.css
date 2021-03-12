@@ -7,3 +7,16 @@
 #add-job-button:hover {
   fill: gray;
 }
+
+.square-image {
+  display: flex;
+  overflow: hidden;
+}
+.square-image::before {
+  content: '';
+  padding-bottom:100%;
+}
+.square-image img{
+  width: 100%;
+  object-fit: cover;
+}
