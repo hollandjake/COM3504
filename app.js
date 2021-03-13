@@ -10,6 +10,8 @@ var jobRouter   = require('./routes/job');
 
 var app = express();
 
+require('./databases/jobs');
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');

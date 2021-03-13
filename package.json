@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "./bin/www",
+    "migrateDb": "./node_modules/.bin/migrate up -d mongodb://localhost:27017/jobs",
+    "rollbackDb": "./node_modules/.bin/migrate down add_test_jobs -d mongodb://localhost:27017/jobs"
   },
   "dependencies": {
     "bootstrap": "^4.6.0",
@@ -12,6 +14,8 @@
     "ejs": "~2.6.1",
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
+    "migrate-mongoose": "^4.0.0",
+    "mongoose": "5.11.15",
     "morgan": "~1.9.1",
     "socket.io": "^3.1.1"
   }
