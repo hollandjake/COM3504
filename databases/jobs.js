@@ -10,9 +10,10 @@ try {
         useNewUrlParser: true,
         useUnifiedTopology: true,
         checkServerIdentity: false,
-        useCreateIndex: true
+        useCreateIndex: true,
+        useFindAndModify: false //This is needed for the auto incrementing id of the job
     });
-    console.log('connection to mongodb worked');
+    console.log('Connected to MongoDB');
 } catch (e) {
     console.log('error in db connection: ' + e.message);
 }

@@ -1,3 +1,4 @@
+require('../databases/jobs');
 require('../models/image');
 require('../models/job');
 
@@ -21,18 +22,15 @@ async function up() {
 
     await this('Job').create({
         name: "Job 1",
-        id: '1',
         imageSequence: [img1, img1]
     });
     await this('Job').create({
         name: "Job 2",
-        id: '2',
         imageSequence: [img2]
     });
 
     await this('Job').create({
         name: "Job 3",
-        id: '3',
         imageSequence: [img1]
     });
 }
@@ -41,6 +39,7 @@ async function up() {
  * Make any changes that UNDO the up function side effects here (if possible)
  */
 async function down() {
+    this('Job').counterReset('_id', () => {});
     await this('Job').collection.drop();
     await this('Image').collection.drop();
 }
