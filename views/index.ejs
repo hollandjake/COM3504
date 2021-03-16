@@ -11,9 +11,67 @@
     <%- include('components/navbar'); %>
     <div class="text-center pt-5">
         <h1 class="display-4">Jobs</h1>
+        <svg data-toggle="modal" data-target="#addJob" id="add-job-button" xmlns="http://www.w3.org/2000/svg" height="50" viewBox="0 0 24 24" width="50"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
     </div>
     <div class="container pt-5">
         <div class="card-columns" id="job-list-container"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="addJob" tabindex="-1" role="dialog" aria-labelledby="addJobLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addJobLabel">Add a Job</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="inputJobName">Job Name</label>
+                            <input type="text" class="form-control" id="inputJobName" placeholder="Inspect the Church">
+                        </div>
+                        <h5>Enter Image Details</h5>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="inputTitle">Title</label>
+                                <input type="text" class="form-control" id="inputTitle" placeholder="Title">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputAuthor">Author</label>
+                                <input type="text" class="form-control" id="inputAuthor" placeholder="John Smith">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="inputDescription">Description</label>
+                            <textarea class="form-control" id="inputDescription" rows="3"></textarea>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" id="useImageURL" name="customRadioInline1" class="custom-control-input" checked>
+                            <label class="custom-control-label" for="useImageURL">Use Image URL</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" id="useImageUpload" name="customRadioInline1" class="custom-control-input">
+                            <label class="custom-control-label" for="useImageUpload">Upload Image</label>
+                        </div>
+                        <div class="form-group d-block" id="inputImageURLGroup">
+                            <label for="inputImageURL">Image URL</label>
+                            <input type="text" class="form-control" id="inputImageURL" placeholder="Inspect the Church">
+                        </div>
+                        <div class="form-group d-none" id="inputImageUploadGroup">
+                            <label for="inputImageUpload">Image Upload</label>
+                            <input type="file" class="form-control-file" id="inputImageUpload">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Add Job</button>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 </html>
