@@ -16,6 +16,7 @@
     "http-errors": "~1.6.3",
     "migrate-mongoose": "^4.0.0",
     "mongoose": "5.11.15",
+    "mongoose-sequence": "^5.3.1",
     "morgan": "~1.9.1",
     "socket.io": "^3.1.1"
   }
