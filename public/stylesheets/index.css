@@ -1,3 +1,9 @@
 .card-columns {
   column-count: 3;
 }
+#add-job-button {
+  cursor: pointer;
+}
+#add-job-button:hover {
+  fill: gray;
+}
