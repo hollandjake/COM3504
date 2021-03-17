@@ -1,16 +1,4 @@
-<script>
-$(function () {
-    // Used in the form to add a job to switch between uploading an image and entering the URL
-    $('#useImageURL').change(function(){
-        $('#inputImageURLGroup').toggleClass('d-block d-none');
-        $('#inputImageUploadGroup').toggleClass('d-none d-block');
-    });
-    $('#useImageUpload').change(function(){
-        $('#inputImageURLGroup').toggleClass('d-none d-block');
-        $('#inputImageUploadGroup').toggleClass('d-block d-none');
-    });
-})
-</script>
+<script src="/javascripts/modal/modal.js"></script>
 
 <div class="modal fade" id="<%= ID %>" tabindex="-1" role="dialog" aria-labelledby="<%= ID %>Label" aria-hidden="true">
     <div class="modal-dialog" role="document">
