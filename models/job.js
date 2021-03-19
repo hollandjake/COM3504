@@ -7,6 +7,10 @@ const JobSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    creator: {
+        type: String,
+        required: true
+    },
     imageSequence: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Image',

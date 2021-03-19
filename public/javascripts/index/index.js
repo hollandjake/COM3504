@@ -1,5 +1,6 @@
 import {createJob} from "./jobSocket.js";
 import {loadImage} from "../components/preloadImage.js";
+import {getPID} from "../databases/indexedDB.js";
 
 // On load
 $(function () {
@@ -38,10 +39,12 @@ $(function () {
         }
     })
 
-    $('#addJob').submit(function(e) {
+    $('#addJob').submit(async function(e) {
         e.preventDefault();
 
         let inputs = {};
+        inputs['creator'] = await getPID('name');
+        console.log(getPID('name'));
         $.each($('#addJob').serializeArray(), function(i, field) {
             inputs[field.name] = field.value;
         });
@@ -63,6 +66,13 @@ $(function () {
             createJob(inputs);
         }
     })
+
+    $("#search-bar").on("keyup", function() {
+        let value = $(this).val().toLowerCase();
+        $("#job-list-container .card").filter(function() {
+            $(this).toggle($(this).find(".card-subtitle").text().toLowerCase().indexOf(value) > -1)
+        });
+    });
 })
 
 //Preloads the image so that the browser doesnt reflow the content
@@ -72,7 +82,8 @@ export async function createJobElement(job) {
         let image = await loadImage(job.imageSequence[0].imageUrl, job.name, "img img-fluid");
         let element = $(`<div class="card">` +
             '<div class="card-body">' +
-            `<h5 class="card-text mb-0">${job.name}</h5>` +
+            `<h5 class="card-title">${job.name}</h5>` +
+            `<h6 class="card-subtitle mb-2 text-muted">By ${job.creator}</h6>` +
             `<a href="/job/${job.id}" class="stretched-link"></a>` +
             '</div>' +
             '</div>');

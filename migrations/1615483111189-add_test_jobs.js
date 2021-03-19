@@ -22,15 +22,18 @@ async function up() {
 
     await this('Job').create({
         name: "Job 1",
+        creator: "Tom",
         imageSequence: [img1, img1]
     });
     await this('Job').create({
         name: "Job 2",
+        creator: "Jake",
         imageSequence: [img2]
     });
 
     await this('Job').create({
         name: "Job 3",
+        creator: "Billy",
         imageSequence: [img1]
     });
 }
