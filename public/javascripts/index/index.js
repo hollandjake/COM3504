@@ -25,12 +25,14 @@ $(function () {
             } else {
                 jobListElement.addClass('card-columns');
                 jobsData.forEach(async job => {
-                    let element = await createJobElement(job);
-                    if (element) {
-                        element.fadeOut(0);
-                        jobListElement.append(element);
-                        element.fadeIn(500);
-                    }
+                    try {
+                        let element = await createJobElement(job);
+                        if (element) {
+                            element.fadeOut(0);
+                            jobListElement.append(element);
+                            element.fadeIn(500);
+                        }
+                    } catch (e) {}
                 })
             }
         }
@@ -52,7 +54,11 @@ $(function () {
                 inputs['url'] = fr.result;
                 createJob(inputs);
             }
-            fr.readAsDataURL(file);
+            if (file) {
+                fr.readAsDataURL(file);
+            } else {
+                processJobCreationError('Failed to create Job');
+            }
         } else {
             createJob(inputs);
         }
@@ -78,4 +84,13 @@ export async function createJobElement(job) {
         return element;
     }
     return null;
+}
+
+export function processJobCreationError(errorMessage) {
+    $("#addJob").append($('<div class="alert alert-warning alert-dismissible fade show modal-dialog" role="alert">\n' +
+        `  <strong>Holy guacamole!</strong> ${errorMessage}` +
+        '  <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n' +
+        '    <span aria-hidden="true">&times;</span>\n' +
+        '  </button>\n' +
+        '</div>'));
 }

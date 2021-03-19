@@ -1,4 +1,4 @@
-import {createJobElement} from "./index.js";
+import {createJobElement, processJobCreationError} from "./index.js";
 const job = io.connect('/job');
 
 // On load
@@ -9,15 +9,18 @@ $(function () {
             window.location.href = url;
         }
     })
+    job.on('jobCreateFailed', processJobCreationError);
 
     //Event for when a new job has been added
     job.on('newJob', async function (data) {
-        let element = await createJobElement(data);
-        if (element) {
-            element.fadeOut(0);
-            $('#job-list-container').append(element);
-            element.fadeIn(500);
-        }
+        try {
+            let element = await createJobElement(data);
+            if (element) {
+                element.fadeOut(0);
+                $('#job-list-container').append(element);
+                element.fadeIn(500);
+            }
+        } catch (e) {}
     })
 })
 

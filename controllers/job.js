@@ -17,9 +17,14 @@ exports.getAll = async function () {
  * @param jobData
  * @returns {Job}
  */
-exports.addJob = async function(jobData) {
-    for (let i=0,len=jobData.imageSequence.length;i<len;i++) {
-        jobData.imageSequence[i] = await Image.create(jobData.imageSequence[i]);
+exports.addJob = async function (jobData) {
+    try {
+        for (let i = 0, len = jobData.imageSequence.length; i < len; i++) {
+            jobData.imageSequence[i] = await Image.create(jobData.imageSequence[i]);
+        }
+        return await Job.create(jobData);
+    } catch (e) {
+        console.log(e._message);
+        throw e;
     }
-    return await Job.create(jobData);
 }

@@ -20,3 +20,7 @@
   width: 100%;
   object-fit: cover;
 }
+
+.alert {
+  pointer-events: all;
+}
