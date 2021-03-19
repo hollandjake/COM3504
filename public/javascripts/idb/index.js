@@ -29,10 +29,11 @@ function openDB(name, version, { blocked, upgrade, blocking, terminated } = {}) 
   return openPromise;
 }
 /**
-   * Delete a database.
-   *
-   * @param name Name of the database.
-   */
+ * Delete a database.
+ *
+ * @param name Name of the database.
+ * @param blocked
+ */
 function deleteDB(name, { blocked } = {}) {
   const request = indexedDB.deleteDatabase(name);
   if (blocked)

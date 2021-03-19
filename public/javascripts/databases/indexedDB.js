@@ -23,7 +23,6 @@ async function initDatabase(){
         if (LOG) console.log('db created');
     }
 }
-window.initDatabase= initDatabase;
 
 /**
  * it saves a PID into the indexedDB otherwise it uses local storage
@@ -46,11 +45,10 @@ async function storePID(PID, value) {
             if (LOG) console.log('added item to the store! '+ JSON.stringify(data));
         } catch(error) {
             localStorage.setItem(PID, JSON.stringify(data));
-        };
+        }
     }
     else localStorage.setItem(PID, JSON.stringify(data));
 }
-window.storePID= storePID;
 
 /**
  * it retrieves the PID
@@ -89,5 +87,6 @@ async function getPID(PID) {
     }
     return value;
 }
-window.getPID= getPID;
+
+export { initDatabase, storePID, getPID };
 
