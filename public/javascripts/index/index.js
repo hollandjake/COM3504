@@ -44,7 +44,6 @@ $(function () {
 
         let inputs = {};
         inputs['creator'] = await getPID('name');
-        console.log(getPID('name'));
         $.each($('#addJob').serializeArray(), function(i, field) {
             inputs[field.name] = field.value;
         });
