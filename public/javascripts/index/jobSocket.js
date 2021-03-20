@@ -26,7 +26,7 @@ $(function () {
 
 export function createJob(inputs) {
     let jobData = {
-        name: inputs['name'], "imageSequence": [
+        name: inputs['name'], creator: inputs['creator'], "imageSequence": [
             {
                 title: inputs['title'],
                 author: inputs['author'],
