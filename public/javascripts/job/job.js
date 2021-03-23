@@ -91,3 +91,8 @@ export function processImageCreationError(errorMessage) {
         '  </button>\n' +
         '</div>'));
 }
+
+export function closeForm() {
+    $('#addImage').modal('hide');
+    $('#addImage').trigger("reset");
+}
