@@ -1,39 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <%- include('components/head'); %>
+// On load
+import {addImage, joinJob} from "./jobSocket.js";
 
-    <link rel='stylesheet' href='/stylesheets/job.css'/>
-    <script src="/socket.io/socket.io.js"></script>
+$(function () {
+    $('#addImage').submit(async function(e) {
+        e.preventDefault();
 
-    <script>let jobID = <%= job.id %></script>
-    <script src="/javascripts/job/job.js" type="module"></script>
-    <script src="/javascripts/job/jobSocket.js" type="module"></script>
-</head>
-<body>
-<%- include('components/navbar'); %>
+        let inputs = {};
+        $.each($('#addImage').serializeArray(), function(i, field) {
+            inputs[field.name] = field.value;
+        });
 
-<div class="text-center py-5">
-    <svg id="add-job-button" data-toggle="modal" data-target="#addImage" xmlns="http://www.w3.org/2000/svg" height="50"
-         viewBox="0 0 24 24" width="50">
-        <path d="M0 0h24v24H0z" fill="none"/>
-        <path fill="#343a40"
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
-    </svg>
-</div>
+        if (!inputs['url']) {
+            let files = $('#inputImageUpload').prop('files');
+            let file = files[0];
+            let fr = new FileReader();
+            fr.onload = () => {
+                inputs['url'] = fr.result;
+                addImage(inputs);
+            }
+            if (file) {
+                fr.readAsDataURL(file);
+            } else {
+                processImageCreationError('Failed to add Image');
+            }
+        } else {
+            addImage(inputs);
+        }
+    })
 
-<div id="imageCarousel" class="carousel slide" data-interval="false">
+    joinJob();
+})
 
-    <!-- The slideshow -->
-    <div class="carousel-inner" id="image-container">
-        <% job.imageSequence.forEach((image, index)=> { %>
-            <div class="carousel-item <%= (index === 0) ? "active" : "" %> ">
+export async function createImageElement(image) {
+    let element = $(`<div class="carousel-item">
                 <div class="card w-50 mx-auto">
-                    <img src="<%= image.imageUrl %>" class="card-img-top">
+                    <img src="${image.imageUrl}" class="card-img-top">
                     <div class="card-body">
-                        <h5 class="card-title"><%= image.title %> </h5>
-                        <p class="card-text"> <small class="text-muted"> <%= image.author %> </small></p>
-                        <p class="card-text"><%= image.description %> </p>
+                        <h5 class="card-title">${image.title} </h5>
+                        <p class="card-text"> <small class="text-muted"> ${image.author} </small></p>
+                        <p class="card-text">${image.description} </p>
                         <div class="card-text card">
                             <div class="card-body">
                                 <div class="card-text">
@@ -73,22 +78,16 @@
 
                     </div>
                 </div>
-            </div>
+            </div>`);
 
-        <% }); %>
-    </div>
+    return element;
+}
 
-    <!-- Left and right controls -->
-    <a class="carousel-control-prev" href="#imageCarousel" data-slide="prev">
-        <span class="carousel-control-prev-icon"></span>
-    </a>
-    <a class="carousel-control-next" href="#imageCarousel" data-slide="next">
-        <span class="carousel-control-next-icon"></span>
-    </a>
-</div>
-
-<!-- Modal -->
-<%- include('components/modalForm', {addingJob: false, ID: 'addImage', title: 'Add an Image', submitText: 'Add Image'}); %>
-
-</body>
-</html>
+export function processImageCreationError(errorMessage) {
+    $("#addImage").append($('<div class="alert alert-warning alert-dismissible fade show modal-dialog" role="alert">\n' +
+        `  <strong>Holy guacamole!</strong> ${errorMessage}` +
+        '  <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n' +
+        '    <span aria-hidden="true">&times;</span>\n' +
+        '  </button>\n' +
+        '</div>'));
+}
