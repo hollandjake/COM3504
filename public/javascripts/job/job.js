@@ -1,5 +1,7 @@
 // On load
 import {addImage, joinJob} from "./jobSocket.js";
+import {loadImage} from "../components/preloadImage.js";
+import {error} from "../components/error.js";
 
 $(function () {
     let jobID;
@@ -7,17 +9,17 @@ $(function () {
     $.ajax({
         type: 'get',
         url: window.location.pathname+'/list',
-        success: function (job) {
+        success: async function (job) {
             let imageListElement = $('#image-container');
 
             imageListElement.empty();
 
-            job.imageSequence.forEach(image => {
+            for (let i = 0; i < job.imageSequence.length; i++) {
                 try {
-                    let element = createImageElement(image);
+                    let element = await createImageElement(job.imageSequence[i]);
                     imageListElement.append(element);
                 } catch (e) {}
-            })
+            }
 
             $('.carousel-item:first').addClass('active');
             $('#job-title').html(job.name);
@@ -82,7 +84,8 @@ function updateCarouselArrows() {
     }
 }
 
-export function createImageElement(image) {
+export async function createImageElement(image) {
+    await loadImage(image.imageUrl);
     return $(`
         <div class="carousel-item">
             <div class="card w-50 mx-auto">
@@ -142,16 +145,24 @@ export function createImageElement(image) {
 }
 
 export function processImageCreationError(errorMessage) {
-    $("#addImage").append($('<div class="alert alert-warning alert-dismissible fade show modal-dialog" role="alert">\n' +
-        `  <strong>Holy guacamole!</strong> ${errorMessage}` +
-        '  <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n' +
-        '    <span aria-hidden="true">&times;</span>\n' +
-        '  </button>\n' +
-        '</div>'));
+    $("#addImage").append(error(errorMessage));
 }
 
 //Closes and clears modal form and moves the carousel to the new image
-export function newImageAdded() {
+export async function newImageAdded(image) {
+    try {
+        let element = await createImageElement(image);
+        if (element) {
+            $('#image-container').append(element);
+            updateCarouselArrows();
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+export async function imageAddSuccess(image) {
+    await newImageAdded(image);
     $('#addImage').modal('hide').end().trigger("reset");
     $('#imageCarousel').carousel($('#image-container .carousel-item').length-1);
 }

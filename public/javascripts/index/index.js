@@ -1,6 +1,7 @@
 import {createJob} from "./jobSocket.js";
 import {loadImage} from "../components/preloadImage.js";
 import {getPID} from "../databases/indexedDB.js";
+import {error} from "../components/error.js";
 
 // On load
 $(function () {
@@ -97,10 +98,5 @@ export async function createJobElement(job) {
 }
 
 export function processJobCreationError(errorMessage) {
-    $("#addJob").append($('<div class="alert alert-warning alert-dismissible fade show modal-dialog" role="alert">\n' +
-        `  <strong>Holy guacamole!</strong> ${errorMessage}` +
-        '  <button type="button" class="close" data-dismiss="alert" aria-label="Close">\n' +
-        '    <span aria-hidden="true">&times;</span>\n' +
-        '  </button>\n' +
-        '</div>'));
+    $("#addJob").append(error(errorMessage));
 }
