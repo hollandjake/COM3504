@@ -1,3 +1,19 @@
 .carousel-control-next-icon, .carousel-control-prev-icon {
     filter: invert(1) grayscale(100);
 }
+.job-image {
+    max-height: 500px;
+    object-fit: contain;
+}
+.text-box {
+    max-height: 300px;
+}
+.chat-box {
+    table-layout: fixed;
+}
+.left, .right, .add {
+    display: none;
+}
+.add {
+    cursor: pointer;
+}
