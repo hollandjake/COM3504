@@ -21,6 +21,7 @@ $(function () {
 
             $('.carousel-item:first').addClass('active');
             $('#job-title').html(job.name);
+            $(document).prop('title', 'Job - '+job.name);
 
             jobID = job.id;
             joinJob(jobID);
