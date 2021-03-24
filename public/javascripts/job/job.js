@@ -64,6 +64,7 @@ $(function () {
     });
 })
 
+//Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
 function updateCarouselArrows() {
     let curSlide = $('.active');
     if(curSlide.is( ':first-child' )) {
@@ -73,7 +74,6 @@ function updateCarouselArrows() {
     }
     if (curSlide.is( ':last-child' )) {
         $('.right').hide();
-        //If no more images to the right, show the add button
         $('.add').css('display', 'flex');
     } else {
         $('.right').css('display', 'flex');
@@ -149,6 +149,7 @@ export function processImageCreationError(errorMessage) {
         '</div>'));
 }
 
+//Closes and clears modal form and moves the carousel to the new image
 export function newImageAdded() {
     $('#addImage').modal('hide').end().trigger("reset");
     $('#imageCarousel').carousel($('#image-container .carousel-item').length-1);
