@@ -11,3 +11,9 @@
 .chat-box {
     table-layout: fixed;
 }
+.left, .right, .add {
+    display: none;
+}
+.add {
+    cursor: pointer;
+}

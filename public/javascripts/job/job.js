@@ -2,6 +2,35 @@
 import {addImage, joinJob} from "./jobSocket.js";
 
 $(function () {
+    let jobID;
+
+    $.ajax({
+        type: 'get',
+        url: window.location.pathname+'/list',
+        success: function (job) {
+            let imageListElement = $('#image-container');
+
+            imageListElement.empty();
+
+            job.imageSequence.forEach(image => {
+                try {
+                    let element = createImageElement(image);
+                    imageListElement.append(element);
+                } catch (e) {}
+            })
+
+            $('.carousel-item:first').addClass('active');
+            $('#job-title').html(job.name);
+
+            jobID = job.id;
+            joinJob(jobID);
+
+            //initialise carousel arrows
+            updateCarouselArrows();
+        }
+    });
+
+
     $('#addImage').submit(async function(e) {
         e.preventDefault();
 
@@ -16,7 +45,7 @@ $(function () {
             let fr = new FileReader();
             fr.onload = () => {
                 inputs['url'] = fr.result;
-                addImage(inputs);
+                addImage(inputs, jobID);
             }
             if (file) {
                 fr.readAsDataURL(file);
@@ -24,63 +53,91 @@ $(function () {
                 processImageCreationError('Failed to add Image');
             }
         } else {
-            addImage(inputs);
+            await addImage(inputs, jobID);
         }
     })
 
-    joinJob();
+    $('#imageCarousel').carousel({
+        wrap: false
+    }).on('slid.bs.carousel', function () {
+        updateCarouselArrows();
+    });
 })
 
-export async function createImageElement(image) {
-    let element = $(`<div class="carousel-item">
-                <div class="card w-50 mx-auto">
-                    <img src="${image.imageUrl}" class="card-img-top">
-                    <div class="card-body">
-                        <h5 class="card-title">${image.title} </h5>
-                        <p class="card-text"> <small class="text-muted"> ${image.author} </small></p>
-                        <p class="card-text">${image.description} </p>
-                        <div class="card-text card">
-                            <div class="card-body">
-                                <div class="card-text">
-                                    text
+function updateCarouselArrows() {
+    let curSlide = $('.active');
+    if(curSlide.is( ':first-child' )) {
+        $('.left').hide();
+    } else {
+        $('.left').css('display', 'flex');
+    }
+    if (curSlide.is( ':last-child' )) {
+        $('.right').hide();
+        //If no more images to the right, show the add button
+        $('.add').css('display', 'flex');
+    } else {
+        $('.right').css('display', 'flex');
+        $('.add').hide();
+    }
+}
+
+export function createImageElement(image) {
+    return $(`
+        <div class="carousel-item">
+            <div class="card w-50 mx-auto">
+                <img src="${image.imageUrl}" class="card-img-top job-image" alt="${image.title}">
+                <div class="card-body">
+                    <h5 class="card-title">${image.title}</h5>
+                    <p class="card-text"> <small class="text-muted">By ${image.author}</small></p>
+                    <p class="card-text">${image.description}</p>
+                </div>
+            </div>
+            <div class="card-text card w-50 mx-auto mt-2 text-box">
+                <div class="overflow-auto d-inline-block">
+                    <table class="table table-striped mb-0 w-100">
+                        <tbody class="w-100">
+                            <tr>
+                                <th scope="row">Tom:</th>
+                                <td class="w-100">Wow great picture</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Billy:</th>
+                                <td>Lets discover the clues!</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Jake:</th>
+                                <td>I am Sherlock Holmes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Jake:</th>
+                                <td>I am Sherlock Holmes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Jake:</th>
+                                <td>I am Sherlock Holmes</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Jake:</th>
+                                <td>I am Sherlock Holmes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer">
+                    <form>
+                        <div class="input-group container pt-2">
+                            <input name="message" type="text" class="form-control" placeholder="Type here">
+                            <div class="input-group-append">
+                                <div class="btn btn-dark">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
                                 </div>
-                                <div class="card-text">
-                                    text2
-                                </div>
-                            </div>
-                            <div class="card-footer">
-                                <form>
-                                    <div class="input-group container pt-2">
-                                        <input name="message" type="text" class="form-control" placeholder="Type here">
-                                        <div class="input-group-append">
-                                            <div class="btn btn-dark">
-                                                <svg xmlns="http://www.w3.org/2000/svg" enable-background="new 0 0 24 24"
-                                                     height="24" viewBox="0 0 24 24" width="24">
-                                                    <g>
-                                                        <rect fill="none" height="24" width="24"/>
-                                                    </g>
-                                                    <g>
-                                                        <g>
-                                                            <circle fill="white" cx="10" cy="8" r="4"/>
-                                                            <path fill="white"
-                                                                  d="M10.35,14.01C7.62,13.91,2,15.27,2,18v2h9.54C9.07,17.24,10.31,14.11,10.35,14.01z"/>
-                                                            <path fill="white"
-                                                                  d="M19.43,18.02C19.79,17.43,20,16.74,20,16c0-2.21-1.79-4-4-4s-4,1.79-4,4c0,2.21,1.79,4,4,4c0.74,0,1.43-0.22,2.02-0.57 L20.59,22L22,20.59L19.43,18.02z M16,18c-1.1,0-2-0.9-2-2c0-1.1,0.9-2,2-2s2,0.9,2,2C18,17.1,17.1,18,16,18z"/>
-                                                        </g>
-                                                    </g>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </form>
                             </div>
                         </div>
-
-                    </div>
+                    </form>
                 </div>
-            </div>`);
-
-    return element;
+            </div>
+        </div>
+    `);
 }
 
 export function processImageCreationError(errorMessage) {
@@ -92,7 +149,7 @@ export function processImageCreationError(errorMessage) {
         '</div>'));
 }
 
-export function closeForm() {
-    $('#addImage').modal('hide');
-    $('#addImage').trigger("reset");
+export function newImageAdded() {
+    $('#addImage').modal('hide').end().trigger("reset");
+    $('#imageCarousel').carousel($('#image-container .carousel-item').length-1);
 }

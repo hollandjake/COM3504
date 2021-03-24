@@ -6,7 +6,6 @@
     <link rel='stylesheet' href='/stylesheets/job.css'/>
     <script src="/socket.io/socket.io.js"></script>
 
-    <script>let jobID = <%= job.id %></script>
     <script src="/javascripts/job/job.js" type="module"></script>
     <script src="/javascripts/job/jobSocket.js" type="module"></script>
 </head>
@@ -14,87 +13,23 @@
 <%- include('components/navbar'); %>
 
 <div class="text-center pt-5">
-    <h1 class="display-4"><%= job.name %></h1>
+    <h1 class="display-4" id="job-title"></h1>
 </div>
 
 <div id="imageCarousel" class="carousel slide" data-interval="false">
     <!-- The slideshow -->
-    <div class="carousel-inner" id="image-container">
-        <% job.imageSequence.forEach((image, index)=> { %>
-            <div class="carousel-item <%= (index === 0) ? "active" : "" %> ">
-                <div class="card w-50 mx-auto">
-                    <img src="<%= image.imageUrl %>" class="card-img-top job-image">
-                    <div class="card-body">
-                        <h5 class="card-title"><%= image.title %> </h5>
-                        <p class="card-text"> <small class="text-muted">By <%= image.author %> </small></p>
-                        <p class="card-text"><%= image.description %> </p>
-                    </div>
-                </div>
-                <div class="card-text card w-50 mx-auto mt-2 text-box">
-                    <div class="overflow-auto d-inline-block">
-                        <table class="table table-striped mb-0 w-100">
-                            <tbody class="w-100">
-                                <tr>
-                                    <th scope="row">Tom:</th>
-                                    <td class="w-100">Wow great picture</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Billy:</th>
-                                    <td>Lets discover the clues!</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Jake:</th>
-                                    <td>I am Sherlock Holmes</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Jake:</th>
-                                    <td>I am Sherlock Holmes</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Jake:</th>
-                                    <td>I am Sherlock Holmes</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Jake:</th>
-                                    <td>I am Sherlock Holmes</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="card-footer">
-                        <form>
-                            <div class="input-group container pt-2">
-                                <input name="message" type="text" class="form-control" placeholder="Type here">
-                                <div class="input-group-append">
-                                    <div class="btn btn-dark">
-                                        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-        <% }); %>
-    </div>
+    <div class="carousel-inner" id="image-container"></div>
 
     <!-- Left and right controls -->
-    <a class="carousel-control-prev" href="#imageCarousel" data-slide="prev">
+    <a class="left carousel-control-prev" href="#imageCarousel" data-slide="prev">
         <span class="carousel-control-prev-icon"></span>
     </a>
-    <a class="carousel-control-next" href="#imageCarousel" data-slide="next">
+    <a class="right carousel-control-next" href="#imageCarousel" data-slide="next">
         <span class="carousel-control-next-icon"></span>
     </a>
-</div>
-
-<div class="text-center py-5">
-    <svg id="add-job-button" data-toggle="modal" data-target="#addImage" xmlns="http://www.w3.org/2000/svg" height="50"
-         viewBox="0 0 24 24" width="50">
-        <path d="M0 0h24v24H0z" fill="none"/>
-        <path fill="#343a40"
-              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
-    </svg>
+    <div class="add carousel-control-next" data-toggle="modal" data-target="#addImage">
+        <svg xmlns="http://www.w3.org/2000/svg" height="50" viewBox="0 0 24 24" width="50"><path d="M0 0h24v24H0z" fill="none"/><path fill="#343a40" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+    </div>
 </div>
 
 <!-- Modal -->

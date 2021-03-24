@@ -1,11 +1,11 @@
-import {createImageElement, processImageCreationError, closeForm} from "./job.js";
+import {createImageElement, processImageCreationError, newImageAdded} from "./job.js";
 const job = io.connect('/job');
 
 // On load
 $(function () {
     job.on('imageAddFailed', processImageCreationError);
 
-    job.on('imageAddSuccess', closeForm);
+    job.on('imageAddSuccess', newImageAdded);
 
     //Event for when a new image has been added
     job.on('newImage', async function (data) {
@@ -20,11 +20,11 @@ $(function () {
     })
 })
 
-export function joinJob() {
+export function joinJob(jobID) {
     job.emit('join', jobID);
 }
 
-export async function addImage(inputs) {
+export async function addImage(inputs, jobID) {
     let imageData = {
         title: inputs['title'],
         author: inputs['author'],

@@ -8,8 +8,11 @@ router.get('/list',  async function(req, res) {
 });
 
 router.get('/:jobId',  async function( req, res) {
-    let job = await jobs.get(req.params['jobId']);
-    res.render('job', {title: `Job - ${job.name}`,job: job});
+    res.render('job', {title: `Job`});
+})
+
+router.get('/:jobId/list',  async function( req, res) {
+    res.send(await jobs.get(req.params['jobId']));
 })
 
 
