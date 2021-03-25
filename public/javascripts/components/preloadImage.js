@@ -4,7 +4,7 @@ export const loadImage = (src, alt, classes) =>
         let imageObject = $(img);
         imageObject.addClass(classes);
         imageObject.attr('alt', alt);
-        img.onload = () => resolve(imageObject);
+        img.onload = () => resolve(img);
         img.onerror = reject;
         img.src = src;
     })

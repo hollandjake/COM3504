@@ -1,8 +1,8 @@
-import {getPID} from "../databases/indexedDB.js";
+import {getName} from "../databases/indexedDB.js";
 
 async function loadName() {
     // Get name from IndexedDB and show it on the nav bar
-    let name = await getPID('name');
+    let name = await getName();
     if (name) {
         let nameElement = $('#nav-name');
         nameElement.text(name);
@@ -14,6 +14,4 @@ async function loadName() {
     }
 }
 
-$(() => {
-    loadName();
-});
+$(async () => await loadName());
