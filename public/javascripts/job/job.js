@@ -5,7 +5,7 @@ import {error} from "../components/error.js";
 import {getPID, storeNewImage, storeJob, getJob} from "../databases/indexedDB.js";
 
 $(async function () {
-    let jobLocal = await getJob(jobID);
+    let jobLocal = await getJob(JOB_ID);
     if (jobLocal) {
         await initialisePage(jobLocal);
     }
@@ -40,7 +40,7 @@ $(async function () {
             let files = $('#inputImageUpload').prop('files');
             inputs['image_file'] = files[0];
         }
-        await addImage(inputs, jobID);
+        await addImage(inputs, JOB_ID);
     })
 
     $('#imageCarousel').carousel({
@@ -66,7 +66,7 @@ async function initialisePage(job) {
     $('#job-title').html(job.name);
     $(document).prop('title', 'Job - '+job.name);
 
-    joinJob(jobID);
+    joinJob(JOB_ID);
 
     //initialise carousel arrows
     updateCarouselArrows();
@@ -179,7 +179,7 @@ function processImageCreationError(data) {
 //Closes and clears modal form and moves the carousel to the new image
 export async function newImageAdded(data) {
     try {
-        await storeNewImage(jobID,data.image);
+        await storeNewImage(JOB_ID,data.image);
         let element = await createImageElement(data.image);
         if (element) {
             $('#image-container').append(element);

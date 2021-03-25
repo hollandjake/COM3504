@@ -103,6 +103,7 @@ export async function getPID(PID) {
  * @param {String} job.imageSequence.description
  * @param {String} job.imageSequence.title
  * @param {String} job.imageSequence.imageUrl
+ * @param {String} job.imageSequence.id
  */
 export async function storeJob(job) {
     let data = {};
@@ -116,6 +117,7 @@ export async function storeJob(job) {
         imageData.description = image.description;
         imageData.title = image.title;
         imageData.imageUrl = image.imageUrl;
+        imageData.id = image.id;
         data.imageSequence.push(imageData);
     });
 
@@ -142,6 +144,7 @@ export async function storeJob(job) {
  * @param {String} image.description
  * @param {String} image.title
  * @param {String} image.imageUrl
+ * @param {String} image.id
  */
 export async function storeNewImage(jobID, image) {
     let job = await getJob(jobID);
@@ -150,6 +153,7 @@ export async function storeNewImage(jobID, image) {
     newImage.description = image.description;
     newImage.title = image.title;
     newImage.imageUrl = image.imageUrl;
+    newImage.id = image.id;
     job.imageSequence.push(newImage)
 
     if (!db)

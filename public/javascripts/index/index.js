@@ -4,9 +4,6 @@ import {error} from "../components/error.js";
 
 // On load
 $(async function () {
-    //Make sure name is in indexedDB
-    let name = await processName();
-
     //Ajax call to get the list of jobs
     $.ajax({
         type: 'get',
@@ -47,7 +44,7 @@ $(async function () {
         e.preventDefault();
 
         let inputs = {};
-        inputs['creator'] = name;
+        inputs['creator'] = await getPID('name');
         $.each($('#addJob').serializeArray(), function (i, field) {
             inputs[field.name] = field.value;
         });
@@ -119,16 +116,4 @@ function processJobCreationError(data) {
 async function processJobCreation(data) {
     await storeJob(data.job);
     window.location.href = data.job.url;
-}
-
-async function processName() {
-    let name = await getPID('name');
-    if (name) {
-        let nameElement = $('#nav-name');
-        nameElement.text(name);
-        nameElement.toggleClass('invisible visible');
-    } else {
-        window.location.replace('/login');
-    }
-    return name;
 }
