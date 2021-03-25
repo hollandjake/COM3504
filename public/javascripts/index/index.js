@@ -1,9 +1,9 @@
 import {loadImage} from "../components/preloadImage.js";
-import {getPID} from "../databases/indexedDB.js";
+import {getPID, storeJob} from "../databases/indexedDB.js";
 import {error} from "../components/error.js";
 
 // On load
-$(function () {
+$(async function () {
     //Ajax call to get the list of jobs
     $.ajax({
         type: 'get',
@@ -113,6 +113,7 @@ function processJobCreationError(data) {
     $("#addJob").append(error(data.error));
 }
 
-function processJobCreation(data) {
+async function processJobCreation(data) {
+    await storeJob(data.job);
     window.location.href = data.job.url;
 }

@@ -45,7 +45,7 @@ router.post('/create', upload.any(), async function (req, res) {
 })
 
 router.get('/:jobId', async function (req, res) {
-    res.render('job', {title: `Job`});
+    res.render('job', {title: `Job`, jobID: req.params['jobId']});
 })
 
 router.post('/:jobId/add-image', upload.any(), async function (req, res) {
