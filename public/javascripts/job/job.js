@@ -72,7 +72,9 @@ async function addImage(inputs, jobID) {
         data: formData,
         processData: false,
         contentType: false,
-        error: processImageCreationError
+        error: function(e) {
+            processImageCreationError(e.responseJSON);
+        }
     })
 }
 
@@ -172,6 +174,9 @@ export async function newImageAdded(data) {
             $('#imageCarousel').carousel($('#image-container .carousel-item').length-1);
         }
     } catch (e) {
+        processImageCreationError({
+            error: "Something went wrong"
+        })
         console.log(e);
     }
 }
