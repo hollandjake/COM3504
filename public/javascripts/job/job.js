@@ -2,35 +2,28 @@
 import {joinJob} from "./jobSocket.js";
 import {loadImage} from "../components/preloadImage.js";
 import {error} from "../components/error.js";
-import {getPID} from "../databases/indexedDB.js";
+import {getPID, storeNewImage, storeJob, getJob} from "../databases/indexedDB.js";
 
-$(function () {
-    let jobID;
+$(async function () {
+    let jobLocal = await getJob(jobID);
+    if (jobLocal) {
+        await initialisePage(jobLocal);
+    }
 
     $.ajax({
         type: 'get',
         url: window.location.pathname+'/list',
         success: async function (job) {
-            let imageListElement = $('#image-container');
-
-            imageListElement.empty();
-
-            for (let i = 0; i < job.imageSequence.length; i++) {
-                try {
-                    let element = await createImageElement(job.imageSequence[i]);
-                    imageListElement.append(element);
-                } catch (e) {}
+            //Simple check if the job fetched from mongoDB is newer, this may need changing when annotations/chat is implemented
+            if (jobLocal) {
+                if (job.imageSequence.length !== jobLocal.imageSequence.length) {
+                    await initialisePage(job);
+                    await storeJob(job);
+                }
+            } else {
+                await initialisePage(job);
+                await storeJob(job);
             }
-
-            $('.carousel-item:first').addClass('active');
-            $('#job-title').html(job.name);
-            $(document).prop('title', 'Job - '+job.name);
-
-            jobID = job.id;
-            joinJob(jobID);
-
-            //initialise carousel arrows
-            updateCarouselArrows();
         }
     });
 
@@ -56,6 +49,28 @@ $(function () {
         updateCarouselArrows();
     });
 })
+
+async function initialisePage(job) {
+    let imageListElement = $('#image-container');
+
+    imageListElement.empty();
+
+    for (let i = 0; i < job.imageSequence.length; i++) {
+        try {
+            let element = await createImageElement(job.imageSequence[i]);
+            imageListElement.append(element);
+        } catch (e) {}
+    }
+
+    $('.carousel-item:first').addClass('active');
+    $('#job-title').html(job.name);
+    $(document).prop('title', 'Job - '+job.name);
+
+    joinJob(jobID);
+
+    //initialise carousel arrows
+    updateCarouselArrows();
+}
 
 async function addImage(inputs, jobID) {
     let formData = new FormData();
@@ -164,6 +179,7 @@ function processImageCreationError(data) {
 //Closes and clears modal form and moves the carousel to the new image
 export async function newImageAdded(data) {
     try {
+        await storeNewImage(jobID,data.image);
         let element = await createImageElement(data.image);
         if (element) {
             $('#image-container').append(element);

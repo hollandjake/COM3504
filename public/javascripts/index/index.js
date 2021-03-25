@@ -1,9 +1,12 @@
 import {loadImage} from "../components/preloadImage.js";
-import {getPID} from "../databases/indexedDB.js";
+import {getPID, storeJob} from "../databases/indexedDB.js";
 import {error} from "../components/error.js";
 
 // On load
-$(function () {
+$(async function () {
+    //Make sure name is in indexedDB
+    let name = await processName();
+
     //Ajax call to get the list of jobs
     $.ajax({
         type: 'get',
@@ -44,7 +47,7 @@ $(function () {
         e.preventDefault();
 
         let inputs = {};
-        inputs['creator'] = await getPID('name');
+        inputs['creator'] = name;
         $.each($('#addJob').serializeArray(), function (i, field) {
             inputs[field.name] = field.value;
         });
@@ -113,6 +116,19 @@ function processJobCreationError(data) {
     $("#addJob").append(error(data.error));
 }
 
-function processJobCreation(data) {
+async function processJobCreation(data) {
+    await storeJob(data.job);
     window.location.href = data.job.url;
+}
+
+async function processName() {
+    let name = await getPID('name');
+    if (name) {
+        let nameElement = $('#nav-name');
+        nameElement.text(name);
+        nameElement.toggleClass('invisible visible');
+    } else {
+        window.location.replace('/login');
+    }
+    return name;
 }
