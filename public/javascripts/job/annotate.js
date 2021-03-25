@@ -39,7 +39,6 @@ export default class Annotate {
         this._is_drawing = false;
         this._my_active_id = null;
         this._network_elements = {};
-        this._offset = {x: window.pageXOffset, y: window.pageYOffset};
         this.initEvents();
         return this;
     }
@@ -65,11 +64,8 @@ export default class Annotate {
         let node = this._draw.node;
         try {
             node.addEventListener('mousedown', (e) => annotation.startDrawing(e));
-            node.addEventListener('touchstart', (e) => annotation.startDrawing(e));
             node.addEventListener('mouseup', (e) => annotation.endDrawing(e));
             node.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
-            node.addEventListener('touchend', (e) => annotation.endDrawing(e));
-            node.addEventListener('touchcancel', (e) => annotation.endDrawing(e));
             node.addEventListener('mousemove', (e) => annotation.onDrag(e));
             node.addEventListener('resize', (e) => annotation.updateSize());
             this.eventNode.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
@@ -85,7 +81,6 @@ export default class Annotate {
             this._is_drawing = true;
             const point = this.getPoint(e);
             let initialPoint = [[point.x, point.y]];
-            this._offset = {x: window.pageXOffset, y: window.pageYOffset};
             this._my_active_id = Annotate.generateUID();
 
             this.eventNode.dispatchEvent(new CustomEvent('startDrawing', {
@@ -133,7 +128,10 @@ export default class Annotate {
             this._network_elements[event.detail.id] = null;
         } else if (type === 'start') {
             this._network_elements[event.detail.id] = {
-                element: this._draw.polyline(event.detail.data).fill('none').stroke({width: 10, color: event.detail.color}),
+                element: this._draw.polyline(event.detail.data).fill('none').stroke({
+                    width: 10,
+                    color: event.detail.color
+                }),
                 data: event.detail.data
             };
             this.onDraw(this._network_elements[event.detail.id]);
@@ -150,8 +148,8 @@ export default class Annotate {
     getPoint(e) {
         this.updateSize();
         return {
-            x: e.offsetX * (this._nativeResolution.width / this._renderResolution.width),
-            y: e.offsetY * (this._nativeResolution.height / this._renderResolution.height)
+            x: (e.pageX - this._renderResolution.left) * (this._nativeResolution.width / this._renderResolution.width),
+            y: (e.pageY - this._renderResolution.top) * (this._nativeResolution.height / this._renderResolution.height)
         }
     }
 
