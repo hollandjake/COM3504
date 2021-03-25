@@ -114,7 +114,7 @@ function updateCarouselArrows() {
 }
 
 async function createImageElement(image) {
-    const annotation = await new Annotate(image.imageUrl, "card-img-top job-image").init();
+    const annotation = await new Annotate(image, "card-img-top", "card-img-top job-image").init();
 
     let imageElement = $(`
         <div class="carousel-item">

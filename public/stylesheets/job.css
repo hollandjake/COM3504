@@ -4,6 +4,11 @@
 .job-image {
     max-height: 500px;
     object-fit: contain;
+    display: flex;
+    justify-content: center;
+}
+.job-image > svg {
+    max-height: 500px;
 }
 .text-box {
     max-height: 300px;
