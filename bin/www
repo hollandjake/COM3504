@@ -101,3 +101,4 @@ const io = require('socket.io')(server, {
 });
 var socket_module = require('../socket.io/socket-io');
 socket_module.init(io, app);
+exports.io = io;

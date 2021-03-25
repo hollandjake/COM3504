@@ -1,7 +1,8 @@
 // On load
-import {addImage, joinJob} from "./jobSocket.js";
+import {joinJob} from "./jobSocket.js";
 import {loadImage} from "../components/preloadImage.js";
 import {error} from "../components/error.js";
+import {getPID} from "../databases/indexedDB.js";
 
 $(function () {
     let jobID;
@@ -44,20 +45,9 @@ $(function () {
 
         if (!inputs['url']) {
             let files = $('#inputImageUpload').prop('files');
-            let file = files[0];
-            let fr = new FileReader();
-            fr.onload = () => {
-                inputs['url'] = fr.result;
-                addImage(inputs, jobID);
-            }
-            if (file) {
-                fr.readAsDataURL(file);
-            } else {
-                processImageCreationError('Failed to add Image');
-            }
-        } else {
-            await addImage(inputs, jobID);
+            inputs['image_file'] = files[0];
         }
+        await addImage(inputs, jobID);
     })
 
     $('#imageCarousel').carousel({
@@ -66,6 +56,29 @@ $(function () {
         updateCarouselArrows();
     });
 })
+
+async function addImage(inputs, jobID) {
+    let formData = new FormData();
+    formData.append('image_title', inputs['title']);
+    formData.append('image_author', inputs['author']);
+    formData.append('image_description', inputs['description']);
+    formData.append('image', inputs['image_file']);
+    formData.append('image_url', inputs['url']);
+    formData.append('invoker', await getPID('name'))
+
+    $.ajax({
+        type: 'POST',
+        url: `/job/${jobID}/add-image`,
+        data: formData,
+        processData: false,
+        contentType: false,
+        error: function(e) {
+            processImageCreationError(e.responseJSON);
+        }
+    })
+}
+
+
 
 //Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
 function updateCarouselArrows() {
@@ -84,7 +97,7 @@ function updateCarouselArrows() {
     }
 }
 
-export async function createImageElement(image) {
+async function createImageElement(image) {
     await loadImage(image.imageUrl);
     return $(`
         <div class="carousel-item">
@@ -144,25 +157,26 @@ export async function createImageElement(image) {
     `);
 }
 
-export function processImageCreationError(errorMessage) {
-    $("#addImage").append(error(errorMessage));
+function processImageCreationError(data) {
+    $("#addImage").append(error(data.error));
 }
 
 //Closes and clears modal form and moves the carousel to the new image
-export async function newImageAdded(image) {
+export async function newImageAdded(data) {
     try {
-        let element = await createImageElement(image);
+        let element = await createImageElement(data.image);
         if (element) {
             $('#image-container').append(element);
             updateCarouselArrows();
         }
+        if (data.invoker === await getPID('name')) {
+            $('#addImage').modal('hide').end().trigger("reset");
+            $('#imageCarousel').carousel($('#image-container .carousel-item').length-1);
+        }
     } catch (e) {
+        processImageCreationError({
+            error: "Something went wrong"
+        })
         console.log(e);
     }
-}
-
-export async function imageAddSuccess(image) {
-    await newImageAdded(image);
-    $('#addImage').modal('hide').end().trigger("reset");
-    $('#imageCarousel').carousel($('#image-container .carousel-item').length-1);
 }
