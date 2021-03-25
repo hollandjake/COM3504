@@ -51,17 +51,9 @@ $(function () {
 
         if (!inputs['url']) {
             let files = $('#inputImageUpload').prop('files');
-            let file = files[0];
-            inputs['image_file'] = file;
-            createJob(inputs);
-            // if (file) {
-            //     fr.readAsDataURL(file);
-            // } else {
-            //     processJobCreationError('Failed to create Job');
-            // }
-        } else {
-            createJob(inputs);
+            inputs['image_file'] = files[0];
         }
+        createJob(inputs);
     })
 
     $("#search-bar").on("keyup", function () {

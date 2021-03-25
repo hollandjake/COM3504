@@ -31,12 +31,6 @@ exports.addJob = async function (jobData) {
 
 exports.addImage = async function (jobID, imageData) {
     let newImage =  await Image.create(imageData);
-    Job.findByIdAndUpdate(jobID, {$push: {imageSequence: newImage}},
-        {}, function(err, result) {
-        if (err) {
-            return Promise.reject(err);
-        } else {
-            return Promise.resolve(result);
-        }
-    });
+    await Job.findByIdAndUpdate(jobID, {$push: {imageSequence: newImage}});
+    return newImage;
 }
