@@ -1,4 +1,3 @@
-import {createJob} from "./jobSocket.js";
 import {loadImage} from "../components/preloadImage.js";
 import {getPID} from "../databases/indexedDB.js";
 import {error} from "../components/error.js";
@@ -34,42 +33,40 @@ $(function () {
                             jobListElement.append(element);
                             element.fadeIn(500);
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                    }
                 })
             }
         }
     })
 
-    $('#addJob').submit(async function(e) {
+    $('#addJob').submit(async function (e) {
         e.preventDefault();
 
         let inputs = {};
         inputs['creator'] = await getPID('name');
-        $.each($('#addJob').serializeArray(), function(i, field) {
+        $.each($('#addJob').serializeArray(), function (i, field) {
             inputs[field.name] = field.value;
         });
 
         if (!inputs['url']) {
             let files = $('#inputImageUpload').prop('files');
             let file = files[0];
-            let fr = new FileReader();
-            fr.onload = () => {
-                inputs['url'] = fr.result;
-                createJob(inputs);
-            }
-            if (file) {
-                fr.readAsDataURL(file);
-            } else {
-                processJobCreationError('Failed to create Job');
-            }
+            inputs['image_file'] = file;
+            createJob(inputs);
+            // if (file) {
+            //     fr.readAsDataURL(file);
+            // } else {
+            //     processJobCreationError('Failed to create Job');
+            // }
         } else {
             createJob(inputs);
         }
     })
 
-    $("#search-bar").on("keyup", function() {
+    $("#search-bar").on("keyup", function () {
         let value = $(this).val().toLowerCase();
-        $("#job-list-container .card").filter(function() {
+        $("#job-list-container .card").filter(function () {
             $(this).toggle($(this).find(".card-subtitle").text().toLowerCase().indexOf(value) > -1)
         });
     });
@@ -97,6 +94,33 @@ export async function createJobElement(job) {
     return null;
 }
 
-export function processJobCreationError(errorMessage) {
-    $("#addJob").append(error(errorMessage));
+export function createJob(inputs) {
+    //Save image
+
+    let formData = new FormData();
+    formData.append('image', inputs['image_file']);
+    formData.append('image_url', inputs['url']);
+    formData.append('name', inputs['name']);
+    formData.append('creator', inputs['creator']);
+    formData.append('image_title', inputs['title']);
+    formData.append('image_author', inputs['author']);
+    formData.append('image_description', inputs['description']);
+
+    $.ajax({
+        type: 'POST',
+        url: '/job/create',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: processJobCreation,
+        error: processJobCreationError
+    })
+}
+
+function processJobCreationError(data) {
+    $("#addJob").append(error(data.error));
+}
+
+function processJobCreation(data) {
+    window.location.href = data.job.url;
 }
