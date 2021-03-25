@@ -92,7 +92,8 @@ export default class Annotate {
                 detail: {
                     type: 'start',
                     id: this._my_active_id,
-                    data: initialPoint
+                    data: initialPoint,
+                    color: "#FF0000"
                 }
             }));
         }
@@ -104,8 +105,7 @@ export default class Annotate {
             this.eventNode.dispatchEvent(new CustomEvent('endDrawing', {
                 detail: {
                     type: 'end',
-                    id: this._my_active_id,
-                    data: this._network_elements[this._my_active_id]
+                    id: this._my_active_id
                 }
             }));
         }
@@ -133,7 +133,7 @@ export default class Annotate {
             this._network_elements[event.detail.id] = null;
         } else if (type === 'start') {
             this._network_elements[event.detail.id] = {
-                element: this._draw.polyline(event.detail.data).fill('none').stroke({width: 10, color: "red"}),
+                element: this._draw.polyline(event.detail.data).fill('none').stroke({width: 10, color: event.detail.color}),
                 data: event.detail.data
             };
             this.onDraw(this._network_elements[event.detail.id]);
