@@ -186,7 +186,7 @@ export async function newImageAdded(data) {
             updateCarouselArrows();
         }
         if (data.invoker === await getPID('name')) {
-            $('#addImage').modal('hide').end().trigger("reset");
+            $('#addImage').modal('hide').trigger("reset");
             $('#imageCarousel').carousel($('#image-container .carousel-item').length-1);
         }
     } catch (e) {
