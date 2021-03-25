@@ -14,6 +14,4 @@ async function loadName() {
     }
 }
 
-$(() => {
-    loadName();
-});
+$(async () => await loadName());

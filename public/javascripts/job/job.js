@@ -3,6 +3,7 @@ import {joinJob} from "./jobSocket.js";
 import {loadImage} from "../components/preloadImage.js";
 import {error} from "../components/error.js";
 import {getPID, storeNewImage, storeJob, getJob} from "../databases/indexedDB.js";
+import Annotate from "./annotate.js";
 
 $(async function () {
     let jobLocal = await getJob(JOB_ID);
@@ -113,11 +114,12 @@ function updateCarouselArrows() {
 }
 
 async function createImageElement(image) {
-    await loadImage(image.imageUrl);
-    return $(`
+    const annotation = await new Annotate(image, "card-img-top", "card-img-top job-image").init();
+
+    let imageElement = $(`
         <div class="carousel-item">
             <div class="card w-50 mx-auto">
-                <img src="${image.imageUrl}" class="card-img-top job-image" alt="${image.title}">
+                <div id="job-image"></div>
                 <div class="card-body">
                     <h5 class="card-title">${image.title}</h5>
                     <p class="card-text"> <small class="text-muted">By ${image.author}</small></p>
@@ -170,6 +172,10 @@ async function createImageElement(image) {
             </div>
         </div>
     `);
+
+    imageElement.find('#job-image').replaceWith(annotation.container);
+
+    return imageElement;
 }
 
 function processImageCreationError(data) {
