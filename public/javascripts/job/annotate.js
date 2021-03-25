@@ -16,16 +16,17 @@ export default class Annotate {
     }
 
     async init() {
-        const [container, draw, imageNode, size] = await this.createCanvas(this._image, this._imageClasses, this._containerClasses);
+        const [container, draw, imageElement, imageSize] = await this.createCanvas(this._image, this._imageClasses, this._containerClasses);
         this._container = container;
         this._draw = draw;
-        this._size = size;
-        this._containerNode = draw.symbol().size(size.width, size.height);
+        this._imageElement = imageElement;
+        this._nativeResolution = imageSize;
+        this._renderResolution = null;
         this._is_drawing = false;
         this._my_active_drawing = null;
         this._offset = { x: window.pageXOffset, y: window.pageYOffset };
-        this.m = this._draw.node.getScreenCTM().inverse();
 
+        this.checkSize();
         this.initEvents();
         return this;
     }
@@ -39,24 +40,23 @@ export default class Annotate {
         let width = imageObject.width;
         let height = imageObject.height;
         let draw = SVG(annotationNode).viewbox(0, 0, width, height);
-        let imageNode = draw.image(image.imageUrl);
+        let imageElement = draw.image(image.imageUrl);
 
         annotationContainer.append(draw.node);
 
-        return [annotationContainer, draw, imageNode, {width: width, height: height}];
+        return [annotationContainer, draw, imageElement, {width: width, height: height}];
     }
 
     initEvents() {
         const annotation = this;
         let node = this._draw.node;
         try {
-            node.addEventListener('onmousedown', (e) => annotation.startDrawing(e));
-            node.ontouchstart((e) => annotation.startDrawing(e));
-            node.onmouseup((e) => annotation.endDrawing(e));
-            node.ontouchend((e) => annotation.endDrawing(e));
-            node.onmouseout((e) => annotation.endDrawing(e));
-            node.ontouchcancel((e) => annotation.endDrawing(e));
-            node.onmousemove((e) => annotation.onDrag(e));
+            node.addEventListener('mousedown', (e) => annotation.startDrawing(e));
+            node.addEventListener('touchstart',(e) => annotation.startDrawing(e));
+            node.addEventListener('mouseup',(e) => annotation.endDrawing(e));
+            node.addEventListener('touchend',(e) => annotation.endDrawing(e));
+            node.addEventListener('mousemove',(e) => annotation.onDrag(e));
+            node.addEventListener('resize', (e) => annotation.updateSize());
         } catch (e) {
             console.log(e);
         }
@@ -102,9 +102,16 @@ export default class Annotate {
     }
 
     getPoint(e) {
+        this.updateSize();
         return {
-            x: e.clientX,
-            y: e.clientY
+            x: e.offsetX * (this._nativeResolution.width / this._renderResolution.width),
+            y: e.offsetY * (this._nativeResolution.height / this._renderResolution.height)
         }
+    }
+
+    updateSize() {
+        let node = this._imageElement.node;
+        this._renderResolution = node.getBoundingClientRect();
+        console.log(this._renderResolution);
     }
 }
