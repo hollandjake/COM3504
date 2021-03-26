@@ -129,41 +129,17 @@ async function createImageElement(image) {
             <div class="card-text card w-50 mx-auto mt-2 text-box">
                 <div class="overflow-auto d-inline-block">
                     <table class="table table-striped mb-0 w-100">
-                        <tbody class="w-100">
-                            <tr>
-                                <th scope="row">Tom:</th>
-                                <td class="w-100">Wow great picture</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Billy:</th>
-                                <td>Lets discover the clues!</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Jake:</th>
-                                <td>I am Sherlock Holmes</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Jake:</th>
-                                <td>I am Sherlock Holmes</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Jake:</th>
-                                <td>I am Sherlock Holmes</td>
-                            </tr>
-                            <tr>
-                                <th scope="row">Jake:</th>
-                                <td>I am Sherlock Holmes</td>
-                            </tr>
+                        <tbody id = "chatboxmsg" class="w-100">
                         </tbody>
                     </table>
                 </div>
                 <div class="card-footer">
                     <form>
                         <div class="input-group container pt-2">
-                            <input name="message" type="text" class="form-control" placeholder="Type here">
+                            <input name="chatmessage" type="text" class="form-control" placeholder="Type here">
                             <div class="input-group-append">
-                                <div class="btn btn-dark">
-                                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
+                                <div onclick="sendChat()" id="sendchat" class="btn btn-dark">
+                                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
                                 </div>
                             </div>
                         </div>

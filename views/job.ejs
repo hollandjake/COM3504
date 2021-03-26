@@ -38,11 +38,19 @@
 <%- include('components/modalForm', {addingJob: false, ID: 'addImage', title: 'Add an Image', submitText: 'Add Image'}); %>
 
 <script>
+
+    function getRoomID(url){
+        url = url.replace(/#[^#]+$/, "").replace(/\?[^\?]+$/, "").replace(/\/$/, "");
+        return url.substr(url.lastIndexOf("/") + 1);
+    }
+
     const job = io.connect('/job');
 
     function sendChat() {
+        let uname = document.getElementById('nav-name').innerHTML;
+        let roomname = parseInt(getRoomID(window.location.pathname));
         let chatText = document.getElementsByName('chatmessage')[0].value;
-        job.emit('chat', 7, chatText);
+        job.emit('chat', roomname, uname, chatText);
     }
 </script>
 
