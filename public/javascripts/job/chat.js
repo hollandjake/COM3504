@@ -2,6 +2,7 @@ const job = io.connect('/job');
 let currentPage = 0
 
 function sendChat() {
+    console.log(currentPage);
     let jobID = parseInt(JOB_ID);
     let userID = document.getElementById('nav-name').innerHTML;
     let message = document.getElementsByName('chatmessage')[currentPage].value;

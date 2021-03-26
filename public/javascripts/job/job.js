@@ -30,8 +30,6 @@ $(async function () {
         }
     });
 
-    cPage = 0;
-
     $('#addImage').submit(async function(e) {
         e.preventDefault();
 
