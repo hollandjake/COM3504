@@ -1,5 +1,5 @@
 # Team "; DROP TABLE grades; --"
-COM3504 Web assignment
+COM3504 Web assignment [GitHub](https://github.com/hollandjake/COM3504)
 
 ## MongoDB startup
 ### Tear down db
