@@ -5,6 +5,8 @@ import {error} from "../components/error.js";
 import {getPID, storeNewImage, storeJob, getJob} from "../databases/indexedDB.js";
 import Annotate from "./annotate.js";
 
+let cPage = 0;
+
 $(async function () {
     let jobLocal = await getJob(JOB_ID);
     if (jobLocal) {
@@ -28,6 +30,7 @@ $(async function () {
         }
     });
 
+    cPage = 0;
 
     $('#addImage').submit(async function(e) {
         e.preventDefault();
@@ -58,8 +61,9 @@ async function initialisePage(job) {
 
     for (let i = 0; i < job.imageSequence.length; i++) {
         try {
-            let element = await createImageElement(job.imageSequence[i], i);
+            let element = await createImageElement(job.imageSequence[cPage], cPage);
             imageListElement.append(element);
+            cPage += 1;
         } catch (e) {}
     }
 
@@ -151,7 +155,7 @@ async function createImageElement(image, jid) {
 
 
     var chatboxID = imageElement.find("#chatboxmsg");
-    jQuery(chatboxID).attr("id","chatboxmsg"+jid);
+    $(chatboxID).attr("id","chatboxmsg"+jid);
     imageElement.find('#job-image').replaceWith(annotation.container);
 
     return imageElement;
@@ -162,10 +166,11 @@ function processImageCreationError(data) {
 }
 
 //Closes and clears modal form and moves the carousel to the new image
-export async function newImageAdded(data, imageNum) {
+export async function newImageAdded(data) {
     try {
         await storeNewImage(JOB_ID,data.image);
-        let element = await createImageElement(data.image, imageNum);
+        let element = await createImageElement(data.image, cPage);
+        cPage+=1;
         if (element) {
             $('#image-container').append(element);
             updateCarouselArrows();
