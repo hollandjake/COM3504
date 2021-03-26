@@ -58,7 +58,7 @@ async function initialisePage(job) {
 
     for (let i = 0; i < job.imageSequence.length; i++) {
         try {
-            let element = await createImageElement(job.imageSequence[i]);
+            let element = await createImageElement(job.imageSequence[i], i);
             imageListElement.append(element);
         } catch (e) {}
     }
@@ -113,7 +113,7 @@ function updateCarouselArrows() {
     }
 }
 
-async function createImageElement(image) {
+async function createImageElement(image, jid) {
     const annotation = await new Annotate(image, "card-img-top", "card-img-top job-image").init();
 
     let imageElement = $(`
@@ -138,7 +138,7 @@ async function createImageElement(image) {
                         <div class="input-group container pt-2">
                             <input name="chatmessage" type="text" class="form-control" placeholder="Type here">
                             <div class="input-group-append">
-                                <div onclick="sendChat()" id="sendchat" class="btn btn-dark">
+                                <div onclick="sendChat()" class="btn btn-dark">
                                     <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
                                 </div>
                             </div>
@@ -149,6 +149,9 @@ async function createImageElement(image) {
         </div>
     `);
 
+
+    var chatboxID = imageElement.find("#chatboxmsg");
+    jQuery(chatboxID).attr("id","chatboxmsg"+jid);
     imageElement.find('#job-image').replaceWith(annotation.container);
 
     return imageElement;
@@ -159,10 +162,10 @@ function processImageCreationError(data) {
 }
 
 //Closes and clears modal form and moves the carousel to the new image
-export async function newImageAdded(data) {
+export async function newImageAdded(data, imageNum) {
     try {
         await storeNewImage(JOB_ID,data.image);
-        let element = await createImageElement(data.image);
+        let element = await createImageElement(data.image, imageNum);
         if (element) {
             $('#image-container').append(element);
             updateCarouselArrows();

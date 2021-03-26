@@ -11,21 +11,14 @@ $(function () {
 
     loadName();
 
-    let cb = getRoomID(window.location.pathname);
-    joinJob(parseInt(cb));
-    job.on('chat', function (jobID, userID, message) {
+    joinJob(parseInt(JOB_ID));
+    job.on('chat', function (jobID, userID, message, currentPage) {
         let who = userID
         if (userID === name) who = 'Me';
-        writeOnChatHistory(who, message);
+        writeOnChatHistory(userID, message, currentPage);
     });
 
 })
-
-function getRoomID(url){
-    url = url.replace(/#[^#]+$/, "").replace(/\?[^\?]+$/, "").replace(/\/$/, "");
-    return url.substr(url.lastIndexOf("/") + 1);
-}
-
 
 async function loadName() {
     // Get name from IndexedDB and show it on the nav bar
@@ -36,10 +29,10 @@ export function joinJob(jobID) {
     job.emit('join', jobID);
 }
 
-function writeOnChatHistory(userID, message) {
-    let history = document.getElementById('chatboxmsg');
+function writeOnChatHistory(userID, message, currentPage) {
+    let history = document.getElementById('chatboxmsg'+currentPage);
     let paragraph = document.createElement('tr');
     paragraph.innerHTML = "\n<th scope=\"row\">"+userID+":</th>\n<td class=\"w-100\">"+message+"</td>\n";
     history.appendChild(paragraph);
-    document.getElementsByName('chatmessage')[0].value = '';
+    document.getElementsByName('chatmessage')[currentPage].value = '';
 }
