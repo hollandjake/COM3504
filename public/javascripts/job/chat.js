@@ -1,6 +1,23 @@
 const job = io.connect('/job');
 let currentPage = 0
 
+let forwardSlide = false;
+let prevSlide = false;
+
+$(document).ready(function() {
+    $('#imageCarousel').on('slide.bs.carousel', function (e) {
+        if (forwardSlide) {
+            currentPage += 1;
+        } else if (prevSlide) {
+            currentPage -= 1;
+        }
+        forwardSlide = false;
+        prevSlide = false;
+        console.log(currentPage);
+    })
+
+});
+
 function sendChat() {
     console.log(currentPage);
     let jobID = parseInt(JOB_ID);
@@ -10,9 +27,9 @@ function sendChat() {
 }
 
 function nextJob() {
-currentPage += 1;
+    forwardSlide = true;
 }
 
 function prevJob() {
-currentPage -= 1;
+    prevSlide = true;
 }
