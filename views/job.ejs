@@ -47,10 +47,10 @@
     const job = io.connect('/job');
 
     function sendChat() {
-        let uname = document.getElementById('nav-name').innerHTML;
-        let roomname = parseInt(getRoomID(window.location.pathname));
-        let chatText = document.getElementsByName('chatmessage')[0].value;
-        job.emit('chat', roomname, uname, chatText);
+        let jobID = parseInt(getRoomID(window.location.pathname));
+        let userID = document.getElementById('nav-name').innerHTML;
+        let message = document.getElementsByName('chatmessage')[0].value;
+        job.emit('chat', jobID, userID, message);
     }
 </script>
 
