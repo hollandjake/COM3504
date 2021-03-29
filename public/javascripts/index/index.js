@@ -1,6 +1,7 @@
 import {loadImage} from "../components/preloadImage.js";
 import {getPID, storeJob} from "../databases/indexedDB.js";
 import {error} from "../components/error.js";
+import {getModalData} from "../components/modal.js";
 
 // On load
 $(async function () {
@@ -43,17 +44,11 @@ $(async function () {
     $('#addJob').submit(async function (e) {
         e.preventDefault();
 
-        let inputs = {};
-        inputs['creator'] = await getPID('name');
-        $.each($('#addJob').serializeArray(), function (i, field) {
-            inputs[field.name] = field.value;
-        });
+        let formData = await getModalData($('#addJob'), {
+            'job_creator': await getPID('name')
+        })
 
-        if (!inputs['url']) {
-            let files = $('#inputImageUpload').prop('files');
-            inputs['image_file'] = files[0];
-        }
-        createJob(inputs);
+        createJob(formData);
     })
 
     $("#search-bar").on("keyup", function () {
@@ -86,17 +81,8 @@ export async function createJobElement(job) {
     return null;
 }
 
-export function createJob(inputs) {
+export function createJob(formData) {
     //Save image
-
-    let formData = new FormData();
-    formData.append('image', inputs['image_file']);
-    formData.append('image_url', inputs['url']);
-    formData.append('name', inputs['name']);
-    formData.append('creator', inputs['creator']);
-    formData.append('image_title', inputs['title']);
-    formData.append('image_author', inputs['author']);
-    formData.append('image_description', inputs['description']);
 
     $.ajax({
         type: 'POST',

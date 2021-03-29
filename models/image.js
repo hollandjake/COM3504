@@ -5,7 +5,7 @@ const ImageSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    author: {
+    creator: {
         type: String,
         required: true
     },

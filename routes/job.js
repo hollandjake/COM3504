@@ -23,12 +23,10 @@ router.post('/create', upload.any(), async function (req, res) {
             return;
         }
         let job = await jobController.addJob({
-            name: req.body.name,
-            creator: req.body.creator,
+            name: req.body['job_name'],
+            creator: req.body['job_creator'],
             imageSequence: [jobImage]
         });
-
-        console.log("New Job Created: " + job.name);
 
         require('../bin/www').io.of('/job').emit('newJob', job);
         res.json({
@@ -63,8 +61,7 @@ router.post('/:jobId/add-image', upload.any(), async function (req, res) {
         // req.socket.broadcast.in(req.params['jobId']).emit('newImage', image);
         require('../bin/www').io.of('/job').in(req.params['jobId']).emit('newImage', {
             status: 200,
-            image: image,
-            invoker: req.body.invoker
+            image: image
         });
         res.json({
             status: 200,

@@ -1,4 +1,7 @@
-<form class="modal fade" id="<%= ID %>" tabindex="-1" data-backdrop="static" aria-labelledby="<%= ID %>Label" aria-hidden="true">
+<form class="modal fade" id="<%= ID %>" tabindex="-1" data-backdrop="static" aria-labelledby="<%= ID %>Label"
+      aria-hidden="true">
+    <link rel='stylesheet' href="/stylesheets/modal.css" />
+    <script src="/javascripts/components/modal.js" type="module"></script>
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -9,41 +12,52 @@
             </div>
             <div class="modal-body">
                 <% if (addingJob) { %>
-                <div class="form-group">
-                    <label for="inputJobName">Job Name</label>
-                    <input type="text" class="form-control" name="name" placeholder="Inspect the Church">
-                </div>
+                    <div class="form-group">
+                        <label>Job Name</label>
+                        <input type="text" class="form-control" name="job_name" placeholder="Infiltrate Church"/>
+                    </div>
                 <% } %>
+                <% // Image Details %>
                 <h5>Enter Image Details</h5>
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label for="inputTitle">Title</label>
-                        <input type="text" class="form-control" name="title" placeholder="Title">
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="inputAuthor">Author</label>
-                        <input type="text" class="form-control" name="author" placeholder="John Smith">
-                    </div>
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" class="form-control" name="image_title" placeholder="Title"/>
                 </div>
                 <div class="form-group">
-                    <label for="inputDescription">Description</label>
-                    <textarea class="form-control" name="description" rows="3"></textarea>
+                    <label>Description</label>
+                    <textarea class="form-control" name="image_description" rows="3"></textarea>
                 </div>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" id="useImageURL" name="customRadioInline1" class="custom-control-input" checked>
-                    <label class="custom-control-label" for="useImageURL">Use Image URL</label>
-                </div>
-                <div class="custom-control custom-radio custom-control-inline">
-                    <input type="radio" id="useImageUpload" name="customRadioInline1" class="custom-control-input">
-                    <label class="custom-control-label" for="useImageUpload">Upload Image</label>
-                </div>
-                <div class="form-group d-block" id="inputImageURLGroup">
-                    <label for="inputImageURL">Image URL</label>
-                    <input type="text" class="form-control" id="inputImageURL" name="url" placeholder="Inspect the Church">
-                </div>
-                <div class="form-group d-none" id="inputImageUploadGroup">
-                    <label for="inputImageUpload">Image Upload</label>
-                    <input type="file" class="form-control-file" id="inputImageUpload" name="upload">
+
+                <% //Input selector %>
+                <div class="card text-center">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-for="image-source" data-type="url">URL</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-for="image-source" data-type="upload">Upload</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-for="image-source" data-type="camera">Camera</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div data-for="url" class="d-block">
+                            <input type="text" class="form-control" data-name="url" placeholder="https://via.placeholder.com/150"/>
+                        </div>
+                        <div data-for="upload" class="d-none">
+                            <input type="file" class="form-control-file" data-name="upload"/>
+                            <img class="upload-preview d-none" alt="Image Preview" src="#"/>
+                        </div>
+                        <div data-for="camera" class="d-none">
+                            <video class="w-100" autoplay playsinline data-name="camera"></video>
+                            <div class="w-100 error-box text-center">
+                                Camera is not available
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -53,4 +67,3 @@
         </div>
     </div>
 </form>
-<script src="/javascripts/components/modal.js"></script>

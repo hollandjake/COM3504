@@ -5,7 +5,6 @@ let db;
 const DB_NAME= 'db';
 const PIDS_STORE_NAME= 'store_pids';
 const JOBS_STORE_NAME= 'store_jobs';
-const LOG = false;
 
 /**
  * it inits the database
@@ -19,12 +18,11 @@ export async function initDatabase(){
                         keyPath: 'PID'
                     });
                     upgradeDb.createObjectStore(JOBS_STORE_NAME, {
-                        keyPath: 'jobID'
+                        keyPath: 'id'
                     });
                 }
             }
         });
-        if (LOG) console.log('db created');
     }
 }
 
@@ -37,21 +35,23 @@ export async function storePID(PID, value) {
     let data = {};
     data.value = value;
     data.PID = PID;
-    if (LOG) console.log('inserting: '+JSON.stringify(data));
-    if (!db)
+
+    if (!db) {
         await initDatabase();
+    }
     if (db) {
         try{
             let tx = await db.transaction(PIDS_STORE_NAME, 'readwrite');
             let store = await tx.objectStore(PIDS_STORE_NAME);
             await store.put(data);
             await  tx.complete;
-            if (LOG) console.log('added item to the store! '+ JSON.stringify(data));
         } catch(error) {
             localStorage.setItem(PID, JSON.stringify(data));
         }
     }
-    else localStorage.setItem(PID, JSON.stringify(data));
+    else {
+        localStorage.setItem(PID, JSON.stringify(data));
+    }
 }
 
 /**
@@ -60,34 +60,30 @@ export async function storePID(PID, value) {
  * @returns value
  */
 export async function getPID(PID) {
-    if (!db)
+    if (!db) {
         await initDatabase();
+    }
     let value;
     if (db) {
         try {
             let tx = await db.transaction(PIDS_STORE_NAME, 'readonly');
             let store = await tx.objectStore(PIDS_STORE_NAME);
             const resultObject = await store.get(PID);
-            if (LOG) console.log(resultObject);
             await tx.complete;
             if (resultObject && resultObject.value) {
                 value = resultObject.value;
             } else {
                 const valueLocal = localStorage.getItem(PID).value;
-                if (valueLocal == null)
-                    if (LOG) console.log('local storage for '+PID+' does not exist');
-                else
+                if (valueLocal !== null) {
                     value = valueLocal;
+                }
             }
-        } catch (error) {
-            if (LOG) console.log(error);
-        }
+        } catch (error) {}
     } else {
         const valueLocal = localStorage.getItem(PID).value;
-        if (valueLocal == null)
-            if (LOG) console.log('local storage for '+PID+' does not exist');
-        else
+        if (valueLocal !== null) {
             value = valueLocal;
+        }
     }
     return value;
 }
@@ -106,58 +102,10 @@ export async function getPID(PID) {
  * @param {String} job.imageSequence.id
  */
 export async function storeJob(job) {
-    let data = {};
-    data.jobID = job.id;
-    data.creator = job.creator;
-    data.name = job.name;
-    data.imageSequence = [];
-    job.imageSequence.forEach((image) => {
-        let imageData = {};
-        imageData.author = image.author;
-        imageData.description = image.description;
-        imageData.title = image.title;
-        imageData.imageUrl = image.imageUrl;
-        imageData.id = image.id;
-        data.imageSequence.push(imageData);
-    });
-
-    if (!db)
+    if (!db) {
         await initDatabase();
-    if (db) {
-        try{
-            let tx = await db.transaction(JOBS_STORE_NAME, 'readwrite');
-            let store = await tx.objectStore(JOBS_STORE_NAME);
-            await store.put(data);
-            await  tx.complete;
-        } catch(error) {
-            localStorage.setItem(data.jobID, JSON.stringify(data));
-        }
     }
-    else localStorage.setItem(data.jobID, JSON.stringify(data));
-}
 
-/**
- * it inserts an image into an existing job
- * @param {String} jobID
- * @param {Object} image
- * @param {String} image.author
- * @param {String} image.description
- * @param {String} image.title
- * @param {String} image.imageUrl
- * @param {String} image.id
- */
-export async function storeNewImage(jobID, image) {
-    let job = await getJob(jobID);
-    let newImage = {};
-    newImage.author = image.author;
-    newImage.description = image.description;
-    newImage.title = image.title;
-    newImage.imageUrl = image.imageUrl;
-    newImage.id = image.id;
-    job.imageSequence.push(newImage)
-
-    if (!db)
-        await initDatabase();
     if (db) {
         try{
             let tx = await db.transaction(JOBS_STORE_NAME, 'readwrite');
@@ -165,15 +113,49 @@ export async function storeNewImage(jobID, image) {
             await store.put(job);
             await  tx.complete;
         } catch(error) {
-            localStorage.setItem(job.jobID, JSON.stringify(job));
+            localStorage.setItem(job.id, JSON.stringify(job));
         }
     }
-    else localStorage.setItem(job.jobID, JSON.stringify(job));
+    else {
+        localStorage.setItem(job.id, JSON.stringify(job));
+    }
+}
+
+/**
+ * it inserts an image into an existing job
+ * @param {String} jobId
+ * @param {Object} image
+ * @param {String} image.author
+ * @param {String} image.description
+ * @param {String} image.title
+ * @param {String} image.imageUrl
+ * @param {String} image.id
+ */
+export async function storeNewImage(jobId, image) {
+    let job = await getJob(jobId);
+    job.imageSequence.push(image);
+
+    if (!db) {
+        await initDatabase();
+    }
+    if (db) {
+        try{
+            let tx = await db.transaction(JOBS_STORE_NAME, 'readwrite');
+            let store = await tx.objectStore(JOBS_STORE_NAME);
+            await store.put(job);
+            await  tx.complete;
+        } catch(error) {
+            localStorage.setItem(job.id, JSON.stringify(job));
+        }
+    }
+    else {
+        localStorage.setItem(job.id, JSON.stringify(job));
+    }
 }
 
 /**
  * it retrieves the job
- * @param {String} jobID
+ * @param {String} jobId
  * @returns {Object} job
  * @returns {String} job.id
  * @returns {String} job.name
@@ -184,30 +166,31 @@ export async function storeNewImage(jobID, image) {
  * @returns {String} job.imageSequence.title
  * @returns {String} job.imageSequence.imageUrl
  */
-export async function getJob(jobID) {
-    if (!db)
+export async function getJob(jobId) {
+    if (!db) {
         await initDatabase();
+    }
     let job;
     if (db) {
         try {
             let tx = await db.transaction(JOBS_STORE_NAME, 'readonly');
             let store = await tx.objectStore(JOBS_STORE_NAME);
-            const resultObject = await store.get(jobID);
+            const resultObject = await store.get(jobId);
             await tx.complete;
             if (resultObject) {
                 job = resultObject;
             } else {
-                const jobLocal = localStorage.getItem(jobID);
-                if (jobLocal !== null)
+                const jobLocal = localStorage.getItem(jobId);
+                if (jobLocal !== null) {
                     job = JSON.parse(jobLocal);
+                }
             }
-        } catch (error) {
-            if (LOG) console.log(error);
-        }
+        } catch (error) {}
     } else {
-        const jobLocal = localStorage.getItem(jobID);
-        if (jobLocal !== null)
+        const jobLocal = localStorage.getItem(jobId);
+        if (jobLocal !== null) {
             job = JSON.parse(jobLocal);
+        }
     }
     return job;
 }
