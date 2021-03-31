@@ -1,9 +1,9 @@
 // On load
 import {joinJob} from "./jobSocket.js";
-import {loadImage} from "../components/preloadImage.js";
 import {error} from "../components/error.js";
 import {getPID, storeNewImage, storeJob, getJob} from "../databases/indexedDB.js";
 import Annotate from "./annotate.js";
+import {getModalData} from "../components/modal.js";
 
 $(async function () {
     let jobLocal = await getJob(JOB_ID);
@@ -32,15 +32,7 @@ $(async function () {
     $('#addImage').submit(async function(e) {
         e.preventDefault();
 
-        let inputs = {};
-        $.each($('#addImage').serializeArray(), function(i, field) {
-            inputs[field.name] = field.value;
-        });
-
-        if (!inputs['url']) {
-            let files = $('#inputImageUpload').prop('files');
-            inputs['image_file'] = files[0];
-        }
+        let inputs = await getModalData($('#addImage'));
         await addImage(inputs, JOB_ID);
     })
 
@@ -74,31 +66,21 @@ async function initialisePage(job) {
 }
 
 async function addImage(inputs, jobID) {
-    let formData = new FormData();
-    formData.append('image_title', inputs['title']);
-    formData.append('image_author', inputs['author']);
-    formData.append('image_description', inputs['description']);
-    formData.append('image', inputs['image_file']);
-    formData.append('image_url', inputs['url']);
-    formData.append('invoker', await getPID('name'))
-
     $.ajax({
         type: 'POST',
         url: `/job/${jobID}/add-image`,
-        data: formData,
+        data: inputs,
         processData: false,
         contentType: false,
         error: function(e) {
-            processImageCreationError(e.responseJSON);
+            processImageCreationError(e['responseJSON']);
         }
     })
 }
 
-
-
 //Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
 function updateCarouselArrows() {
-    let curSlide = $('.active');
+    let curSlide = $('.carousel-item.active');
     if(curSlide.is( ':first-child' )) {
         $('.left').hide();
     } else {
@@ -122,7 +104,7 @@ async function createImageElement(image) {
                 <div id="job-image"></div>
                 <div class="card-body">
                     <h5 class="card-title">${image.title}</h5>
-                    <p class="card-text"> <small class="text-muted">By ${image.author}</small></p>
+                    <p class="card-text"> <small class="text-muted">By ${image.creator}</small></p>
                     <p class="card-text">${image.description}</p>
                 </div>
             </div>
@@ -191,7 +173,7 @@ export async function newImageAdded(data) {
             $('#image-container').append(element);
             updateCarouselArrows();
         }
-        if (data.invoker === await getPID('name')) {
+        if (data.image.creator === await getPID('name')) {
             $('#addImage').modal('hide').trigger("reset");
             $('#imageCarousel').carousel($('#image-container .carousel-item').length-1);
         }
