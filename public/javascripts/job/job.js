@@ -118,22 +118,21 @@ async function createImageElement(image) {
                     </table>
                 </div>
                 <div class="card-footer">
-                    <form>
-                        <div class="input-group container pt-2">
-                            <input id="message${image._id}" type="text" class="form-control" placeholder="Type here">
-                            <div class="input-group-append">
-                                <div id="${image._id}" onclick="sendChat(this.id)" class="btn btn-dark">
-                                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
-                                </div>
+                    <div class="input-group container pt-2">
+                        <input id="message${image._id}" type="text" class="form-control" placeholder="Type here" onkeydown="sendEnterChat(this.id.replace('message',''), event)">
+                        <div class="input-group-append">
+                            <div id="${image._id}" onclick="sendChat(this.id)" class="btn btn-dark">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
                             </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
     `);
 
     imageElement.find('#job-image').replaceWith(annotation.container);
+
 
     return imageElement;
 }
