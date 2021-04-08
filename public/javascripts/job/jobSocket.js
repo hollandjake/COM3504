@@ -13,8 +13,6 @@ $(function () {
 
     joinJob(parseInt(JOB_ID));
     job.on('chat', function (jobID, userID, message, currentPage) {
-        let who = userID
-        if (userID === name) who = 'Me';
         writeOnChatHistory(userID, message, currentPage);
     });
 
@@ -34,6 +32,6 @@ function writeOnChatHistory(userID, message, currentPage) {
     let paragraph = document.createElement('tr');
     $(paragraph).html("\n<th scope=\"row\">"+userID+":</th>\n<td class=\"w-100\">"+message+"</td>\n");
     $(history).append(paragraph)
-    let chatmessage = document.getElementsByName('chatmessage')[currentPage];
+    let chatmessage = document.getElementById('message'+currentPage);
     $(chatmessage).val('');
 }

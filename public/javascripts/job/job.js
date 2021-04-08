@@ -51,7 +51,7 @@ async function initialisePage(job) {
 
     for (let i = 0; i < job.imageSequence.length; i++) {
         try {
-            let element = await createImageElement(job.imageSequence[cPage], cPage);
+            let element = await createImageElement(job.imageSequence[i]);
             imageListElement.append(element);
             cPage += 1;
         } catch (e) {}
@@ -97,11 +97,11 @@ function updateCarouselArrows() {
     }
 }
 
-async function createImageElement(image, jid) {
+async function createImageElement(image) {
     const annotation = await new Annotate(image, "card-img-top", "card-img-top job-image").init();
 
     let imageElement = $(`
-        <div class="carousel-item">
+        <div id="${image._id}" class="carousel-item">
             <div class="card w-50 mx-auto">
                 <div id="job-image"></div>
                 <div class="card-body">
@@ -113,16 +113,16 @@ async function createImageElement(image, jid) {
             <div class="card-text card w-50 mx-auto mt-2 text-box">
                 <div class="overflow-auto d-inline-block">
                     <table class="table table-striped mb-0 w-100">
-                        <tbody id = "chatboxmsg" class="w-100">
+                        <tbody id="chatboxmsg${image._id}" class="w-100">
                         </tbody>
                     </table>
                 </div>
                 <div class="card-footer">
                     <form>
                         <div class="input-group container pt-2">
-                            <input name="chatmessage" type="text" class="form-control" placeholder="Type here">
+                            <input id="message${image._id}" type="text" class="form-control" placeholder="Type here">
                             <div class="input-group-append">
-                                <div onclick="sendChat()" class="btn btn-dark">
+                                <div id="${image._id}" onclick="sendChat(this.id)" class="btn btn-dark">
                                     <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
                                 </div>
                             </div>
@@ -134,8 +134,7 @@ async function createImageElement(image, jid) {
     `);
 
 
-    var chatboxID = imageElement.find("#chatboxmsg");
-    $(chatboxID).attr("id","chatboxmsg"+jid);
+
     imageElement.find('#job-image').replaceWith(annotation.container);
 
     return imageElement;
@@ -149,7 +148,7 @@ function processImageCreationError(data) {
 export async function newImageAdded(data) {
     try {
         await storeNewImage(JOB_ID,data.image);
-        let element = await createImageElement(data.image, cPage);
+        let element = await createImageElement(data.image);
         cPage+=1;
         if (element) {
             $('#image-container').append(element);
