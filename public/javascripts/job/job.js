@@ -133,8 +133,6 @@ async function createImageElement(image) {
         </div>
     `);
 
-
-
     imageElement.find('#job-image').replaceWith(annotation.container);
 
     return imageElement;

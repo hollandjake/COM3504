@@ -29,9 +29,7 @@ export function joinJob(jobID) {
 
 function writeOnChatHistory(userID, message, currentPage) {
     let history = document.getElementById('chatboxmsg'+currentPage);
-    let paragraph = document.createElement('tr');
-    $(paragraph).html("\n<th scope=\"row\">"+userID+":</th>\n<td class=\"w-100\">"+message+"</td>\n");
-    $(history).append(paragraph)
+    $(history).append("<tr><th scope='row'>"+userID+":</th><td class='w-100'>"+message+"</td></tr>")
     let chatmessage = document.getElementById('message'+currentPage);
     $(chatmessage).val('');
 }
