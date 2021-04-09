@@ -9,9 +9,10 @@ $(function () {
 
     job.emit('join', JOB_ID);
     job.on('draw', function (annotationID, e) {
-        //annotationID.startDrawing(e);
-        console.log(annotations[0]);
-
+        let currAnn = annotations.find(item => item._image_id === annotationID);
+        console.log(currAnn);
+        console.log(e);
+        currAnn.startDrawing(e);
     });
 
 })
@@ -52,7 +53,7 @@ export default class Annotate {
         this._draw = draw;
         this._imageElement = imageElement;
         this._nativeResolution = imageSize;
-        //this._image_id = imageID;
+        this._image_id = imageID;
         this._renderResolution = null;
         this._is_drawing = false;
         this._my_active_id = null;
@@ -95,7 +96,8 @@ export default class Annotate {
                 this.eventNode.addEventListener('endDrawing', (e) => annotation.onNetworkEvent(e));
                 this.eventNode.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
                  */
-                node.addEventListener('mousedown', (e) => job.emit('draw', this._renderResolution, e, JOB_ID));
+                node.addEventListener('mousedown', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID));
+                node.addEventListener('mousedown', (e) => console.log(e));
                 node.addEventListener('mouseup', (e) => annotation.endDrawing(e));
                 node.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
                 node.addEventListener('mousemove', (e) => annotation.onDrag(e));
