@@ -5,8 +5,6 @@ import {getPID, storeNewImage, storeJob, getJob} from "../databases/indexedDB.js
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
 
-let cPage = 0;
-
 $(async function () {
     let jobLocal = await getJob(JOB_ID);
     if (jobLocal) {
@@ -53,7 +51,6 @@ async function initialisePage(job) {
         try {
             let element = await createImageElement(job.imageSequence[i]);
             imageListElement.append(element);
-            cPage += 1;
         } catch (e) {}
     }
 
@@ -146,7 +143,6 @@ export async function newImageAdded(data) {
     try {
         await storeNewImage(JOB_ID,data.image);
         let element = await createImageElement(data.image);
-        cPage+=1;
         if (element) {
             $('#image-container').append(element);
             updateCarouselArrows();
