@@ -10,10 +10,8 @@ exports.init = function(io) {
       await addChat(imageId, chatObj);
       socket.emit('chat', imageId, chatObj);
     });
-    socket.on('draw', function(annotationID, e, jobID) {
-      console.log("found");
-      console.log(annotationID);
-      io.of('/job').to(jobID).emit('draw', annotationID, e);
+    socket.on('draw', function(annotationID, e, jobID, funcName) {
+      io.of('/job').to(jobID).emit('draw', annotationID, e, funcName);
     });
   });
 }
