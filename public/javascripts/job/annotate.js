@@ -8,11 +8,26 @@ $(function () {
 
 
     job.emit('join', JOB_ID);
-    job.on('draw', function (annotationID, e) {
+    job.on('draw', function (annotationID, e, funcName) {
         let currAnn = annotations.find(item => item._image_id === annotationID);
-        console.log(currAnn);
-        console.log(e);
-        currAnn.startDrawing(e);
+        switch (funcName) {
+            case "startDrawing":
+                currAnn.startDrawing(e);
+                break;
+            case "endDrawing":
+                currAnn.endDrawing(e);
+                break;
+            case "onDrag":
+                currAnn.onDrag(e);
+                break;
+            case "updateSize":
+                currAnn.updateSize();
+                break;
+            case "networkEvent":
+                //console.log(e);
+                currAnn.onNetworkEvent(e);
+                break;
+        }
     });
 
 })
@@ -83,55 +98,32 @@ export default class Annotate {
     initEvents() {
         const annotation = this;
         let node = this._draw.node;
-        if (annotation._tracker == 0) {
-            try {
-                console.log("yeah");
-                /*
-                node.addEventListener('mousedown', (e) => annotation.startDrawing(e));
-                node.addEventListener('mouseup', (e) => annotation.endDrawing(e));
-                node.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
-                node.addEventListener('mousemove', (e) => annotation.onDrag(e));
-                node.addEventListener('resize', (e) => annotation.updateSize());
-                this.eventNode.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
-                this.eventNode.addEventListener('endDrawing', (e) => annotation.onNetworkEvent(e));
-                this.eventNode.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
-                 */
-                node.addEventListener('mousedown', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID));
-                node.addEventListener('mousedown', (e) => console.log(e));
-                node.addEventListener('mouseup', (e) => annotation.endDrawing(e));
-                node.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
-                node.addEventListener('mousemove', (e) => annotation.onDrag(e));
-                node.addEventListener('resize', (e) => annotation.updateSize());
-                this.eventNode.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
-                this.eventNode.addEventListener('endDrawing', (e) => annotation.onNetworkEvent(e));
-                this.eventNode.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
-
-            } catch (e) {
-                console.log(e);
-            }
-            annotation._tracker += 1;
+        try {
+            /*
+            node.addEventListener('mousedown', (e) => annotation.startDrawing(e));
+            node.addEventListener('mouseup', (e) => annotation.endDrawing(e));
+            node.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
+            node.addEventListener('mousemove', (e) => annotation.onDrag(e));
+            node.addEventListener('resize', (e) => annotation.updateSize());
+            this.eventNode.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
+            this.eventNode.addEventListener('endDrawing', (e) => annotation.onNetworkEvent(e));
+            this.eventNode.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
+             */
+            node.addEventListener('mousedown', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'startDrawing'));
+            node.addEventListener('mouseup', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'endDrawing'));
+            node.addEventListener('mouseleave', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'endDrawing'));
+            node.addEventListener('mousemove', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'onDrag'));
+            node.addEventListener('resize', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'updateSize'));
+            this.eventNode.addEventListener('startDrawing', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent'));
+            this.eventNode.addEventListener('endDrawing', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent'));
+            this.eventNode.addEventListener('onDraw', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent'));
+        } catch (e) {
+            console.log(e);
         }
     }
 
     startDrawing(e) {
-        if (!this._is_drawing) {
-            this._is_drawing = true;
-            const point = this.getPoint(e);
-            let initialPoint = [[point.x, point.y]];
-            this._my_active_id = Annotate.generateUID();
-
-            this.eventNode.dispatchEvent(new CustomEvent('startDrawing', {
-                detail: {
-                    type: 'start',
-                    id: this._my_active_id,
-                    data: initialPoint,
-                    color: "#FF0000"
-                }
-            }));
-        }
-    }
-
-    startDrawing(e) {
+        console.log("internal start");
         if (!this._is_drawing) {
             this._is_drawing = true;
             const point = this.getPoint(e);
@@ -150,6 +142,7 @@ export default class Annotate {
     }
 
     endDrawing(e) {
+        console.log("internal end");
         if (this._is_drawing) {
             this._is_drawing = false;
             this.eventNode.dispatchEvent(new CustomEvent('endDrawing', {
