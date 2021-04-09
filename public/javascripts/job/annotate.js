@@ -1,4 +1,21 @@
 import {loadImage} from "../components/preloadImage.js";
+import {annotations} from "./job.js";
+const job = io.connect('/job');
+
+
+
+$(function () {
+
+
+    job.emit('join', JOB_ID);
+    job.on('draw', function (annotationID, e) {
+        //annotationID.startDrawing(e);
+        console.log(annotations[0]);
+
+    });
+
+})
+
 
 export default class Annotate {
     constructor(image, imageClasses, containerClasses) {
@@ -30,15 +47,17 @@ export default class Annotate {
     }
 
     async init() {
-        const [container, draw, imageElement, imageSize] = await this.createCanvas(this._image, this._imageClasses, this._containerClasses);
+        const [container, draw, imageElement, imageSize, imageID] = await this.createCanvas(this._image, this._imageClasses, this._containerClasses);
         this._container = container;
         this._draw = draw;
         this._imageElement = imageElement;
         this._nativeResolution = imageSize;
+        //this._image_id = imageID;
         this._renderResolution = null;
         this._is_drawing = false;
         this._my_active_id = null;
         this._network_elements = {};
+        this._tracker = 0;
         this.initEvents();
         return this;
     }
@@ -53,26 +72,60 @@ export default class Annotate {
         let height = imageObject.height;
         let draw = SVG(annotationNode).viewbox(0, 0, width, height);
         let imageElement = draw.image(image.imageUrl);
+        let imageID = image._id;
 
         annotationContainer.append(draw.node);
 
-        return [annotationContainer, draw, imageElement, {width: width, height: height}];
+        return [annotationContainer, draw, imageElement, {width: width, height: height}, imageID];
     }
 
     initEvents() {
         const annotation = this;
         let node = this._draw.node;
-        try {
-            node.addEventListener('mousedown', (e) => annotation.startDrawing(e));
-            node.addEventListener('mouseup', (e) => annotation.endDrawing(e));
-            node.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
-            node.addEventListener('mousemove', (e) => annotation.onDrag(e));
-            node.addEventListener('resize', (e) => annotation.updateSize());
-            this.eventNode.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
-            this.eventNode.addEventListener('endDrawing', (e) => annotation.onNetworkEvent(e));
-            this.eventNode.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
-        } catch (e) {
-            console.log(e);
+        if (annotation._tracker == 0) {
+            try {
+                console.log("yeah");
+                /*
+                node.addEventListener('mousedown', (e) => annotation.startDrawing(e));
+                node.addEventListener('mouseup', (e) => annotation.endDrawing(e));
+                node.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
+                node.addEventListener('mousemove', (e) => annotation.onDrag(e));
+                node.addEventListener('resize', (e) => annotation.updateSize());
+                this.eventNode.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
+                this.eventNode.addEventListener('endDrawing', (e) => annotation.onNetworkEvent(e));
+                this.eventNode.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
+                 */
+                node.addEventListener('mousedown', (e) => job.emit('draw', this._renderResolution, e, JOB_ID));
+                node.addEventListener('mouseup', (e) => annotation.endDrawing(e));
+                node.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
+                node.addEventListener('mousemove', (e) => annotation.onDrag(e));
+                node.addEventListener('resize', (e) => annotation.updateSize());
+                this.eventNode.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
+                this.eventNode.addEventListener('endDrawing', (e) => annotation.onNetworkEvent(e));
+                this.eventNode.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
+
+            } catch (e) {
+                console.log(e);
+            }
+            annotation._tracker += 1;
+        }
+    }
+
+    startDrawing(e) {
+        if (!this._is_drawing) {
+            this._is_drawing = true;
+            const point = this.getPoint(e);
+            let initialPoint = [[point.x, point.y]];
+            this._my_active_id = Annotate.generateUID();
+
+            this.eventNode.dispatchEvent(new CustomEvent('startDrawing', {
+                detail: {
+                    type: 'start',
+                    id: this._my_active_id,
+                    data: initialPoint,
+                    color: "#FF0000"
+                }
+            }));
         }
     }
 
