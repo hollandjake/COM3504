@@ -15,6 +15,9 @@ $(function () {
     job.on('chat', function (jobID, userID, message, currentPage) {
         writeOnChatHistory(userID, message, currentPage);
     });
+    job.on('draw', function () {
+        console.log("found2");
+    });
 
 })
 

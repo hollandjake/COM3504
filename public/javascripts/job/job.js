@@ -5,6 +5,8 @@ import {getPID, storeNewImage, storeJob, getJob} from "../databases/indexedDB.js
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
 
+export let annotations = [];
+
 $(async function () {
     let jobLocal = await getJob(JOB_ID);
     if (jobLocal) {
@@ -96,6 +98,8 @@ function updateCarouselArrows() {
 
 async function createImageElement(image) {
     const annotation = await new Annotate(image, "card-img-top", "card-img-top job-image").init();
+
+    annotations.push(annotation);
 
     let imageElement = $(`
         <div id="${image._id}" class="carousel-item">

@@ -4,5 +4,10 @@ exports.init = function(io) {
     socket.on('chat', function(jobID, userID, message, currentPage) {
       io.of('/job').to(jobID).emit('chat', jobID, userID, message, currentPage);
     });
+    socket.on('draw', function(annotationID, e, jobID) {
+      console.log("found");
+      console.log(annotationID);
+      io.of('/job').to(jobID).emit('draw', annotationID, e);
+    });
   });
 }
