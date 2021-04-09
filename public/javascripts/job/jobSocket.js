@@ -13,6 +13,7 @@ $(function () {
         await storeChatMessage(JOB_ID, imageId, chatObj);
         writeOnChatHistory(imageId, chatObj);
     });
+
 })
 
 export function sendChat(image_id, message) {
