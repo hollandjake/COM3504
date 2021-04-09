@@ -13,6 +13,9 @@ $(function () {
         await storeChatMessage(JOB_ID, imageId, chatObj);
         writeOnChatHistory(imageId, chatObj);
     });
+    job.on('draw', function () {
+        console.log("found2");
+    });
 
 })
 
