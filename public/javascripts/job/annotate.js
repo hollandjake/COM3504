@@ -25,12 +25,10 @@ $(function () {
                 currAnn.updateSize();
                 break;
             case "networkEvent":
-                //console.log(e);
                 currAnn.onNetworkEvent(e);
                 break;
         }
     });
-
 })
 
 
