@@ -1,5 +1,38 @@
 import {loadImage} from "../components/preloadImage.js";
+import {annotations} from "./job.js";
 import {updateImageWithAnnotations} from "../databases/indexedDB.js";
+const job = io.connect('/job');
+
+
+
+$(function () {
+
+
+    job.emit('join', JOB_ID);
+    job.on('draw', function (annotationID, e, funcName) {
+        let currAnn = annotations.find(item => item._image_id === annotationID);
+        switch (funcName) {
+            case "startDrawing":
+                currAnn.startDrawing(e);
+                break;
+            case "endDrawing":
+                currAnn.endDrawing(e);
+                break;
+            case "onDrag":
+                currAnn.onDrag(e);
+                break;
+            case "updateSize":
+                currAnn.updateSize();
+                break;
+            case "networkEvent":
+                //console.log(e);
+                currAnn.onNetworkEvent(e);
+                break;
+        }
+    });
+
+})
+
 
 export default class Annotate {
     constructor(image, imageClasses, containerClasses) {
@@ -17,11 +50,12 @@ export default class Annotate {
     }
 
     async init() {
-        const [container, canvas, ctx, imageSize] = await this.createCanvas(this._image, this._imageClasses, this._containerClasses);
+        const [container, canvas, ctx, imageSize, imageId] = await this.createCanvas(this._image, this._imageClasses, this._containerClasses);
         this._container = container;
         this._canvas = canvas;
         this._draw = ctx;
         this._nativeResolution = imageSize;
+        this._image_id = imageID;
         this._renderResolution = null;
         this._is_drawing = false;
         this._prevPoint = null;
@@ -69,6 +103,18 @@ export default class Annotate {
     initEvents() {
         const annotation = this;
         try {
+
+            /*
+            node.addEventListener('mousedown', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'startDrawing'));
+            node.addEventListener('mouseup', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'endDrawing'));
+            node.addEventListener('mouseleave', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'endDrawing'));
+            node.addEventListener('mousemove', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'onDrag'));
+            node.addEventListener('resize', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'updateSize'));
+            this.eventNode.addEventListener('startDrawing', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent'));
+            this.eventNode.addEventListener('endDrawing', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent'));
+            this.eventNode.addEventListener('onDraw', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent'));
+             */
+
             this._canvas.addEventListener('mousedown', (e) => annotation.startDrawing(e));
             this._canvas.addEventListener('touchstart', (e) => annotation.startDrawing(e));
             this._canvas.addEventListener('mouseup', (e) => annotation.endDrawing(e));
