@@ -7,6 +7,7 @@
     <script src="/socket.io/socket.io.js"></script>
 
     <script>const JOB_ID = "<%= jobID %>"</script>
+    <script src="/javascripts/job/chat.js"></script>
     <script src="/svgjs/dist/svg.min.js"></script>
     <script src="/javascripts/job/job.js" type="module"></script>
     <script src="/javascripts/job/jobSocket.js" type="module"></script>
@@ -23,16 +24,18 @@
     <div class="carousel-inner" id="image-container"></div>
 
     <!-- Left and right controls -->
-    <a class="left carousel-control-prev" href="#imageCarousel" data-slide="prev">
+    <a onclick="prevJob()" class="left carousel-control-prev" href="#imageCarousel" data-slide="prev">
         <span class="carousel-control-prev-icon"></span>
     </a>
-    <a class="right carousel-control-next" href="#imageCarousel" data-slide="next">
+    <a onclick="nextJob()" class="right carousel-control-next" href="#imageCarousel" data-slide="next">
         <span class="carousel-control-next-icon"></span>
     </a>
     <div class="add carousel-control-next" data-toggle="modal" data-target="#addImage">
         <svg xmlns="http://www.w3.org/2000/svg" height="50" viewBox="0 0 24 24" width="50"><path d="M0 0h24v24H0z" fill="none"/><path fill="#343a40" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
     </div>
 </div>
+
+
 
 <!-- Modal -->
 <%- include('components/modalForm', {addingJob: false, ID: 'addImage', title: 'Add an Image', submitText: 'Add Image'}); %>
