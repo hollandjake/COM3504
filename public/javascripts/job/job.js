@@ -96,12 +96,10 @@ function updateCarouselArrows() {
     }
 }
 
-let i = 1;
 
 async function createImageElement(image) {
     const annotation = await new Annotate(image, "card-img-top", "card-img-top job-image").init();
 
-    i+=1;
     annotations.push(annotation);
 
     let imageElement = $(`

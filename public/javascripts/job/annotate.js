@@ -71,7 +71,6 @@ export default class Annotate {
         this._is_drawing = false;
         this._my_active_id = null;
         this._network_elements = {};
-        this._tracker = 0;
         this.initEvents();
         return this;
     }

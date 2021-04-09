@@ -15,6 +15,7 @@ $(function () {
     job.on('chat', function (jobID, userID, message, currentPage) {
         writeOnChatHistory(userID, message, currentPage);
     });
+
 })
 
 async function loadName() {
