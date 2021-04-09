@@ -24,12 +24,10 @@ $(function () {
                 currAnn.updateSize();
                 break;
             case "networkEvent":
-                //console.log(e);
                 currAnn.onNetworkEvent(e);
                 break;
         }
     });
-
 })
 
 
@@ -99,16 +97,6 @@ export default class Annotate {
         const annotation = this;
         let node = this._draw.node;
         try {
-            /*
-            node.addEventListener('mousedown', (e) => annotation.startDrawing(e));
-            node.addEventListener('mouseup', (e) => annotation.endDrawing(e));
-            node.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
-            node.addEventListener('mousemove', (e) => annotation.onDrag(e));
-            node.addEventListener('resize', (e) => annotation.updateSize());
-            this.eventNode.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
-            this.eventNode.addEventListener('endDrawing', (e) => annotation.onNetworkEvent(e));
-            this.eventNode.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
-             */
             node.addEventListener('mousedown', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'startDrawing'));
             node.addEventListener('mouseup', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'endDrawing'));
             node.addEventListener('mouseleave', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'endDrawing'));
@@ -123,7 +111,6 @@ export default class Annotate {
     }
 
     startDrawing(e) {
-        console.log("internal start");
         if (!this._is_drawing) {
             this._is_drawing = true;
             const point = this.getPoint(e);
@@ -142,7 +129,6 @@ export default class Annotate {
     }
 
     endDrawing(e) {
-        console.log("internal end");
         if (this._is_drawing) {
             this._is_drawing = false;
             this.eventNode.dispatchEvent(new CustomEvent('endDrawing', {
@@ -155,7 +141,7 @@ export default class Annotate {
     }
 
     onDrag(e) {
-        if (this._is_drawing) {
+        if (this._is_drawing && this._network_elements[this._my_active_id]!=null) {
             const point = this.getPoint(e);
             let data = this._network_elements[this._my_active_id].data;
             data.push([point.x, point.y]);
