@@ -16,7 +16,8 @@ const ImageSchema = new mongoose.Schema({
     imageUrl: {
         type: String,
         required: true
-    }
+    },
+    chat: Array
 })
 
 module.exports = mongoose.model('Image', ImageSchema);
