@@ -1,23 +1,21 @@
-import {writeOnChatHistory} from "./job.js";
+import {newImageAdded, writeOnChatHistory} from "./job.js";
 import {storeChatMessage} from "../databases/indexedDB.js";
-const job = io.connect('/job');
 
+const job = io.connect('/job');
 
 // On load
 $(function () {
+    job.emit('join', JOB_ID);
     //Event for when a new image has been added
-    //job.on('newImage', newImageAdded);
-
+    job.on('newImage', newImageAdded);
     job.on('chat', async function (imageId, chatObj) {
         await storeChatMessage(JOB_ID, imageId, chatObj);
         writeOnChatHistory(imageId, chatObj);
     });
-    job.emit('join', JOB_ID);
 })
 
+export function sendChat(image_id, message) {
+    let userID = document.getElementById('nav-name').innerHTML;
 
-
-export function joinJob(jobID) {
-    job.emit('join', jobID);
+    job.emit('chat', JOB_ID, userID, message, image_id);
 }
-
