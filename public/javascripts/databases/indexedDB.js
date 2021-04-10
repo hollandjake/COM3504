@@ -153,6 +153,32 @@ export async function storeNewImage(jobId, image) {
     }
 }
 
+export async function storeChatMessage(jobId, imageId, chatObj) {
+    let job = await getJob(jobId);
+    job.imageSequence.forEach(image => {
+        if (image._id == imageId) {
+            image.chat.push(chatObj);
+        }
+    })
+
+    if (!db) {
+        await initDatabase();
+    }
+    if (db) {
+        try{
+            let tx = await db.transaction(JOBS_STORE_NAME, 'readwrite');
+            let store = await tx.objectStore(JOBS_STORE_NAME);
+            await store.put(job);
+            await  tx.complete;
+        } catch(error) {
+            localStorage.setItem(job.id, JSON.stringify(job));
+        }
+    }
+    else {
+        localStorage.setItem(job.id, JSON.stringify(job));
+    }
+}
+
 /**
  * it retrieves the job
  * @param {String} jobId
