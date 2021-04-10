@@ -1,10 +1,9 @@
 // On load
-import {joinJob} from "./jobSocket.js";
 import {error} from "../components/error.js";
 import {getPID, storeNewImage, storeJob, getJob} from "../databases/indexedDB.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
-import {sendChat} from "./chat.js";
+import {sendChat} from "./jobSocket.js";
 
 $(async function () {
     let jobLocal = await getJob(JOB_ID);
@@ -52,14 +51,11 @@ async function initialisePage(job) {
         try {
             let element = await createImageElement(job.imageSequence[i]);
             imageListElement.append(element);
-            createEventListener(job.imageSequence[i]);
         } catch (e) {}
     }
     $('.carousel-item:first').addClass('active');
     $('#job-title').html(job.name);
     $(document).prop('title', 'Job - '+job.name);
-
-    joinJob(JOB_ID);
 
     //initialise carousel arrows
     updateCarouselArrows();
@@ -158,7 +154,6 @@ export function writeOnChatHistory(imageId, chatObj) {
     $(history).append("<tr><th scope='row'>"+chatObj.sender+":</th><td class='w-100'>"+chatObj.message+"</td></tr>")
 }
 
-
 function processImageCreationError(data) {
     $("#addImage").append(error(data.error));
 }
@@ -171,7 +166,6 @@ export async function newImageAdded(data) {
         if (element) {
             $('#image-container').append(element);
             updateCarouselArrows();
-            createEventListener(data.image);
         }
         if (data.image.creator === await getPID('name')) {
             $('#addImage').modal('hide').trigger("reset");
