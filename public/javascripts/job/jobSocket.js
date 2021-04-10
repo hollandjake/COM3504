@@ -9,8 +9,6 @@ $(function () {
     //Event for when a new image has been added
     job.on('newImage', newImageAdded)
 
-    loadName();
-
     joinJob(parseInt(JOB_ID));
     job.on('chat', function (jobID, userID, message, currentPage) {
         writeOnChatHistory(userID, message, currentPage);

@@ -51,9 +51,9 @@ async function initialisePage(job) {
         try {
             let element = await createImageElement(job.imageSequence[i]);
             imageListElement.append(element);
+            createEventListener(job.imageSequence[i]);
         } catch (e) {}
     }
-
     $('.carousel-item:first').addClass('active');
     $('#job-title').html(job.name);
     $(document).prop('title', 'Job - '+job.name);
@@ -98,7 +98,7 @@ async function createImageElement(image) {
     const annotation = await new Annotate(image, "card-img-top", "card-img-top job-image").init();
 
     let imageElement = $(`
-        <div id="${image._id}" class="carousel-item">
+        <div class="carousel-item">
             <div class="card w-50 mx-auto">
                 <div id="job-image"></div>
                 <div class="card-body">
@@ -116,9 +116,9 @@ async function createImageElement(image) {
                 </div>
                 <div class="card-footer">
                     <div class="input-group container pt-2">
-                        <input id="message${image._id}" type="text" class="form-control" placeholder="Type here" onkeydown="sendEnterChat(this.id.replace('message',''), event)">
+                        <input id="message${image._id}" type="text" class="form-control" placeholder="Type here">
                         <div class="input-group-append">
-                            <div id="${image._id}" onclick="sendChat(this.id)" class="btn btn-dark">
+                            <div id="${image._id}" class="btn btn-dark">
                                 <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
                             </div>
                         </div>
@@ -128,10 +128,21 @@ async function createImageElement(image) {
         </div>
     `);
 
+
     imageElement.find('#job-image').replaceWith(annotation.container);
 
 
     return imageElement;
+}
+
+function createEventListener(image) {
+    $("#"+image._id).on( "click", function() {
+        sendChat(image._id);
+    });
+
+    $("#message"+image._id).on( "keydown", function(e) {
+        sendEnterChat(image._id, e)
+    });
 }
 
 function processImageCreationError(data) {
@@ -146,6 +157,7 @@ export async function newImageAdded(data) {
         if (element) {
             $('#image-container').append(element);
             updateCarouselArrows();
+            createEventListener(data.image);
         }
         if (data.image.creator === await getPID('name')) {
             $('#addImage').modal('hide').trigger("reset");
