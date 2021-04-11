@@ -15,30 +15,18 @@ export default class Annotate {
         return this._draw;
     }
 
-    get eventNode() {
-        return this._draw.node;
-    }
-
-    static generateUID() {
-        // I generate the UID from two parts here
-        // to ensure the random number provide enough bits.
-        let firstPart = (Math.random() * 46656) | 0;
-        let secondPart = (Math.random() * 46656) | 0;
-        firstPart = ("000" + firstPart.toString(36)).slice(-3);
-        secondPart = ("000" + secondPart.toString(36)).slice(-3);
-        return firstPart + secondPart;
-    }
-
     async init() {
-        const [container, draw, imageElement, imageSize] = await this.createCanvas(this._image, this._imageClasses, this._containerClasses);
+        const [container, canvas, ctx, imageSize] = await this.createCanvas(this._image, this._imageClasses, this._containerClasses);
         this._container = container;
-        this._draw = draw;
-        this._imageElement = imageElement;
+        this._canvas = canvas;
+        this._draw = ctx;
         this._nativeResolution = imageSize;
         this._renderResolution = null;
         this._is_drawing = false;
-        this._my_active_id = null;
-        this._network_elements = {};
+        this._prevPoint = null;
+        this._color = "#FF0000";
+        this._size = 10;
+        this._scheduledSave = null;
         this.initEvents();
         return this;
     }
@@ -47,114 +35,131 @@ export default class Annotate {
         const imageObject = await loadImage(image.imageUrl, image.title, imageClasses);
 
         const annotationContainer = $(`<div class="annotation-container ${containerClasses}"></div>`);
-        const annotationNode = annotationContainer.get()[0];
 
         let width = imageObject.width;
         let height = imageObject.height;
-        let draw = SVG(annotationNode).viewbox(0, 0, width, height);
-        let imageElement = draw.image(image.imageUrl);
 
-        annotationContainer.append(draw.node);
+        let canvas = document.createElement("canvas");
+        canvas.classList = imageClasses;
+        let ctx = canvas.getContext('2d');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.style.maxWidth = width + "px";
+        canvas.style.maxHeight = height + "px";
+        imageObject.style.maxWidth = canvas.style.maxWidth;
+        imageObject.style.maxHeight = canvas.style.maxHeight;
 
-        return [annotationContainer, draw, imageElement, {width: width, height: height}];
+        if (image.annotationData) {
+            ctx.drawImage(image.annotationData, 0,0);
+        }
+
+        annotationContainer.append($(imageObject));
+        annotationContainer.append($(canvas));
+
+        return [annotationContainer, canvas, ctx, {width: width, height: height}];
     }
 
     initEvents() {
         const annotation = this;
-        let node = this._draw.node;
         try {
-            node.addEventListener('mousedown', (e) => annotation.startDrawing(e));
-            node.addEventListener('mouseup', (e) => annotation.endDrawing(e));
-            node.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
-            node.addEventListener('mousemove', (e) => annotation.onDrag(e));
-            node.addEventListener('resize', (e) => annotation.updateSize());
-            this.eventNode.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
-            this.eventNode.addEventListener('endDrawing', (e) => annotation.onNetworkEvent(e));
-            this.eventNode.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
+            this._canvas.addEventListener('mousedown', (e) => annotation.startDrawing(e));
+            this._canvas.addEventListener('touchstart', (e) => annotation.startDrawing(e));
+            this._canvas.addEventListener('mouseup', (e) => annotation.endDrawing(e));
+            this._canvas.addEventListener('touchend', (e) => annotation.endDrawing(e));
+            this._canvas.addEventListener('touchcancel', (e) => annotation.endDrawing(e));
+            this._canvas.addEventListener('mouseleave', (e) => annotation.endDrawing(e));
+            this._canvas.addEventListener('mousemove', (e) => annotation.onDrag(e));
+            this._canvas.addEventListener('touchmove', (e) => annotation.onDrag(e));
+            this._canvas.addEventListener('resize', (e) => annotation.updateSize());
+            this._canvas.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
+            this._canvas.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
         } catch (e) {
             console.log(e);
         }
     }
 
     startDrawing(e) {
+        e.preventDefault();
         if (!this._is_drawing) {
             this._is_drawing = true;
             const point = this.getPoint(e);
-            let initialPoint = [[point.x, point.y]];
-            this._my_active_id = Annotate.generateUID();
 
-            this.eventNode.dispatchEvent(new CustomEvent('startDrawing', {
+            this._canvas.dispatchEvent(new CustomEvent('startDrawing', {
                 detail: {
-                    type: 'start',
-                    id: this._my_active_id,
-                    data: initialPoint,
-                    color: "#FF0000"
+                    type: 'point',
+                    pos: point,
+                    fillStyle: this._color,
+                    size: this._size
                 }
             }));
+            this._prevPoint = point;
         }
     }
 
     endDrawing(e) {
+        e.preventDefault();
         if (this._is_drawing) {
             this._is_drawing = false;
-            this.eventNode.dispatchEvent(new CustomEvent('endDrawing', {
-                detail: {
-                    type: 'end',
-                    id: this._my_active_id
-                }
-            }));
+            this._prevPoint = null;
         }
     }
 
     onDrag(e) {
+        e.preventDefault();
         if (this._is_drawing) {
             const point = this.getPoint(e);
-            let data = this._network_elements[this._my_active_id].data;
-            data.push([point.x, point.y]);
-            this.eventNode.dispatchEvent(new CustomEvent('onDraw', {
+            this._canvas.dispatchEvent(new CustomEvent('onDraw', {
                 detail: {
-                    type: 'draw',
-                    id: this._my_active_id,
-                    data: data
+                    type: 'line',
+                    start: this._prevPoint,
+                    end: point,
+                    strokeStyle: this._color,
+                    size: this._size
                 }
             }));
+            this._prevPoint = point;
         }
     }
 
     onNetworkEvent(event) {
-        const type = event.detail.type;
+        event = event.detail;
 
-        if (type === 'end') {
-            this._network_elements[event.detail.id] = null;
-        } else if (type === 'start') {
-            this._network_elements[event.detail.id] = {
-                element: this._draw.polyline(event.detail.data).fill('none').stroke({
-                    width: 10,
-                    color: event.detail.color
-                }),
-                data: event.detail.data
-            };
-            this.onDraw(this._network_elements[event.detail.id]);
-        } else if (type === 'draw') {
-            this._network_elements[event.detail.id].data = event.detail.data;
-            this.onDraw(this._network_elements[event.detail.id]);
+        if (event.type === 'point') {
+            this._draw.fillStyle = event.fillStyle;
+            this._draw.fillRect(event.pos.x, event.pos.y, event.size, event.size);
+        } else if (event.type === 'line') {
+            this._draw.beginPath();
+            this._draw.lineWidth = event.size;
+            this._draw.strokeStyle = event.strokeStyle;
+            this._draw.moveTo(event.start.x,event.start.y);
+            this._draw.lineTo(event.end.x,event.end.y);
+            this._draw.stroke();
         }
-    }
 
-    onDraw(lineData) {
-        lineData.element.plot(lineData.data);
+        if (this._scheduledSave) {
+            clearTimeout(this._scheduledSave);
+            this._scheduledSave = null;
+        }
+        this._scheduledSave = setTimeout(() => {
+            let data = this._canvas.toDataURL();
+            console.log(data);
+            //TODO: save locally (server will have already saved it)
+        }, 1000); //Save after a second of inactivity
     }
 
     getPoint(e) {
         this.updateSize();
+        let pos = {x: e.pageX, y: e.pageY};
+        if (e instanceof TouchEvent) {
+            pos = {x: e.touches[0].pageX, y: e.touches[0].pageY}
+        }
         return {
-            x: (e.pageX - this._renderResolution.left) * (this._nativeResolution.width / this._renderResolution.width),
-            y: (e.pageY - this._renderResolution.top) * (this._nativeResolution.height / this._renderResolution.height)
+            x: (pos.x - this._renderResolution.left) * (this._nativeResolution.width / this._renderResolution.width),
+            y: (pos.y - this._renderResolution.top) * (this._nativeResolution.height / this._renderResolution.height)
         }
     }
 
     updateSize() {
-        let node = this._imageElement.node;
-        this._renderResolution = node.getBoundingClientRect();
+        this._renderResolution = this._canvas.getBoundingClientRect();
     }
 }
