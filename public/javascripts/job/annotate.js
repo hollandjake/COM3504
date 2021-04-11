@@ -135,12 +135,15 @@ export default class Annotate {
             this._draw.fillStyle = event.fillStyle;
             this._draw.fillRect(event.pos.x, event.pos.y, event.size, event.size);
         } else if (event.type === 'line') {
-            this._draw.beginPath();
-            this._draw.lineWidth = event.size;
             this._draw.strokeStyle = event.strokeStyle;
+            this._draw.translate(0.5, 0.5);
+            this._draw.beginPath();
+            this._draw.lineCap = 'round';
+            this._draw.lineWidth = event.size;
             this._draw.moveTo(event.start.x,event.start.y);
             this._draw.lineTo(event.end.x,event.end.y);
             this._draw.stroke();
+            this._draw.translate(-0.5, -0.5);
         }
 
         if (this._scheduledSave) {
