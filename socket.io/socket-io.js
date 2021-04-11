@@ -13,8 +13,5 @@ exports.init = function(io) {
     socket.on('draw', function(annotationID, e, jobID, funcName) {
       io.of('/job').emit('draw', annotationID, e, funcName);
     });
-    socket.on('draw', function(annotationID, e, jobID, funcName) {
-      io.of('/job').to(jobID).emit('draw', annotationID, e, funcName);
-    });
   });
 }
