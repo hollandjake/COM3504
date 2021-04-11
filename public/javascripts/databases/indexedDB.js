@@ -162,7 +162,6 @@ export async function updateImageWithAnnotations(jobId, newImage) {
         }
         return image;
     })
-    job.imageSequence.push(newImage);
 
     if (!db) {
         await initDatabase();

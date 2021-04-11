@@ -1,4 +1,5 @@
 import {loadImage} from "../components/preloadImage.js";
+import {updateImageWithAnnotations} from "../databases/indexedDB.js";
 
 export default class Annotate {
     constructor(image, imageClasses, containerClasses) {
@@ -50,11 +51,17 @@ export default class Annotate {
         imageObject.style.maxHeight = canvas.style.maxHeight;
 
         if (image.annotationData) {
-            ctx.drawImage(image.annotationData, 0,0);
+            let imageDOM = new Image();
+            imageDOM.onload = function () {
+                ctx.drawImage(imageDOM, 0,0);
+                annotationContainer.append($(imageObject));
+                annotationContainer.append($(canvas));
+            }
+            imageDOM.src = image.annotationData;
+        } else {
+            annotationContainer.append($(imageObject));
+            annotationContainer.append($(canvas));
         }
-
-        annotationContainer.append($(imageObject));
-        annotationContainer.append($(canvas));
 
         return [annotationContainer, canvas, ctx, {width: width, height: height}];
     }
@@ -143,7 +150,8 @@ export default class Annotate {
         this._scheduledSave = setTimeout(() => {
             let data = this._canvas.toDataURL();
             console.log(data);
-            //TODO: save locally (server will have already saved it)
+            this._image.annotationData = data;
+            updateImageWithAnnotations(JOB_ID, this._image);
         }, 1000); //Save after a second of inactivity
     }
 
