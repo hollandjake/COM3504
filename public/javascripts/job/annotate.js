@@ -152,7 +152,6 @@ export default class Annotate {
         }
         this._scheduledSave = setTimeout(() => {
             let data = this._canvas.toDataURL();
-            console.log(data);
             this._image.annotationData = data;
             updateImageWithAnnotations(JOB_ID, this._image);
         }, 1000); //Save after a second of inactivity
