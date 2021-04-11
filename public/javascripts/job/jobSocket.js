@@ -3,6 +3,7 @@ import {storeChatMessage} from "../databases/indexedDB.js";
 
 const job = io.connect('/job');
 
+
 // On load
 $(function () {
     job.emit('join', JOB_ID);
@@ -12,6 +13,7 @@ $(function () {
         await storeChatMessage(JOB_ID, imageId, chatObj);
         writeOnChatHistory(imageId, chatObj);
     });
+
 })
 
 export function sendChat(image_id, message) {

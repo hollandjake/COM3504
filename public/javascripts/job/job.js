@@ -95,8 +95,11 @@ function updateCarouselArrows() {
     }
 }
 
+
 async function createImageElement(image) {
     const annotation = await new Annotate(image, "card-img-top", "card-img-top job-image", image._id).init();
+
+    annotations.push(annotation);
 
     annotations.push(annotation);
 
@@ -142,7 +145,6 @@ async function createImageElement(image) {
     });
 
     chat_submit.removeAttr("id");
-
 
     image.chat.forEach(chatObj => {
         imageElement.find('#chatboxmsg' + image._id).append("<tr><th scope='row'>" + chatObj.sender + ":</th><td class='w-100'>" + chatObj.message + "</td></tr>");
