@@ -1,4 +1,4 @@
-import {newImageAdded, writeOnChatHistory} from "./job.js";
+import {annotations, newImageAdded, writeOnChatHistory} from "./job.js";
 import {storeChatMessage} from "../databases/indexedDB.js";
 
 const job = io.connect('/job');
@@ -12,6 +12,24 @@ $(function () {
     job.on('chat', async function (imageId, chatObj) {
         await storeChatMessage(JOB_ID, imageId, chatObj);
         writeOnChatHistory(imageId, chatObj);
+    });
+    job.on('draw', function (annotationID, currE, funcName, uName) {
+        let currAnn = annotations.find(item => item._image_id === annotationID);
+        let newE = currE;
+        switch (funcName) {
+            case "startDrawing":
+                currAnn.startDrawing(newE);
+                break;
+            case "endDrawing":
+                currAnn.endDrawing(newE);
+                break;
+            case "onDrag":
+                currAnn.onDrag(newE);
+                break;
+            case "updateSize":
+                currAnn.updateSize();
+                break;
+        }
     });
 
 })

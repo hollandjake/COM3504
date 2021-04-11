@@ -10,7 +10,7 @@ exports.init = function(io) {
       await addChat(imageId, chatObj);
       io.of('/job').emit('chat', imageId, chatObj);
     });
-    socket.on('draw', function(annotationID, currE, funcName, uName, e) {
+    socket.on('draw', function(annotationID, currE, funcName, uName) {
       io.of('/job').emit('draw', annotationID, currE, funcName, uName);
     });
   });

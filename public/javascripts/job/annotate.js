@@ -1,32 +1,6 @@
 import {loadImage} from "../components/preloadImage.js";
-import {annotations} from "./job.js";
-import {updateImageWithAnnotations} from "../databases/indexedDB.js";
+import {getPID, updateImageWithAnnotations} from "../databases/indexedDB.js";
 const job = io.connect('/job');
-
-$(function () {
-
-
-    job.emit('join', JOB_ID);
-    job.on('draw', function (annotationID, currE, funcName) {
-        let currAnn = annotations.find(item => item._image_id === annotationID);
-        let newE = currE;
-        switch (funcName) {
-            case "startDrawing":
-                currAnn.startDrawing(newE);
-                break;
-            case "endDrawing":
-                currAnn.endDrawing(newE);
-                break;
-            case "onDrag":
-                currAnn.onDrag(newE);
-                break;
-            case "updateSize":
-                currAnn.updateSize();
-                break;
-        }
-    });
-})
-
 
 export default class Annotate {
     constructor(image, imageClasses, containerClasses, imageId) {
@@ -97,30 +71,15 @@ export default class Annotate {
     initEvents() {
         const annotation = this;
         try {
-
-            /*
-            this._canvas.addEventListener('mousedown', (e) => this.temp(annotation, 'startDrawing', e));
-            this._canvas.addEventListener('touchstart', (e) => this.temp(annotation, 'startDrawing', e));
-            this._canvas.addEventListener('mouseup', (e) => this.temp(annotation, 'endDrawing', e));
-            this._canvas.addEventListener('touchend', (e) => this.temp(annotation, 'endDrawing', e));
-            this._canvas.addEventListener('touchcancel', (e) => this.temp(annotation, 'endDrawing', e));
-            this._canvas.addEventListener('mouseleave', (e) => this.temp(annotation, 'endDrawing', e));
-            this._canvas.addEventListener('mousemove', (e) => annotation.onDrag(e));
-            this._canvas.addEventListener('touchmove', (e) => annotation.onDrag(e));
-            this._canvas.addEventListener('resize', (e) => annotation.updateSize());
-            this._canvas.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
-            this._canvas.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
-            */
-
-            this._canvas.addEventListener('mousedown', (e) => this.temp(annotation, 'startDrawing', e));
-            this._canvas.addEventListener('touchstart', (e) => this.temp(annotation, 'startDrawing', e));
-            this._canvas.addEventListener('mouseup', (e) => this.temp(annotation, 'endDrawing', e));
-            this._canvas.addEventListener('touchend', (e) => this.temp(annotation, 'endDrawing', e));
-            this._canvas.addEventListener('touchcancel', (e) => this.temp(annotation, 'endDrawing', e));
-            this._canvas.addEventListener('mouseleave', (e) => this.temp(annotation, 'endDrawing', e));
-            this._canvas.addEventListener('mousemove', (e) => this.temp(annotation, 'onDrag', e));
-            this._canvas.addEventListener('touchmove', (e) => this.temp(annotation, 'onDrag', e));
-            this._canvas.addEventListener('resize', (e) => this.temp(annotation, 'onDrag', e));
+            this._canvas.addEventListener('mousedown', (e) => this.socketAnot(annotation, 'startDrawing', e));
+            this._canvas.addEventListener('touchstart', (e) => this.socketAnot(annotation, 'startDrawing', e));
+            this._canvas.addEventListener('mouseup', (e) => this.socketAnot(annotation, 'endDrawing', e));
+            this._canvas.addEventListener('touchend', (e) => this.socketAnot(annotation, 'endDrawing', e));
+            this._canvas.addEventListener('touchcancel', (e) => this.socketAnot(annotation, 'endDrawing', e));
+            this._canvas.addEventListener('mouseleave', (e) => this.socketAnot(annotation, 'endDrawing', e));
+            this._canvas.addEventListener('mousemove', (e) => this.socketAnot(annotation, 'onDrag', e));
+            this._canvas.addEventListener('touchmove', (e) => this.socketAnot(annotation, 'onDrag', e));
+            this._canvas.addEventListener('resize', (e) => this.socketAnot(annotation, 'onDrag', e));
             this._canvas.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
             this._canvas.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
         } catch (e) {
@@ -128,9 +87,10 @@ export default class Annotate {
         }
     }
 
-    temp(annotation, funcName, e) {
+    async socketAnot(annotation, funcName, e) {
         e.preventDefault();
-        job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, funcName);
+        let uName = await getPID('name');
+        job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, funcName, uName);
     }
 
     startDrawing(e) {
