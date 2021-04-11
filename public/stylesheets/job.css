@@ -7,9 +7,20 @@
     display: flex;
     justify-content: center;
 }
-.job-image > svg {
+.job-image > * {
     max-height: 500px;
+    max-width: 100%;
 }
+
+.annotation-container img {
+    position: absolute;
+    z-index: 0;
+}
+
+.annotation-container canvas {
+    z-index: 1;
+}
+
 .text-box {
     max-height: 300px;
 }

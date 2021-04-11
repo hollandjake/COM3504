@@ -153,6 +153,34 @@ export async function storeNewImage(jobId, image) {
     }
 }
 
+export async function updateImageWithAnnotations(jobId, newImage) {
+    let job = await getJob(jobId);
+
+    job.imageSequence = job.imageSequence.map(image => {
+        if (image._id === newImage._id) {
+            return newImage;
+        }
+        return image;
+    })
+
+    if (!db) {
+        await initDatabase();
+    }
+    if (db) {
+        try{
+            let tx = await db.transaction(JOBS_STORE_NAME, 'readwrite');
+            let store = await tx.objectStore(JOBS_STORE_NAME);
+            await store.put(job);
+            await  tx.complete;
+        } catch(error) {
+            localStorage.setItem(job.id, JSON.stringify(job));
+        }
+    }
+    else {
+        localStorage.setItem(job.id, JSON.stringify(job));
+    }
+}
+
 export async function storeChatMessage(jobId, imageId, chatObj) {
     let job = await getJob(jobId);
     job.imageSequence.forEach(image => {

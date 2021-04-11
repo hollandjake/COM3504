@@ -1,6 +1,6 @@
 // On load
 import {error} from "../components/error.js";
-import {getPID, storeNewImage, storeJob, getJob} from "../databases/indexedDB.js";
+import {getJob, getPID, storeJob, storeNewImage} from "../databases/indexedDB.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
 import {sendChat} from "./jobSocket.js";
@@ -13,7 +13,7 @@ $(async function () {
 
     $.ajax({
         type: 'get',
-        url: window.location.pathname+'/list',
+        url: window.location.pathname + '/list',
         success: async function (job) {
             //Simple check if the job fetched from mongoDB is newer, this may need changing when annotations/chat is implemented
             if (jobLocal) {
@@ -28,7 +28,7 @@ $(async function () {
         }
     });
 
-    $('#addImage').submit(async function(e) {
+    $('#addImage').submit(async function (e) {
         e.preventDefault();
 
         let inputs = await getModalData($('#addImage'));
@@ -51,11 +51,12 @@ async function initialisePage(job) {
         try {
             let element = await createImageElement(job.imageSequence[i]);
             imageListElement.append(element);
-        } catch (e) {}
+        } catch (e) {
+        }
     }
     $('.carousel-item:first').addClass('active');
     $('#job-title').html(job.name);
-    $(document).prop('title', 'Job - '+job.name);
+    $(document).prop('title', 'Job - ' + job.name);
 
     //initialise carousel arrows
     updateCarouselArrows();
@@ -68,7 +69,7 @@ async function addImage(inputs, jobID) {
         data: inputs,
         processData: false,
         contentType: false,
-        error: function(e) {
+        error: function (e) {
             processImageCreationError(e['responseJSON']);
         }
     })
@@ -77,12 +78,12 @@ async function addImage(inputs, jobID) {
 //Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
 function updateCarouselArrows() {
     let curSlide = $('.carousel-item.active');
-    if(curSlide.is( ':first-child' )) {
+    if (curSlide.is(':first-child')) {
         $('.left').hide();
     } else {
         $('.left').css('display', 'flex');
     }
-    if (curSlide.is( ':last-child' )) {
+    if (curSlide.is(':last-child')) {
         $('.right').hide();
         $('.add').css('display', 'flex');
     } else {
@@ -107,8 +108,7 @@ async function createImageElement(image) {
             <div class="card-text card w-50 mx-auto mt-2 text-box">
                 <div class="overflow-auto d-inline-block">
                     <table class="table table-striped mb-0 w-100">
-                        <tbody id="chatboxmsg${image._id}" class="w-100">
-                        </tbody>
+                        <tbody id="chatboxmsg${image._id}" class="w-100"></tbody>
                     </table>
                 </div>
                 <div class="card-footer">
@@ -140,7 +140,7 @@ async function createImageElement(image) {
 
 
     image.chat.forEach(chatObj => {
-        imageElement.find('#chatboxmsg'+image._id).append("<tr><th scope='row'>"+chatObj.sender+":</th><td class='w-100'>"+chatObj.message+"</td></tr>");
+        imageElement.find('#chatboxmsg' + image._id).append("<tr><th scope='row'>" + chatObj.sender + ":</th><td class='w-100'>" + chatObj.message + "</td></tr>");
     })
 
     imageElement.find('#job-image').replaceWith(annotation.container);
@@ -150,8 +150,8 @@ async function createImageElement(image) {
 }
 
 export function writeOnChatHistory(imageId, chatObj) {
-    let history = $('#chatboxmsg'+imageId);
-    $(history).append("<tr><th scope='row'>"+chatObj.sender+":</th><td class='w-100'>"+chatObj.message+"</td></tr>")
+    let history = $('#chatboxmsg' + imageId);
+    $(history).append("<tr><th scope='row'>" + chatObj.sender + ":</th><td class='w-100'>" + chatObj.message + "</td></tr>")
 }
 
 function processImageCreationError(data) {
@@ -161,7 +161,7 @@ function processImageCreationError(data) {
 //Closes and clears modal form and moves the carousel to the new image
 export async function newImageAdded(data) {
     try {
-        await storeNewImage(JOB_ID,data.image);
+        await storeNewImage(JOB_ID, data.image);
         let element = await createImageElement(data.image);
         if (element) {
             $('#image-container').append(element);
@@ -169,7 +169,7 @@ export async function newImageAdded(data) {
         }
         if (data.image.creator === await getPID('name')) {
             $('#addImage').modal('hide').trigger("reset");
-            $('#imageCarousel').carousel($('#image-container .carousel-item').length-1);
+            $('#imageCarousel').carousel($('#image-container .carousel-item').length - 1);
         }
     } catch (e) {
         processImageCreationError({
