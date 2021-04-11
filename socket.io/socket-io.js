@@ -11,7 +11,6 @@ exports.init = function(io) {
       io.of('/job').emit('chat', imageId, chatObj);
     });
     socket.on('draw', function(annotationID, currE, funcName, uName, e) {
-      console.log(e);
       io.of('/job').emit('draw', annotationID, currE, funcName, uName);
     });
   });
