@@ -8,10 +8,11 @@ $(function () {
 
 
     job.emit('join', JOB_ID);
-    job.on('draw', function (annotationID, e, funcName) {
+    job.on('draw', function (annotationID, e, funcName, uName) {
         let currAnn = annotations.find(item => item._image_id === annotationID);
         switch (funcName) {
             case "startDrawing":
+                console.log(uName)
                 currAnn.startDrawing(e);
                 break;
             case "endDrawing":
@@ -96,14 +97,14 @@ export default class Annotate {
         const annotation = this;
         let node = this._draw.node;
         try {
-            node.addEventListener('mousedown', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'startDrawing'));
-            node.addEventListener('mouseup', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'endDrawing'));
-            node.addEventListener('mouseleave', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'endDrawing'));
-            node.addEventListener('mousemove', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'onDrag'));
-            node.addEventListener('resize', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'updateSize'));
-            this.eventNode.addEventListener('startDrawing', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent'));
-            this.eventNode.addEventListener('endDrawing', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent'));
-            this.eventNode.addEventListener('onDraw', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent'));
+            node.addEventListener('mousedown', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'startDrawing', document.getElementById('nav-name').innerHTML));
+            node.addEventListener('mouseup', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'endDrawing', document.getElementById('nav-name').innerHTML));
+            node.addEventListener('mouseleave', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'endDrawing', document.getElementById('nav-name').innerHTML));
+            node.addEventListener('mousemove', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'onDrag', document.getElementById('nav-name').innerHTML));
+            node.addEventListener('resize', (e) => job.emit('draw', annotation._image_id, {pageX: e.pageX, pageY: e.pageY}, JOB_ID, 'updateSize', document.getElementById('nav-name').innerHTML));
+            this.eventNode.addEventListener('startDrawing', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent', document.getElementById('nav-name').innerHTML));
+            this.eventNode.addEventListener('endDrawing', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent', document.getElementById('nav-name').innerHTML));
+            this.eventNode.addEventListener('onDraw', (e) => job.emit('draw', annotation._image_id, {detail: {type: e.detail.type, data: e.detail.data, id: e.detail.id, color: e.detail.color}}, JOB_ID, 'networkEvent', document.getElementById('nav-name').innerHTML));
         } catch (e) {
             console.log(e);
         }
