@@ -7,6 +7,8 @@ import {sendChat} from "./jobSocket.js";
 
 export let annotations = [];
 
+export let annotations = [];
+
 $(async function () {
     let jobLocal = await getJob(JOB_ID);
     if (jobLocal) {
