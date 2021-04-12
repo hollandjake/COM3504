@@ -2,7 +2,6 @@
     filter: invert(1) grayscale(100);
 }
 .job-image {
-    max-height: 500px;
     object-fit: contain;
     display: flex;
     justify-content: center;
