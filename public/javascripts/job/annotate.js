@@ -1,5 +1,6 @@
 import {loadImage} from "../components/preloadImage.js";
 import {updateImageWithAnnotations} from "../databases/indexedDB.js";
+import {sendAnnotation} from "./jobSocket.js";
 
 export default class Annotate {
     constructor(image, imageClasses, containerClasses) {
@@ -79,9 +80,6 @@ export default class Annotate {
             this._canvas.addEventListener('mousemove', (e) => annotation.onDrag(e));
             this._canvas.addEventListener('touchmove', (e) => annotation.onDrag(e));
             this._canvas.addEventListener('resize', (e) => annotation.updateSize());
-            this._canvas.addEventListener('startDrawing', (e) => annotation.onNetworkEvent(e));
-            this._canvas.addEventListener('endDrawing', (e) => annotation.onNetworkEvent(e));
-            this._canvas.addEventListener('onDraw', (e) => annotation.onNetworkEvent(e));
         } catch (e) {
             console.log(e);
         }
@@ -95,15 +93,13 @@ export default class Annotate {
 
             switch (this._currentTool.type) {
                 case "line":
-                    this._canvas.dispatchEvent(new CustomEvent('startDrawing', {
-                        detail: {
-                            type: this._currentTool.type,
-                            color: this._currentTool.color,
-                            thickness: this._currentTool.thickness,
-                            start: point,
-                            end: point
-                        }
-                    }));
+                    sendAnnotation(this._image._id, {
+                        type: this._currentTool.type,
+                        color: this._currentTool.color,
+                        thickness: this._currentTool.thickness,
+                        start: point,
+                        end: point
+                    })
                     break;
             }
             this._startPoint = point;
@@ -116,28 +112,24 @@ export default class Annotate {
         if (this._is_drawing) {
             switch (this._currentTool.type) {
                 case "arrow":
-                    this._canvas.dispatchEvent(new CustomEvent('endDrawing', {
-                        detail: {
-                            type: this._currentTool.type,
-                            color: this._currentTool.color,
-                            thickness: this._currentTool.thickness,
-                            start: this._startPoint,
-                            end: this.getPoint(e),
-                            headLength: this._currentTool.thickness * 3
-                        }
-                    }));
+                    sendAnnotation(this._image._id, {
+                        type: this._currentTool.type,
+                        color: this._currentTool.color,
+                        thickness: this._currentTool.thickness,
+                        start: this._startPoint,
+                        end: this.getPoint(e),
+                        headLength: this._currentTool.thickness * 3
+                    });
                     break;
                 case "box":
                 case "oval":
-                    this._canvas.dispatchEvent(new CustomEvent('endDrawing', {
-                        detail: {
-                            type: this._currentTool.type,
-                            color: this._currentTool.color,
-                            thickness: this._currentTool.thickness,
-                            start: this._startPoint,
-                            end: this.getPoint(e)
-                        }
-                    }))
+                    sendAnnotation(this._image._id, {
+                        type: this._currentTool.type,
+                        color: this._currentTool.color,
+                        thickness: this._currentTool.thickness,
+                        start: this._startPoint,
+                        end: this.getPoint(e)
+                    })
                     break;
             }
             this._is_drawing = false;
@@ -152,24 +144,20 @@ export default class Annotate {
             const point = this.getPoint(e);
             switch (this._currentTool.type) {
                 case "line":
-                    this._canvas.dispatchEvent(new CustomEvent('onDraw', {
-                        detail: {
-                            type: this._currentTool.type,
-                            color: this._currentTool.color,
-                            thickness: this._currentTool.thickness,
-                            start: this._prevPoint,
-                            end: point
-                        }
-                    }));
+                    sendAnnotation(this._image._id, {
+                        type: this._currentTool.type,
+                        color: this._currentTool.color,
+                        thickness: this._currentTool.thickness,
+                        start: this._prevPoint,
+                        end: point
+                    });
                     break;
             }
             this._prevPoint = point;
         }
     }
 
-    onNetworkEvent(e) {
-        const event = e.detail;
-
+    onNetworkEvent(event) {
         this._draw.translate(0.5, 0.5);
         this._draw.beginPath();
         this._draw.strokeStyle = event.color;

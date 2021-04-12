@@ -32,7 +32,3 @@ exports.parseImage = function(req) {
     }
     return jobImage;
 }
-
-exports.addChat = async function (imageId, chatData) {
-    await Image.findByIdAndUpdate(imageId, {$push: {chat: chatData}});
-}

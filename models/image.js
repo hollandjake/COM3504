@@ -17,8 +17,6 @@ const ImageSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    annotationData: String,
-    chat: Array
 })
 
 module.exports = mongoose.model('Image', ImageSchema);
