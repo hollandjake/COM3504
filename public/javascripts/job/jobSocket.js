@@ -18,7 +18,6 @@ $(function () {
             annotationCanvases[imageId].onNetworkEvent(event);
         }
     });
-
 })
 
 export function addAnnotationCanvas(image_id, obj) {
