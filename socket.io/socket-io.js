@@ -1,14 +1,16 @@
-const {addChat} = require("../controllers/image");
+const {addChat, addAnnotation} = require("../controllers/image");
 
 exports.init = function(io) {
   io.of('/job').on('connection', function(socket) {
     socket.on('join', (jobId) => {
       socket.join(jobId);
     });
-    socket.on('chat', async function(jobId, sender, message, imageId) {
+    socket.on('chat', async function(sender, message, imageId) {
       let chatObj = {sender: sender, message: message};
-      await addChat(imageId, chatObj);
-      socket.emit('chat', imageId, chatObj);
+      io.of('/job').emit('chat', imageId, chatObj);
+    });
+    socket.on('draw', async function(imageId, event) {
+      io.of('/job').emit('draw', imageId, event);
     });
   });
 }

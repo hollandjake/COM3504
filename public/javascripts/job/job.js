@@ -3,30 +3,22 @@ import {error} from "../components/error.js";
 import {getJob, getPID, storeJob, storeNewImage} from "../databases/indexedDB.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
-import {sendChat} from "./jobSocket.js";
+import {addAnnotationCanvas, sendChat} from "./jobSocket.js";
 
 $(async function () {
     let jobLocal = await getJob(JOB_ID);
     if (jobLocal) {
-        await initialisePage(jobLocal);
-    }
-
-    $.ajax({
-        type: 'get',
-        url: window.location.pathname + '/list',
-        success: async function (job) {
-            //Simple check if the job fetched from mongoDB is newer, this may need changing when annotations/chat is implemented
-            if (jobLocal) {
-                if (JSON.stringify(job) !== JSON.stringify(jobLocal)) {
-                    await initialisePage(job);
-                    await storeJob(job);
-                }
-            } else {
-                await initialisePage(job);
+        await initialisePage(jobLocal, true);
+    } else {
+        $.ajax({
+            type: 'get',
+            url: window.location.pathname + '/list',
+            success: async function (job) {
+                await initialisePage(job, true);
                 await storeJob(job);
             }
-        }
-    });
+        });
+    }
 
     $('#addImage').submit(async function (e) {
         e.preventDefault();
@@ -94,6 +86,8 @@ function updateCarouselArrows() {
 
 async function createImageElement(image) {
     const annotation = await new Annotate(image, "card-img-top border-0", "card-img-top job-image border-0").init();
+
+    addAnnotationCanvas(image._id, annotation);
 
     let imageElement = $(`
         <div class="carousel-item">
