@@ -93,15 +93,18 @@ function updateCarouselArrows() {
 }
 
 async function createImageElement(image) {
-    const annotation = await new Annotate(image, "card-img-top", "card-img-top job-image").init();
+    const annotation = await new Annotate(image, "card-img-top border-0", "card-img-top job-image border-0").init();
 
     let imageElement = $(`
         <div class="carousel-item">
             <div class="card w-50 mx-auto">
+                <div class="card-header d-flex justify-content-between align-items-center"></div>
                 <div id="job-image"></div>
-                <div class="card-body">
-                    <h5 class="card-title">${image.title}</h5>
-                    <p class="card-text"> <small class="text-muted">By ${image.creator}</small></p>
+                <div class="card-footer">
+                    <div class="card-title d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">${image.title}</h5>
+                        <small class="text-muted">By ${image.creator}</small>
+                    </div>
                     <p class="card-text">${image.description}</p>
                 </div>
             </div>
@@ -144,6 +147,8 @@ async function createImageElement(image) {
     })
 
     imageElement.find('#job-image').replaceWith(annotation.container);
+
+    annotation.addButtons(imageElement.find('.card-header'));
 
 
     return imageElement;
