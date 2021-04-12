@@ -85,7 +85,7 @@ function updateCarouselArrows() {
 }
 
 async function createImageElement(image) {
-    const annotation = await new Annotate(image, "card-img-top border-0", "card-img-top job-image border-0").init();
+    const annotation = await new Annotate(image, "card-img-top rounded-0", "card-img-top job-image rounded-0").init();
 
     addAnnotationCanvas(image._id, annotation);
 
