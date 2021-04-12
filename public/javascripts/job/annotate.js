@@ -45,10 +45,6 @@ export default class Annotate {
         let ctx = canvas.getContext('2d');
         canvas.width = width;
         canvas.height = height;
-        canvas.style.maxWidth = width + "px";
-        canvas.style.maxHeight = height + "px";
-        imageObject.style.maxWidth = canvas.style.maxWidth;
-        imageObject.style.maxHeight = canvas.style.maxHeight;
 
         if (image.annotationData) {
             let imageDOM = new Image();
