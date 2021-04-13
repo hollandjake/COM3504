@@ -245,11 +245,14 @@ export default class Annotate {
         buttonContainer.children().tooltip();
 
         //Thickness slider
-        $(`<label class="d-flex mb-0"><span>Thickness</span><input type="range" class="form-control-range" min="1" max="20" value="${this._currentTool.thickness}"></label>`).appendTo(controlContainer).on("input change", (e) => {
+        $(`<label class="d-flex mb-0"><span>Thickness</span><input type="range" class="form-control-range ml-1" min="1" max="20" value="${this._currentTool.thickness}"></label>`).appendTo(controlContainer).on("input change", (e) => {
             this._currentTool.thickness = e.target.value;
         });
-        $(`<label class="d-flex mb-0"><span>Color</span><input type="color" value="${this._currentTool.color}"></label>`).appendTo(controlContainer).on("input change", (e) => {
-            this._currentTool.color = e.target.value;
+        $(`<label class="d-flex mb-0"><span>Color</span><span class="input-group-text colorpicker-input-addon circle-colour-picker ml-1"><i></i></span></label>`).appendTo(controlContainer).on("colorpickerChange", (e) => {
+            this._currentTool.color = e.color.toString();
+        }).colorpicker({
+            color: this._currentTool.color,
+            useAlpha: false
         });
     }
 }
