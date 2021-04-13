@@ -46,14 +46,21 @@
                     <div class="card-body">
                         <div data-for="url" class="d-block">
                             <input type="text" class="form-control" data-name="url" placeholder="https://via.placeholder.com/150"/>
+                            <img class="w-100 mt-2 d-none rounded" alt="Image Preview" src="#"/>
+                            <div class="w-100 mt-2 d-none error-box text-center alert alert-danger">
+                                Invalid URL
+                            </div>
                         </div>
                         <div data-for="upload" class="d-none">
                             <input type="file" class="form-control-file" data-name="upload"/>
-                            <img class="upload-preview d-none" alt="Image Preview" src="#"/>
+                            <img class="w-100 mt-2 d-none rounded" alt="Image Preview" src="#"/>
+                            <div class="w-100 mt-2 d-none error-box text-center alert alert-danger">
+                                Invalid File
+                            </div>
                         </div>
                         <div data-for="camera" class="d-none">
-                            <video class="w-100" autoplay playsinline data-name="camera"></video>
-                            <div class="w-100 error-box text-center">
+                            <video class="w-100 rounded" autoplay playsinline data-name="camera"></video>
+                            <div class="w-100 error-box text-center alert alert-danger">
                                 Camera is not available
                             </div>
                         </div>
