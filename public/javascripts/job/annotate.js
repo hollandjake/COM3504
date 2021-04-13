@@ -97,6 +97,15 @@ export default class Annotate {
                         end: point
                     })
                     break;
+                case "eraser":
+                    sendAnnotation(this._image._id, {
+                        type: this._currentTool.type,
+                        color: "rgba(0,0,0,1)",
+                        thickness: this._currentTool.thickness,
+                        start: point,
+                        end: point
+                    })
+                    break;
             }
             this._startPoint = point;
             this._prevPoint = point;
@@ -148,6 +157,15 @@ export default class Annotate {
                         end: point
                     });
                     break;
+                case "eraser":
+                    sendAnnotation(this._image._id, {
+                        type: this._currentTool.type,
+                        color: "rgba(0,0,0,1)",
+                        thickness: this._currentTool.thickness,
+                        start: this._prevPoint,
+                        end: point
+                    });
+                    break;
             }
             this._prevPoint = point;
         }
@@ -158,7 +176,14 @@ export default class Annotate {
         this._draw.beginPath();
         this._draw.strokeStyle = event.color;
         this._draw.lineWidth = event.thickness;
+        this._draw.globalCompositeOperation = 'source-over';
         switch (event.type) {
+            case 'eraser':
+                this._draw.globalCompositeOperation = 'destination-out';
+                this._draw.lineCap = 'round';
+                this._draw.moveTo(event.start.x, event.start.y);
+                this._draw.lineTo(event.end.x, event.end.y);
+                break;
             case 'line':
                 this._draw.lineCap = 'round';
                 this._draw.moveTo(event.start.x, event.start.y);
@@ -179,10 +204,10 @@ export default class Annotate {
                 this._draw.strokeRect(event.start.x, event.start.y, event.end.x - event.start.x, event.end.y - event.start.y);
                 break;
             case "oval":
-                const center = {x: (event.start.x + event.end.x) / 2,y: (event.start.y + event.end.y) / 2};
+                const center = {x: (event.start.x + event.end.x) / 2, y: (event.start.y + event.end.y) / 2};
                 const height = Math.abs(event.start.y - event.end.y);
                 const width = Math.abs(event.start.x - event.end.x);
-                this._draw.ellipse(center.x, center.y, width/2, height/2,0,0, Math.PI * 2);
+                this._draw.ellipse(center.x, center.y, width / 2, height / 2, 0, 0, Math.PI * 2);
                 break;
         }
         this._draw.stroke();
@@ -239,6 +264,11 @@ export default class Annotate {
 
         $(`<label class="btn btn-outline-secondary" data-toggle="tooltip" data-placement="top" title="Oval"><input type="radio" name="canvas-tool" autocomplete="off"><i class="bi bi-circle"></i></label>`).appendTo(buttonContainer).click(() => this._currentTool = {
             type: 'oval',
+            thickness: this._currentTool.thickness,
+        });
+
+        $(`<label class="btn btn-outline-secondary" data-toggle="tooltip" data-placement="top" title="Eraser"><input type="radio" name="canvas-tool" autocomplete="off"><i class="bi bi-eraser"></i></label>`).appendTo(buttonContainer).click(() => this._currentTool = {
+            type: 'eraser',
             thickness: this._currentTool.thickness,
         });
 
