@@ -6,8 +6,19 @@ $(() => {
     const uploadField = $('[data-for="upload"]');
     const cameraField = $('[data-for="camera"]');
     const videoSource = $('[data-for="camera"] video');
+    let activeTool;
 
     let stream;
+
+    $('.modal').on('hidden.bs.modal', async function(e) {
+        if (activeTool === "camera") {
+            killCam(videoSource);
+        }
+    }).on('show.bs.modal', async function(e) {
+        if (activeTool ===  "camera") {
+            radioButtons.filter('[data-type="camera"]').click();
+        }
+    })
 
     radioButtons.click(async function (e) {
         e.preventDefault();
@@ -15,6 +26,7 @@ $(() => {
         $(this).addClass('active');
 
         let imageType = $(this).attr("data-type");
+        activeTool = imageType;
         if (imageType === "url") {
             killCam(videoSource);
             urlField.addClass('d-block').removeClass('d-none');
@@ -82,6 +94,7 @@ $(() => {
         videoElement.hide();
         if (stream) {
             stream.getTracks().forEach(track => track.stop());
+            stream = null;
         }
     }
 })
