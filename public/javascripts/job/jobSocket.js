@@ -20,15 +20,18 @@ $(function () {
     });
 })
 
-export function addAnnotationCanvas(image_id, obj) {
-    annotationCanvases[image_id] = obj;
+export function addAnnotationCanvas(imageId, obj) {
+    annotationCanvases[imageId] = obj;
 }
 
-export function sendChat(image_id, message) {
+export function sendChat(imageId, message) {
     let userID = document.getElementById('nav-name').innerHTML;
-    job.emit('chat', userID, message, image_id);
+    job.emit('chat', userID, message, imageId);
 }
 
-export function sendAnnotation(image_id, event) {
-    job.emit('draw', image_id, event);
+export function sendAnnotation(imageId, event) {
+    //Send straight to emitting client
+    annotationCanvases[imageId].onNetworkEvent(event);
+    //Try sending to server
+    job.emit('draw', imageId, event);
 }

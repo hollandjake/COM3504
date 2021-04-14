@@ -1,5 +1,3 @@
-const {addChat, addAnnotation} = require("../controllers/image");
-
 exports.init = function(io) {
   io.of('/job').on('connection', function(socket) {
     socket.on('join', (jobId) => {
@@ -10,7 +8,7 @@ exports.init = function(io) {
       io.of('/job').emit('chat', imageId, chatObj);
     });
     socket.on('draw', async function(imageId, event) {
-      io.of('/job').emit('draw', imageId, event);
+      socket.broadcast.emit('draw', imageId, event);
     });
   });
 }
