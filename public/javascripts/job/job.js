@@ -136,9 +136,11 @@ async function createImageElement(image) {
     chat_submit.removeAttr("id");
 
 
-    image.chat.forEach(chatObj => {
-        imageElement.find('#chatboxmsg' + image._id).append("<tr><th scope='row'>" + chatObj.sender + ":</th><td class='w-100'>" + chatObj.message + "</td></tr>");
-    })
+    if (image.chat) {
+        image.chat.forEach(chatObj => {
+            imageElement.find(`#chatboxmsg${image._id}`).append(`<tr><th scope='row'>${chatObj.sender}:</th><td class='w-100'>${chatObj.message}</td></tr>`);
+        })
+    }
 
     imageElement.find('#job-image').replaceWith(annotation.container);
 
