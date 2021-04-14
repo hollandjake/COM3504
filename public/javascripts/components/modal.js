@@ -5,14 +5,19 @@ $(() => {
     const urlField = $('[data-for="url"]');
     const uploadField = $('[data-for="upload"]');
     const cameraField = $('[data-for="camera"]');
-    const videoSource = $('[data-for="camera"] video');
-    let activeTool;
+    const cameraPreview = $('[data-for="camera"] video');
+    const cameraPreviewError = $('[data-for="camera"] .error-box');
+    const urlPreview = $('[data-for="url"] img');
+    const urlPreviewError = $('[data-for="url"] .error-box');
+    const uploadPreview = $('[data-for="upload"] img');
+    const uploadPreviewError = $('[data-for="upload"] .error-box');
 
+    let activeTool;
     let stream;
 
     $('.modal').on('hidden.bs.modal', async function(e) {
         if (activeTool === "camera") {
-            killCam(videoSource);
+            killCam(cameraPreview);
         }
     }).on('show.bs.modal', async function(e) {
         if (activeTool ===  "camera") {
@@ -28,30 +33,54 @@ $(() => {
         let imageType = $(this).attr("data-type");
         activeTool = imageType;
         if (imageType === "url") {
-            killCam(videoSource);
+            killCam(cameraPreview);
             urlField.addClass('d-block').removeClass('d-none');
             uploadField.addClass('d-none').removeClass('d-block');
             cameraField.addClass('d-none').removeClass('d-block');
         } else if (imageType === "upload") {
-            killCam(videoSource);
+            killCam(cameraPreview);
             urlField.addClass('d-none').removeClass('d-block');
             uploadField.addClass('d-block').removeClass('d-none');
             cameraField.addClass('d-none').removeClass('d-block');
         } else if (imageType === "camera") {
-            let cameraAvailable = await loadCam(videoSource);
+            let cameraAvailable = await loadCam(cameraPreview);
             urlField.addClass('d-none').removeClass('d-block');
             uploadField.addClass('d-none').removeClass('d-block');
             cameraField.addClass('d-block').removeClass('d-none');
 
             if (cameraAvailable) {
-                $(videoSource).removeClass('d-none');
-                cameraField.find('.error-box').addClass('d-none');
+                cameraPreview.removeClass('d-none');
+                cameraPreviewError.addClass('d-none');
             } else {
-                $(videoSource).addClass('d-none');
-                cameraField.find('.error-box').removeClass('d-none');
+                cameraPreview.addClass('d-none');
+                cameraPreviewError.removeClass('d-none');
             }
         }
     })
+
+    $('.modal [data-name="url"]').on('input change', function (e) {
+        const url = $(e.target).val();
+        urlPreview.on('load', function () {
+            urlPreview.removeClass('d-none');
+            urlPreviewError.addClass('d-none');
+        }).on('error', function () {
+            urlPreview.addClass('d-none');
+            urlPreviewError.removeClass('d-none');
+        });
+        urlPreview.attr('src', url);
+    });
+
+    $('.modal [data-name="upload"]').on('input change', function (e) {
+        const file = URL.createObjectURL($(e.target).prop('files')[0]);
+        uploadPreview.on('load', function () {
+            uploadPreview.removeClass('d-none');
+            uploadPreviewError.addClass('d-none');
+        }).on('error', function () {
+            uploadPreview.addClass('d-none');
+            uploadPreviewError.removeClass('d-none');
+        });
+        uploadPreview.attr('src', file);
+    });
 
     async function loadCam(videoElement) {
         videoElement.hide();

@@ -1,3 +1,7 @@
 .modal [data-for="image-source"] {
     cursor: pointer;
 }
+
+div[data-for] div.error-box {
+    margin-bottom: 0;
+}
