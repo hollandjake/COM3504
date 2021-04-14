@@ -76,6 +76,7 @@ export default class Annotate {
             this._canvas.addEventListener('mousemove', (e) => annotation.onDrag(e));
             this._canvas.addEventListener('touchmove', (e) => annotation.onDrag(e));
             this._canvas.addEventListener('resize', (e) => annotation.updateSize());
+            this._canvas.addEventListener('pointerup', (e) => e.stopImmediatePropagation());
         } catch (e) {
             console.log(e);
         }
@@ -144,7 +145,7 @@ export default class Annotate {
     }
 
     onDrag(e) {
-        e.preventDefault();
+        e.stopImmediatePropagation();
         if (this._is_drawing) {
             const point = this.getPoint(e);
             switch (this._currentTool.type) {
@@ -227,7 +228,7 @@ export default class Annotate {
         this.updateSize();
         let pos = {x: e.pageX, y: e.pageY};
         if (e instanceof TouchEvent) {
-            pos = {x: e.touches[0].pageX, y: e.touches[0].pageY}
+            pos = {x: e.changedTouches[0].pageX, y: e.changedTouches[0].pageY}
         }
         return {
             x: (pos.x - this._renderResolution.left) * (this._nativeResolution.width / this._renderResolution.width),
@@ -275,7 +276,7 @@ export default class Annotate {
         buttonContainer.children().tooltip();
 
         //Thickness slider
-        $(`<label class="d-flex mb-0"><span>Thickness</span><input type="range" class="form-control-range ml-1" min="1" max="20" value="${this._currentTool.thickness}"></label>`).appendTo(controlContainer).on("input change", (e) => {
+        $(`<label class="d-flex mb-0"><span>Thickness</span><input type="range" class="form-control-range ml-1" min="1" max="50" value="${this._currentTool.thickness}"></label>`).appendTo(controlContainer).on("input change", (e) => {
             this._currentTool.thickness = e.target.value;
         });
         $(`<label class="d-flex mb-0"><span>Color</span><span class="input-group-text colorpicker-input-addon circle-colour-picker ml-1"><i></i></span></label>`).appendTo(controlContainer).on("colorpickerChange", (e) => {
