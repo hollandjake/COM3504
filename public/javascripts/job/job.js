@@ -43,16 +43,13 @@ async function initialisePage(job) {
 
     imageListElement.empty();
 
-    let element, onRender;
     for (let i = 0; i < job.imageSequence.length; i++) {
         try {
-            [element, onRender] = await createImageElement(job.imageSequence[i]);
+            let element = await createImageElement(job.imageSequence[i]);
             imageListElement.append(element);
-        } catch (e) {
-        }
+        } catch (ignored) {}
     }
     $('.carousel-item:first').addClass('active');
-    onRender();
     $('#job-title').html(job.name);
     $(document).prop('title', 'Job - ' + job.name);
 
@@ -161,10 +158,13 @@ async function createImageElement(image) {
 
     annotation.addButtons(imageElement.find('.card-header'));
 
-    return [imageElement, () => {
-        let container = chats[image._id].container;
-        container.scrollTop(container.prop('scrollHeight'));
-    }];
+    new MutationObserver(() => {
+        if (imageElement.hasClass('active')) {
+            chatContainer.scrollTop(chatContainer.prop('scrollHeight'));
+        }
+    }).observe(imageElement.get(0), {attributeFilter: ['class'], attributeOldValue: true});
+
+    return imageElement;
 }
 
 export function newChatMessage(imageId, chatObj) {
@@ -201,10 +201,9 @@ function processImageCreationError(data) {
 export async function newImageAdded(data) {
     try {
         await storeNewImage(JOB_ID, data.image);
-        let [element, onRender] = await createImageElement(data.image);
+        let element = await createImageElement(data.image);
         if (element) {
             $('#image-container').append(element);
-            onRender();
             updateCarouselArrows();
         }
         if (data.image.creator === await getPID('name')) {
