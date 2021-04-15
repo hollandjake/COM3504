@@ -184,7 +184,10 @@ export async function updateImageWithAnnotations(jobId, newImage) {
 export async function storeChatMessage(jobId, imageId, chatObj) {
     let job = await getJob(jobId);
     job.imageSequence.forEach(image => {
-        if (image._id == imageId) {
+        if (image._id === imageId) {
+            if (!image.chat) {
+                image.chat = [];
+            }
             image.chat.push(chatObj);
         }
     })
