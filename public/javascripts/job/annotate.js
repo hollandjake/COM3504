@@ -226,13 +226,12 @@ export default class Annotate {
 
     getPoint(e) {
         this.updateSize();
-        let pos = {x: e.pageX, y: e.pageY};
         if (e instanceof TouchEvent) {
-            pos = {x: e.changedTouches[0].pageX, y: e.changedTouches[0].pageY}
+            e = e.changedTouches[0];
         }
         return {
-            x: (pos.x - this._renderResolution.left) * (this._nativeResolution.width / this._renderResolution.width),
-            y: (pos.y - this._renderResolution.top) * (this._nativeResolution.height / this._renderResolution.height)
+            x: (e.clientX - this._renderResolution.left) * (this._nativeResolution.width / this._renderResolution.width),
+            y: (e.clientY - this._renderResolution.top) * (this._nativeResolution.height / this._renderResolution.height)
         }
     }
 
