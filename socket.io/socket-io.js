@@ -4,8 +4,10 @@ exports.init = function(io) {
       socket.join(jobId);
     });
     socket.on('chat', async function(sender, message, imageId) {
-      let chatObj = {sender: sender, message: message};
-      io.of('/job').emit('chat', imageId, chatObj);
+      if (message.length > 0) {
+        let chatObj = {sender: sender, message: message};
+        io.of('/job').emit('chat', imageId, chatObj);
+      }
     });
     socket.on('draw', async function(imageId, event) {
       socket.broadcast.emit('draw', imageId, event);
