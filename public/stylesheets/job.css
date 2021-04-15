@@ -1,12 +1,14 @@
 .carousel-control-next-icon, .carousel-control-prev-icon {
     filter: invert(1) grayscale(100);
 }
+
 .job-image {
     max-height: 500px;
     object-fit: contain;
     display: flex;
     justify-content: center;
 }
+
 .job-image > * {
     max-height: 500px;
     max-width: 100%;
@@ -22,15 +24,65 @@
     z-index: 1;
 }
 
-.text-box {
-    max-height: 300px;
-}
-.chat-box {
-    table-layout: fixed;
-}
+/* Carousel markers */
 .left, .right, .add {
     display: none;
 }
+
 .add {
     cursor: pointer;
+}
+
+/* Chat UI */
+.chat-container {
+    list-style: none;
+    margin-bottom: 0;
+    max-height: 20em;
+    overflow-y: scroll;
+}
+
+.chat-container > * {
+    margin-bottom: 0.25em;
+    display: block;
+}
+
+.chat-container > .same-sender .message-sender {
+    display: none;
+}
+
+.chat-container .message-text {
+    display: inline-block;
+    padding: 7px 12px 8px;
+    border-radius: 18px;
+    color: inherit;
+    background: inherit;
+    max-width: 75%;
+    word-wrap: break-word;
+    overflow-x: hidden;
+}
+
+.chat-container .message-sender {
+    display: block;
+    font-size: 0.6em;
+    text-align: inherit;
+    padding-left: 18px;
+    padding-right: 18px;
+    color: #ccc;
+}
+
+.chat-container .message-left {
+    text-align: left;
+}
+.chat-container .message-right {
+    text-align: right;
+}
+
+.chat-container .message-left .message-text {
+    color: #000;
+    background: rgb(228, 230, 235);
+}
+
+.chat-container .message-right .message-text {
+    color: #fff;
+    background: rgb(0, 153, 255);
 }

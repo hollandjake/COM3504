@@ -1,4 +1,4 @@
-import {newImageAdded, writeOnChatHistory} from "./job.js";
+import {newImageAdded, newChatMessage} from "./job.js";
 import {storeChatMessage} from "../databases/indexedDB.js";
 
 const job = io.connect('/job');
@@ -11,7 +11,7 @@ $(function () {
     job.on('newImage', newImageAdded);
     job.on('chat', async function (imageId, chatObj) {
         await storeChatMessage(JOB_ID, imageId, chatObj);
-        writeOnChatHistory(imageId, chatObj);
+        newChatMessage(imageId, chatObj);
     });
     job.on('draw', async function (imageId, event) {
         if (imageId in annotationCanvases) {
