@@ -153,14 +153,13 @@ export async function storeNewImage(jobId, image) {
     }
 }
 
-export async function updateImageWithAnnotations(jobId, newImage) {
+export async function updateImageWithAnnotations(jobId, imageId, annotationData) {
     let job = await getJob(jobId);
 
-    job.imageSequence = job.imageSequence.map(image => {
-        if (image._id === newImage._id) {
-            return newImage;
+    job.imageSequence.forEach(image => {
+        if (image._id === imageId) {
+            image.annotationData = annotationData;
         }
-        return image;
     })
 
     if (!db) {
