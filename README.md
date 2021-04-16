@@ -1,7 +1,10 @@
 # Team "; DROP TABLE grades; --"
 COM3504 Web assignment [GitHub](https://github.com/hollandjake/COM3504)
 
-## MongoDB startup
+## MongoDB startup (Optional)
+
+If you want to seed the database with test jobs and images
+
 ### Tear down db
 ```shell
 npm run-script rollbackDb
