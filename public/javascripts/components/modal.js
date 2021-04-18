@@ -153,10 +153,10 @@ export async function getModalData(modal, extraFields = {}) {
         let videoElement = modal.find('[data-name="camera"]').get()[0];
 
         const canvas = document.createElement("canvas");
-        canvas.width = videoElement.videoWidth;
-        canvas.height = videoElement.videoHeight;
+        canvas.width = Math.min(720, videoElement.videoWidth);
+        canvas.height = videoElement.videoHeight * canvas.width / videoElement.videoWidth;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(videoElement, 0, 0);
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
 
         finalData['image_type'] = 'camera';
         finalData['image_source'] = canvas.toDataURL('image/png');
