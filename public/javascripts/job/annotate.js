@@ -247,6 +247,7 @@ export default class Annotate {
             this._currentTool = {
                 type: 'line',
                 thickness: this._currentTool.thickness,
+                color: this._currentTool.color,
             };
         }).click();
 
@@ -254,22 +255,26 @@ export default class Annotate {
             this._currentTool = {
                 type: 'box',
                 thickness: this._currentTool.thickness,
+                color: this._currentTool.color,
             };
         });
 
         $(`<label class="btn btn-outline-secondary" data-toggle="tooltip" data-placement="top" title="Arrow"><input type="radio" name="canvas-tool" autocomplete="off"><i class="bi bi-arrow-right"></i></label>`).appendTo(buttonContainer).click(() => this._currentTool = {
             type: 'arrow',
             thickness: this._currentTool.thickness,
+            color: this._currentTool.color,
         });
 
         $(`<label class="btn btn-outline-secondary" data-toggle="tooltip" data-placement="top" title="Oval"><input type="radio" name="canvas-tool" autocomplete="off"><i class="bi bi-circle"></i></label>`).appendTo(buttonContainer).click(() => this._currentTool = {
             type: 'oval',
             thickness: this._currentTool.thickness,
+            color: this._currentTool.color,
         });
 
         $(`<label class="btn btn-outline-secondary" data-toggle="tooltip" data-placement="top" title="Eraser"><input type="radio" name="canvas-tool" autocomplete="off"><i class="bi bi-eraser"></i></label>`).appendTo(buttonContainer).click(() => this._currentTool = {
             type: 'eraser',
             thickness: this._currentTool.thickness,
+            color: this._currentTool.color,
         });
 
         buttonContainer.children().tooltip();
