@@ -9,6 +9,9 @@ exports.init = function(io) {
         io.of('/job').emit('chat', imageId, chatObj);
       }
     });
+    socket.on('writingMessage', async function(imageId, sender) {
+      socket.broadcast.emit('writingMessage', imageId, sender);
+    });
     socket.on('draw', async function(imageId, event) {
       socket.broadcast.emit('draw', imageId, event);
     });

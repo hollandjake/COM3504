@@ -3,10 +3,12 @@ import {error} from "../components/error.js";
 import {getJob, getPID, storeJob, storeNewImage} from "../databases/indexedDB.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
-import {addAnnotationCanvas, sendChat} from "./jobSocket.js";
+import {addAnnotationCanvas, sendChat, sendWritingMessage} from "./jobSocket.js";
 
 let myself = "";
 let chats = {};
+let whoIsWriting = new Map();
+let writingTimeouts = new Map();
 
 $(async function () {
     myself = await getPID("name");
@@ -123,7 +125,7 @@ async function createImageElement(image) {
                         </ul>
                     </div>
                     <form class="chat-submit input-group pt-2">
-                        <input name="message" type="text" class="form-control" placeholder="Type here">
+                        <input name="message" type="text" class="form-control chat-input" placeholder="Type here">
                         <div class="input-group-append">
                             <button type="submit" class="btn btn-dark">
                                 <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
@@ -135,11 +137,16 @@ async function createImageElement(image) {
         </div>
     `);
 
-    let chatButton = imageElement.find('.chat-submit')
+    let chatButton = imageElement.find('.chat-submit');
     chatButton.submit((e) => {
         e.preventDefault();
         sendChat(image._id, chatButton.find("input").val());
         chatButton.find("input").val("");
+    });
+
+    let chatInput = imageElement.find('.chat-input');
+    chatInput.on('input', () => {
+        sendWritingMessage(image._id);
     });
 
     let chatContainer = imageElement.find(".chat-container");
@@ -167,7 +174,34 @@ async function createImageElement(image) {
     return imageElement;
 }
 
-export function newChatMessage(imageId, chatObj) {
+async function removeWritingMessage(imageId, sender) {
+    if (whoIsWriting.has(imageId)) {
+        $("#" + imageId + sender).remove();
+        writingTimeouts.delete(imageId + sender);
+        let senders = whoIsWriting.get(imageId);
+        senders.splice(whoIsWriting.get(imageId).indexOf(sender));
+        whoIsWriting.set(imageId, senders);
+    }
+}
+
+async function writingTimout(imageId, sender) {
+    let timeout = setTimeout(function () {
+        removeWritingMessage(imageId, sender);
+    }, 5000);
+    writingTimeouts.set(imageId+sender, timeout);
+}
+
+async function addMessage(imageChat, messageElement) {
+    let scrollHeight = imageChat.container.prop('scrollHeight');
+    let scrollPos = imageChat.container.scrollTop() + imageChat.container.innerHeight();
+    const autoScroll = scrollHeight - scrollPos <= 0;
+    imageChat.container.append(messageElement);
+    if (autoScroll) {
+        imageChat.container.scrollTop(scrollHeight);
+    }
+}
+
+export async function newChatMessage(imageId, chatObj) {
     if (imageId in chats) {
         const imageChat = chats[imageId];
         let newMessageElement = $(`<li><span class="message-sender">${chatObj.sender}</span><span class="message-text">${chatObj.message}</span></li>`)
@@ -175,21 +209,53 @@ export function newChatMessage(imageId, chatObj) {
             newMessageElement.addClass("message-right");
         } else {
             newMessageElement.addClass("message-left");
+            await removeWritingMessage(imageId, chatObj.sender);
+            clearTimeout(writingTimeouts.get(imageId+chatObj.sender));
         }
 
         if (imageChat.prevMessage && imageChat.prevMessage.sender === chatObj.sender) {
             newMessageElement.addClass("same-sender");
         }
-
-        let scrollHeight = imageChat.container.prop('scrollHeight');
-        let scrollPos = imageChat.container.scrollTop() + imageChat.container.innerHeight();
-        const autoScroll = scrollHeight - scrollPos <= 0;
-        imageChat.container.append(newMessageElement);
-        if (autoScroll) {
-            imageChat.container.scrollTop(scrollHeight);
-        }
+        await addMessage(imageChat, newMessageElement)
         imageChat.prevMessage = chatObj;
         imageChat.prevMessage.element = newMessageElement;
+    }
+}
+
+export async function newWritingMessage(imageId, sender) {
+    if (imageId in chats) {
+        let writingMessage = whoIsWriting.get(imageId);
+        if (!writingMessage || !(writingMessage.includes(sender))) {
+            const imageChat = chats[imageId];
+            let newMessageElement = $(`
+                <li class="message-left" id="${imageId+sender}">
+                    <span class="message-sender">${sender}</span>
+                    <span class="message-text">
+                        <div id="wave">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </span>
+                </li>
+            `);
+
+            await addMessage(imageChat, newMessageElement)
+
+            if (writingMessage) {
+                writingMessage.push(sender);
+            } else {
+                writingMessage = [sender];
+            }
+            whoIsWriting.set(imageId, writingMessage);
+
+            await writingTimout(imageId, sender)
+        } else {
+            if (writingTimeouts.has(imageId+sender)) {
+                clearTimeout(writingTimeouts.get(imageId+sender));
+                await writingTimout(imageId, sender)
+            }
+        }
     }
 }
 
