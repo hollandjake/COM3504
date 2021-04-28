@@ -53,7 +53,7 @@ export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
             let job = await getFromCache(JOBS_STORE_NAME, jobId);
             if (job) {
                 job.imageSequence.push(data);
-                await saveToCache(JOBS_STORE_NAME, jobId, job);
+                await saveToCache(JOBS_STORE_NAME, job._id, job);
             }
             return data;
         },
@@ -74,8 +74,8 @@ export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
                     break;
             }
 
-            imageObj._id = generateTempId();
-            await saveToCache(OFFLINE_IMAGES_STORE_NAME, `${jobId}_${imageObj._id}`);
+            imageObj._id = `${jobId}_${generateTempId()}`;
+            await saveToCache(OFFLINE_IMAGES_STORE_NAME, imageObj._id, imageObj);
 
             return imageObj;
         },
@@ -109,21 +109,25 @@ export function pushingToServer() {
  * @param {json} data
  */
 export function ajaxRequest(type, url, onsuccess, onoffline, onerror, data = null) {
-    $.ajax({
-        url: url,
-        type: type,
-        data: data,
-        processData: false,
-        contentType: false,
-        success: onsuccess,
-        error: (response) => {
-            if (response.status === 0) {
-                onoffline(response);
-            } else {
-                onerror(response);
-            }
-        },
-    })
+    if (navigator.onLine) {
+        $.ajax({
+            url: url,
+            type: type,
+            data: data,
+            processData: false,
+            contentType: false,
+            success: onsuccess,
+            error: (response) => {
+                if (response.status === 0) {
+                    onoffline();
+                } else {
+                    onerror(response);
+                }
+            },
+        })
+    } else {
+        onoffline();
+    }
 }
 
 async function getAllFromCache(storeName) {
@@ -131,7 +135,7 @@ async function getAllFromCache(storeName) {
         storeName,
         'readonly',
         (store) => store.getAll(),
-        () => localStorage.filter(element => element.indexOf(storeName) === 0)
+        () => localStorage.filter(element => element.startsWith(storeName))
     )
 }
 

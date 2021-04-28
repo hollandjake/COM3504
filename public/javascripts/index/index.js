@@ -52,9 +52,8 @@ $(async function () {
                 console.log("success");
                 console.log(data);
             },
-            (data) => {
+            () => {
                 console.log("offline");
-                console.log(data);
             },
             (error) => {
                 console.log("error");
