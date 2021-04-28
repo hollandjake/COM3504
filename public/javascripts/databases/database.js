@@ -63,3 +63,18 @@ export default function pushingToServer() {
     //TODO:     obj = REMOVE OBJ FROM IDB_offline
     //TODO:     AJAX SEND TO SERVER saveImage(jobId, obj, callback)
 }
+
+function ajaxRequest(url, onsuccess, onoffline, onerror, type, data) {
+    $.ajax({
+        url: url,
+        type: type,
+        data: data,
+        processData: false,
+        contentType: false,
+        success: onsuccess,
+        error: onerror,
+        statusCode:{
+            0: onoffline
+        }
+    })
+}
