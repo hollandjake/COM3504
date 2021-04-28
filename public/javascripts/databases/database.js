@@ -117,7 +117,7 @@ export function ajaxRequest(type, url, onsuccess, onoffline, onerror, data = nul
         contentType: false,
         success: onsuccess,
         error: (response) => {
-            if (response.statusCode === 0) {
+            if (response.status === 0) {
                 onoffline(response);
             } else {
                 onerror(response);
