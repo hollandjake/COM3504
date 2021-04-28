@@ -20,7 +20,7 @@ const JobSchema = new mongoose.Schema({
 JobSchema.plugin(AutoIncrement);
 
 JobSchema.virtual('url').get(function () {
-    return "/job/"+this._id;
+    return "/job?id="+this._id;
 })
 
 module.exports = mongoose.model('Job', JobSchema);

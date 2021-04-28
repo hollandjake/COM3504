@@ -8,7 +8,11 @@ const jobController = require("../controllers/job");
 const imageController = require('../controllers/image');
 
 router.get('/list', async function (req, res) {
-    res.send(await jobController.getAll());
+    if ("id" in req.query) {
+        res.send(await jobController.get(req.query['id']));
+    } else {
+        res.send(await jobController.getAll());
+    }
 });
 
 router.post('/create', upload.any(), async function (req, res) {
@@ -42,11 +46,19 @@ router.post('/create', upload.any(), async function (req, res) {
     }
 })
 
-router.get('/:jobId', async function (req, res) {
-    res.render('job', {title: `Job`, jobID: req.params['jobId']});
+router.get('/', async function (req, res) {
+    if ("id" in req.query) {
+        res.render('job', {title: `Job`, jobID: req.query['id']});
+    } else {
+        res.render('job', {title: `Job`, jobID: null});
+    }
 })
 
-router.post('/:jobId/add-image', upload.any(), async function (req, res) {
+router.get('/check-online', async function (req, res) {
+    res.send("good");
+})
+
+router.post('/add-image', upload.any(), async function (req, res) {
     try {
         let jobImage = imageController.parseImage(req);
         if (!jobImage) {
@@ -57,9 +69,8 @@ router.post('/:jobId/add-image', upload.any(), async function (req, res) {
             });
             return;
         }
-        let image = await jobController.addImage(req.params['jobId'],jobImage);
-        // req.socket.broadcast.in(req.params['jobId']).emit('newImage', image);
-        require('../bin/www').io.of('/job').in(req.params['jobId']).emit('newImage', {
+        let image = await jobController.addImage(req.query['id'],jobImage);
+        require('../bin/www').io.of('/job').in(req.query['id']).emit('newImage', {
             status: 200,
             image: image
         });
@@ -74,10 +85,6 @@ router.post('/:jobId/add-image', upload.any(), async function (req, res) {
             image: req.body
         });
     }
-})
-
-router.get('/:jobId/list', async function (req, res) {
-    res.send(await jobController.get(req.params['jobId']));
 })
 
 
