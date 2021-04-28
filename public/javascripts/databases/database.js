@@ -3,55 +3,64 @@ import {db, initDatabase, JOBS_STORE_NAME, OFFLINE_IMAGES_STORE_NAME, OFFLINE_JO
 
 
 export function getJobs(callback) {
-    if (navigator.onLine) {
-        ajaxRequest('/job/list',async (jobsData) => {
-            jobsData = [...jobsData,...await getJobs(true)];
+        ajaxRequest('get', '/job/list',async (jobsData) => {
             jobsData.forEach(job => {
-                storeJob(job);
+                saveToCache(JOBS_STORE_NAME, job._id, job)
             });
+            jobsData = [...jobsData,... await getAllFromCache(OFFLINE_JOBS_STORE_NAME)];
             callback(jobsData);
-        }, (e) => {
+        }, async (e) => {
             console.log("its offline, can't get all jobs");
-        }, (e) => {
+            callback([...await getAllFromCache(JOBS_STORE_NAME),...await getAllFromCache(OFFLINE_JOBS_STORE_NAME)]);
+        }, async () => {
             console.log("there was an error, can't get all jobs");
-        }, 'get', null);
-    } else {
-        callback([...getJobs(),...getJob(jobId, true)]);
-    }
+            callback([...await getAllFromCache(JOBS_STORE_NAME),...await getAllFromCache(OFFLINE_JOBS_STORE_NAME)]);
+        }, null);
 }
 
-export async function getThisJob(jobId, callback) {
-    if (navigator.onLine) {
-        await ajaxRequest(jobId+'/list',async (jobData) => {
-            jobData = [...jobsData,...await getJob(jobId, true)];
-            await storeJob(jobData);
-            callback(jobData);
-        }, (e) => {
-            console.log("its offline, can't get all jobs");
-        }, (e) => {
-            console.log("there was an error, can't get all jobs");
-        }, 'get', null);
-    } else {
-        callback([...await getJobs(),...await getJob(jobId, true)]);
-    }
+export async function getJob(jobId, onsuccess, onerror) {
+    await ajaxRequest('get', '/job/list?id='+jobId,async (jobData) => {
+        if (!jobData) {
+            jobData = getFromCache(OFFLINE_JOBS_STORE_NAME, jobId);
+        } else {
+            await saveToCache(JOBS_STORE_NAME, jobData._id, jobData);
+        }
+        onsuccess(jobData);
+    }, (e) => {
+        console.log("its offline, can't get all jobs");
+        let jobData = getFromCache(JOBS_STORE_NAME, jobId);
+        if (!jobData) {
+            jobData = getFromCache(OFFLINE_JOBS_STORE_NAME, jobId);
+        }
+        onsuccess(jobData);
+    }, (e) => {
+        console.log("there was an error, can't get all jobs");
+        onerror('oof');
+    }, null);
 }
 
-export async function saveJob(job, callback) {
-    if (navigator.onLine) {
-        await ajaxRequest('/job/create',async (data) => {
-            await storeJob(data.job, false);
-            window.location.href = data.job.url;
-        }, (e) => {
-            console.log("its offline, can't get all jobs");
-            callback(e);
-        }, (e) => {
-            console.log("there was an error, can't get all jobs");
-            callback(e);
-        }, 'POST', job);
-    } else {
-        //await storeJob(job, true);
-    }
+export async function saveJob(jobForm, jobData, onerror) {
+    await ajaxRequest('POST', '/job/create',async (data) => {
+        await saveToCache(JOBS_STORE_NAME, data.job._id, data.job);
+        window.location.href = data.job.url;
+    }, (e) => {
+        console.log("its offline, can't get all jobs");
+        jobData._id = generateTempId();
+        let imageObj = generateTempImage (jobData, jobData._id)
+        let jobObj = {
+            _id: jobData._id,
+            name: jobData.name,
+            creator: jobData.creator,
+            imageSequence: [imageObj]
+        }
+        saveToCache(OFFLINE_JOBS_STORE_NAME, jobObj._id, jobObj);
+    }, (e) => {
+        onerror(('responseJSON' in e) ? e['responseJSON'] : {
+            error: "Something went wrong"
+        })
+    }, jobForm);
 }
+
 //TODO: JAKE
 export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
     ajaxRequest(
@@ -63,29 +72,13 @@ export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
                 job.imageSequence.push(data);
                 await saveToCache(JOBS_STORE_NAME, job._id, job);
             }
-            return data;
+            onsuccess(data);
         },
         async () => {
-            let imageObj = {
-                title: imageData['image_title'],
-                creator: imageData['image_creator'],
-                description: imageData['image_description']
-            }
-
-            switch (imageData['image_type']) {
-                case 'upload':
-                    imageObj.imageUrl = `data:image/png;base64,${imageData['image_source'].buffer.toString('base64')}`;
-                    break;
-                case 'camera':
-                case 'url':
-                    imageObj.imageUrl = imageData['image_source'];
-                    break;
-            }
-
-            imageObj._id = `${jobId}_${generateTempId()}`;
+            let imageObj = generateTempImage (imageData, jobId)
             await saveToCache(OFFLINE_IMAGES_STORE_NAME, imageObj._id, imageObj);
 
-            return imageObj;
+            onsuccess(imageObj);
         },
         (e) => {
             onerror(('responseJSON' in e) ? e['responseJSON'] : {
@@ -94,6 +87,27 @@ export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
         },
         imageForm
     )
+}
+
+function generateTempImage (imageData, jobId) {
+    let imageObj = {
+        title: imageData['image_title'],
+        creator: imageData['image_creator'],
+        description: imageData['image_description']
+    }
+
+    switch (imageData['image_type']) {
+        case 'upload':
+            imageObj.imageUrl = `data:image/png;base64,${imageData['image_source'].buffer.toString('base64')}`;
+            break;
+        case 'camera':
+        case 'url':
+            imageObj.imageUrl = imageData['image_source'];
+            break;
+    }
+
+    imageObj._id = `${jobId}_${generateTempId()}`;
+    return imageObj;
 }
 
 //TODO: BILLY
@@ -139,12 +153,20 @@ export function ajaxRequest(type, url, onsuccess, onoffline, onerror, data = nul
 }
 
 async function getAllFromCache(storeName) {
-    return await executeOnCache(
+    let result = [];
+    await executeOnCache(
         storeName,
         'readonly',
-        (store) => store.getAll(),
-        () => localStorage.filter(element => element.startsWith(storeName))
+        (store) => result = store.getAll(),
+        () => {
+            for(let i in Object.keys(localStorage)){
+                if (i.startsWith(storeName)) {
+                    result.push(localStorage.getItem(i));
+                }
+            }
+        }
     )
+    return result;
 }
 
 async function getFromCache(storeName, id) {
