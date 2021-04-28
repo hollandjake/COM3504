@@ -166,5 +166,5 @@ export async function getModalData(modal, extraFields = {}) {
     const formData = new FormData();
     Object.keys(finalData).forEach(key => formData.append(key, finalData[key]));
 
-    return formData;
+    return [formData, finalData];
 }

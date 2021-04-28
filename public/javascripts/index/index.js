@@ -2,6 +2,7 @@ import {loadImage} from "../components/preloadImage.js";
 import {getPID, storeJob} from "../databases/indexedDB.js";
 import {error} from "../components/error.js";
 import {getModalData} from "../components/modal.js";
+import {ajaxRequest} from "../databases/database.js";
 
 // On load
 $(async function () {
@@ -44,11 +45,27 @@ $(async function () {
     $('#addJob').submit(async function (e) {
         e.preventDefault();
 
-        let formData = await getModalData($('#addJob'), {
-            'job_creator': await getPID('name')
-        })
+        ajaxRequest(
+            'get',
+            '/asdasd',
+            (data) => {
+                console.log("success");
+                console.log(data);
+            },
+            (data) => {
+                console.log("offline");
+                console.log(data);
+            },
+            (error) => {
+                console.log("error");
+                console.log(error);
+            })
 
-        createJob(formData);
+        // let formData = await getModalData($('#addJob'), {
+        //     'job_creator': await getPID('name')
+        // })
+        //
+        // createJob(formData);
     })
 
     $("#search-bar").on("keyup", function () {
