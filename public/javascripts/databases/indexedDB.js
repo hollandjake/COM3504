@@ -20,19 +20,15 @@ export async function initDatabase(){
                         keyPath: 'PID'
                     });
                     upgradeDb.createObjectStore(JOBS_STORE_NAME, {
-                        keyPath: 'id'
-                    });
-
-                    upgradeDb.createObjectStore(JOBS_STORE_NAME, {
-                        keyPath: 'id'
+                        keyPath: '_id'
                     });
 
                     upgradeDb.createObjectStore(OFFLINE_JOBS_STORE_NAME, {
-                        keyPath: 'id'
+                        keyPath: '_id'
                     })
 
                     upgradeDb.createObjectStore(OFFLINE_IMAGES_STORE_NAME, {
-                        keyPath: 'jobId'
+                        keyPath: '_id'
                     })
                 }
             }
