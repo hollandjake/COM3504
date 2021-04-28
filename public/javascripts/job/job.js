@@ -1,10 +1,10 @@
 // On load
 import {error} from "../components/error.js";
-import {getJob, getPID, storeJob, storeNewImage} from "../databases/indexedDB.js";
+import {getPID, storeNewImage} from "../databases/indexedDB.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
 import {addAnnotationCanvas, sendChat, sendWritingMessage} from "./jobSocket.js";
-import {saveImage, getThisJob} from "../databases/database.js";
+import {saveImage, getJob} from "../databases/database.js";
 
 let myself = "";
 let chats = {};
@@ -18,7 +18,7 @@ $(async function () {
         JOB_ID = window.location.search.match(/\?id=(\S+)/)[1];
     }
 
-    await getThisJob(JOB_ID, initialisePage);
+    await getJob(JOB_ID, initialisePage, null);
 
     $('#addImage').submit(async function (e) {
         e.preventDefault();

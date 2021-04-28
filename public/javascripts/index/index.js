@@ -1,6 +1,6 @@
 import {loadImage} from "../components/preloadImage.js";
 import {getPID, storeJob} from "../databases/indexedDB.js";
-import {getAllJobs, saveJob} from "../databases/database.js";
+import {getJobs, saveJob} from "../databases/database.js";
 import {error} from "../components/error.js";
 import {getModalData} from "../components/modal.js";
 import {ajaxRequest} from "../databases/database.js";
@@ -8,31 +8,16 @@ import {ajaxRequest} from "../databases/database.js";
 // On load
 $(async function () {
     //Ajax call to get the list of jobs
-    await getAllJobs(addAllJobs);
+    await getJobs(addAllJobs);
 
     $('#addJob').submit(async function (e) {
         e.preventDefault();
 
-        ajaxRequest(
-            'get',
-            '/asdasd',
-            (data) => {
-                console.log("success");
-                console.log(data);
-            },
-            () => {
-                console.log("offline");
-            },
-            (error) => {
-                console.log("error");
-                console.log(error);
-            })
+        let [formData, jobData] = await getModalData($('#addJob'), {
+            'job_creator': await getPID('name')
+        })
 
-        // let formData = await getModalData($('#addJob'), {
-        //     'job_creator': await getPID('name')
-        // })
-        //
-        // createJob(formData);
+        await saveJob(formData, jobData, processJobCreationError);
     })
 
     $("#search-bar").on("keyup", function () {
@@ -63,10 +48,6 @@ export async function createJobElement(job) {
         return element;
     }
     return null;
-}
-
-export async function createJob(formData) {
-    await saveJob(formData, processJobCreationError);
 }
 
 function processJobCreationError(e) {
