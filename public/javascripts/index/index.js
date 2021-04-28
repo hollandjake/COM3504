@@ -1,5 +1,6 @@
 import {loadImage} from "../components/preloadImage.js";
 import {getPID, storeJob} from "../databases/indexedDB.js";
+import {getAllJobs, saveJob} from "../databases/database.js";
 import {error} from "../components/error.js";
 import {getModalData} from "../components/modal.js";
 import {ajaxRequest} from "../databases/database.js";
@@ -7,40 +8,7 @@ import {ajaxRequest} from "../databases/database.js";
 // On load
 $(async function () {
     //Ajax call to get the list of jobs
-    $.ajax({
-        type: 'get',
-        url: '/job/list',
-        success: function (jobsData) {
-            let jobListElement = $('#job-list-container');
-
-            jobListElement.empty(); //Remove the child nodes
-
-            if (!jobsData || jobsData.length === 0) {
-                let element = $(`<div class="card">` +
-                    '<div class="card-body">' +
-                    `<h5 class="card-text mb-0 text-center">No Jobs Available</h5>` +
-                    '</div>' +
-                    '</div>');
-                element.fadeOut(0);
-                jobListElement.removeClass('card-columns');
-                jobListElement.append(element);
-                element.fadeIn(500);
-            } else {
-                jobListElement.addClass('card-columns');
-                jobsData.forEach(async job => {
-                    try {
-                        let element = await createJobElement(job);
-                        if (element) {
-                            element.fadeOut(0);
-                            jobListElement.append(element);
-                            element.fadeIn(500);
-                        }
-                    } catch (e) {
-                    }
-                })
-            }
-        }
-    })
+    await getAllJobs(addAllJobs);
 
     $('#addJob').submit(async function (e) {
         e.preventDefault();
@@ -98,25 +66,42 @@ export async function createJobElement(job) {
     return null;
 }
 
-export function createJob(formData) {
-    //Save image
-
-    $.ajax({
-        type: 'POST',
-        url: '/job/create',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: processJobCreation,
-        error: processJobCreationError
-    })
+export async function createJob(formData) {
+    await saveJob(formData, processJobCreationError);
 }
 
 function processJobCreationError(data) {
     $("#addJob").append(error(data.error));
 }
 
-async function processJobCreation(data) {
-    await storeJob(data.job);
-    window.location.href = data.job.url;
+async function addAllJobs(jobsData) {
+    let jobListElement = $('#job-list-container');
+
+    jobListElement.empty(); //Remove the child nodes
+
+    if (!jobsData || jobsData.length === 0) {
+        let element = $(`<div class="card">` +
+            '<div class="card-body">' +
+            `<h5 class="card-text mb-0 text-center">No Jobs Available</h5>` +
+            '</div>' +
+            '</div>');
+        element.fadeOut(0);
+        jobListElement.removeClass('card-columns');
+        jobListElement.append(element);
+        element.fadeIn(500);
+    } else {
+        jobListElement.addClass('card-columns');
+        jobsData.forEach(async job => {
+            try {
+                let element = await createJobElement(job);
+                if (element) {
+                    element.fadeOut(0);
+                    jobListElement.append(element);
+                    element.fadeIn(500);
+                }
+            } catch (e) {
+            }
+        })
+    }
+
 }

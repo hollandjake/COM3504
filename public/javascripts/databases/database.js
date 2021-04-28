@@ -3,48 +3,55 @@ import {db, initDatabase, JOBS_STORE_NAME, OFFLINE_JOBS_STORE_NAME} from "./inde
 
 
 export function getJobs(callback) {
-    //TODO: RETURN CACHE DATA (IDB_server and IDB_offline)
-    //TODO: IF (ONLINE):
-    //TODO:     FETCH FROM SERVER
-    //TODO:     ON RESPONSE -> SAVE EACH JOB TO IDB_server
-    //TODO:                 -> RETURN SERVER OBJECT
-    //TODO: ELSE:
-    //TODO:     DO NOTHING THE CLIENT HAS THE LATEST DATA IT CAN GET
+    if (navigator.onLine) {
+        ajaxRequest('/job/list',async (jobsData) => {
+            jobsData = [...jobsData,...await getJobs(true)];
+            jobsData.forEach(job => {
+                storeJob(job);
+            });
+            callback(jobsData);
+        }, (e) => {
+            console.log("its offline, can't get all jobs");
+        }, (e) => {
+            console.log("there was an error, can't get all jobs");
+        }, 'get', null);
+    } else {
+        callback([...getJobs(),...getJob(jobId, true)]);
+    }
 }
 
-//TODO: TOM
-export function getJob(jobId, callback) {
-    //TODO: RETURN CACHE JOB FROM EITHER (IDB_server or IDB_offline)
-    //TODO: IF (ONLINE):
-    //TODO:     FETCH FROM SERVER
-    //TODO:     ON RESPONSE -> SAVE TO IDB_server
-    //TODO:                 -> RETURN SERVER OBJECT
-    //TODO: ELSE:
-    //TODO:     DO NOTHING THE CLIENT HAS THE LATEST DATA IT CAN GET
+export async function getThisJob(jobId, callback) {
+    if (navigator.onLine) {
+        await ajaxRequest(jobId+'/list',async (jobData) => {
+            jobData = [...jobsData,...await getJob(jobId, true)];
+            await storeJob(jobData);
+            callback(jobData);
+        }, (e) => {
+            console.log("its offline, can't get all jobs");
+        }, (e) => {
+            console.log("there was an error, can't get all jobs");
+        }, 'get', null);
+    } else {
+        callback([...await getJobs(),...await getJob(jobId, true)]);
+    }
 }
 
-//TODO: TOM
-export function saveJob(job) {
-    // $.ajax({
-    //     url: "dsada",
-    //     statusCode: {
-    //         0: () => {
-    //             //TODO: OFFLINE
-    //         }
-    //     },
-    //     error: () => {
-    //         //TODO: SERVER RETURNS AN ERROR
-    //     }
-    // })
-    //TODO: IF (ONLINE):
-    //TODO:     SEND TO SERVER
-    //TODO:     ON RESPONSE -> SAVE TO IDB_server
-    //TODO:                 -> RETURN SERVER OBJECT
-    //TODO: ELSE:
-    //TODO:     STORE IN IDB_offline
-    //TODO:     RETURN CACHED OBJECT
+export async function saveJob(job, callback) {
+    if (navigator.onLine) {
+        await ajaxRequest('/job/create',async (data) => {
+            await storeJob(data.job, false);
+            window.location.href = data.job.url;
+        }, (e) => {
+            console.log("its offline, can't get all jobs");
+            callback(e);
+        }, (e) => {
+            console.log("there was an error, can't get all jobs");
+            callback(e);
+        }, 'POST', job);
+    } else {
+        //await storeJob(job, true);
+    }
 }
-
 //TODO: JAKE
 export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
     ajaxRequest(
