@@ -4,30 +4,20 @@ import {getJob, getPID, storeJob, storeNewImage} from "../databases/indexedDB.js
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
 import {addAnnotationCanvas, sendChat} from "./jobSocket.js";
-import {saveImage} from "../databases/database.js";
+import {saveImage, getThisJob} from "../databases/database.js";
 
 let myself = "";
 let chats = {};
 
 $(async function () {
     myself = await getPID("name");
+
+    JOB_ID = window.location.pathname;
     if (window.location.search.match(/\?id=(\S+)/)) {
         JOB_ID = window.location.search.match(/\?id=(\S+)/)[1];
     }
 
-    let jobLocal = await getJob(JOB_ID);
-    if (jobLocal) {
-        await initialisePage(jobLocal, true);
-    } else {
-        $.ajax({
-            type: 'get',
-            url: `/job/list?id=${JOB_ID}`,
-            success: async function (job) {
-                await initialisePage(job, true);
-                await storeJob(job);
-            }
-        });
-    }
+    await getThisJob(JOB_ID, initialisePage);
 
     $('#addImage').submit(async function (e) {
         e.preventDefault();
