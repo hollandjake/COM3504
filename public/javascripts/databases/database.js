@@ -1,5 +1,5 @@
 //TODO: TOM
-export default function getJobs(callback) {
+export function getJobs(callback) {
     //TODO: RETURN CACHE DATA (IDB_server and IDB_offline)
     //TODO: IF (ONLINE):
     //TODO:     FETCH FROM SERVER
@@ -10,7 +10,7 @@ export default function getJobs(callback) {
 }
 
 //TODO: TOM
-export default function getJob(jobId, callback) {
+export function getJob(jobId, callback) {
     //TODO: RETURN CACHE JOB FROM EITHER (IDB_server or IDB_offline)
     //TODO: IF (ONLINE):
     //TODO:     FETCH FROM SERVER
@@ -21,7 +21,7 @@ export default function getJob(jobId, callback) {
 }
 
 //TODO: TOM
-export default function saveJob(job) {
+export function saveJob(job) {
     // $.ajax({
     //     url: "dsada",
     //     statusCode: {
@@ -43,7 +43,7 @@ export default function saveJob(job) {
 }
 
 //TODO: JAKE
-export default function saveImage(jobId, image, callback) {
+export function saveImage(jobId, image, callback) {
     //TODO: IF (ONLINE):
     //TODO:     SEND TO SERVER
     //TODO:     ON RESPONSE -> SAVE TO IDB_server
@@ -54,7 +54,7 @@ export default function saveImage(jobId, image, callback) {
 }
 
 //TODO: BILLY
-export default function pushingToServer() {
+export function pushingToServer() {
     //TODO: FOR EACH CACHED_JOB in IDB_offline:
     //TODO:     obj = REMOVE OBJ FROM IDB_offline
     //TODO:     AJAX SEND TO SERVER saveJob(obj, callback)
@@ -64,7 +64,16 @@ export default function pushingToServer() {
     //TODO:     AJAX SEND TO SERVER saveImage(jobId, obj, callback)
 }
 
-function ajaxRequest(url, onsuccess, onoffline, onerror, type, data) {
+/**
+ *
+ * @param {string} type
+ * @param {string} url
+ * @param {function} onsuccess
+ * @param {function} onoffline
+ * @param {function} onerror
+ * @param {json} data
+ */
+export function ajaxRequest(type, url, onsuccess, onoffline, onerror, data=null) {
     $.ajax({
         url: url,
         type: type,
@@ -72,9 +81,16 @@ function ajaxRequest(url, onsuccess, onoffline, onerror, type, data) {
         processData: false,
         contentType: false,
         success: onsuccess,
-        error: onerror,
-        statusCode:{
-            0: onoffline
-        }
+        error: (response) => {
+            if (response.statusCode === 0) {
+                onoffline(response);
+            } else {
+                onerror(response);
+            }
+
+        },
+        //statusCode:{
+        //    0: onoffline
+        //}
     })
 }
