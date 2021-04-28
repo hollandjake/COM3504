@@ -11,13 +11,17 @@ let chats = {};
 
 $(async function () {
     myself = await getPID("name");
+    if (window.location.search.match(/\?id=(\S+)/)) {
+        JOB_ID = window.location.search.match(/\?id=(\S+)/)[1];
+    }
+
     let jobLocal = await getJob(JOB_ID);
     if (jobLocal) {
         await initialisePage(jobLocal, true);
     } else {
         $.ajax({
             type: 'get',
-            url: window.location.pathname + '/list',
+            url: `/job/list?id=${JOB_ID}`,
             success: async function (job) {
                 await initialisePage(job, true);
                 await storeJob(job);
