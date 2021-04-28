@@ -1,5 +1,5 @@
 //TODO: TOM
-import {db, initDatabase, JOBS_STORE_NAME, OFFLINE_JOBS_STORE_NAME} from "./indexedDB.js";
+import {db, initDatabase, JOBS_STORE_NAME, OFFLINE_IMAGES_STORE_NAME, OFFLINE_JOBS_STORE_NAME} from "./indexedDB.js";
 
 
 export function getJobs(callback) {
@@ -45,7 +45,6 @@ export function saveJob(job) {
     //TODO:     RETURN CACHED OBJECT
 }
 
-//TODO: JAKE
 export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
     ajaxRequest(
         'POST',
@@ -59,12 +58,32 @@ export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
             return data;
         },
         async () => {
-            let job = await getFromCache(OFFLINE_JOBS_STORE_NAME, jobId);
+            let imageObj = {
+                title: imageData['image_title'],
+                creator: imageData['image_creator'],
+                description: imageData['image_description']
+            }
 
-            //TODO: STORE IN IDB_offline
-            //TODO: RETURN CACHED OBJECT
+            switch (imageData['image_type']) {
+                case 'upload':
+                    imageObj.imageUrl = `data:image/png;base64,${imageData['image_source'].buffer.toString('base64')}`;
+                    break;
+                case 'camera':
+                case 'url':
+                    imageObj.imageUrl = imageData['image_source'];
+                    break;
+            }
+
+            imageObj._id = generateTempId();
+            await saveToCache(OFFLINE_IMAGES_STORE_NAME, `${jobId}_${imageObj._id}`);
+
+            return imageObj;
         },
-        (e) => onerror(e['responseJSON']),
+        (e) => {
+            onerror(('responseJSON' in e) ? e['responseJSON'] : {
+                error: "Something went wrong"
+            })
+        },
         imageForm
     )
 }
@@ -107,31 +126,31 @@ export function ajaxRequest(type, url, onsuccess, onoffline, onerror, data = nul
     })
 }
 
-async function getAllFromCache(store) {
+async function getAllFromCache(storeName) {
     return await executeOnCache(
-        store,
+        storeName,
         'readonly',
         (store) => store.getAll(),
-        (localStore) => localStore.getItem(id)
+        () => localStorage.filter(element => element.indexOf(storeName) === 0)
     )
 }
 
-async function getFromCache(store, id) {
+async function getFromCache(storeName, id) {
     return await executeOnCache(
-        store,
+        storeName,
         'readonly',
         (storeName) => {
             return storeName.get(id) || localStorage.getItem(`${storeName}_${id}`)
         },
-        (localStore) => localStore.getItem(id)
+        () => localStorage.getItem(`${storeName}_${id}`)
     )
 }
 
 async function saveToCache(storeName, id, object) {
     await executeOnCache(storeName, 'readwrite', (store) => {
         store.put(object);
-    }, (localStore) => {
-        localStore.setItem(`${storeName}_${id}`, JSON.stringify(object));
+    }, () => {
+        localStorage.setItem(`${storeName}_${id}`, JSON.stringify(object));
     })
 }
 
@@ -147,9 +166,22 @@ async function executeOnCache(storeName, mode, idbOperation, localStorageOperati
             await idbOperation(store);
             await tx.complete;
         } catch (error) {
-            localStorageOperation(localStorage);
+            localStorageOperation();
         }
     } else {
-        localStorageOperation(localStorage);
+        localStorageOperation();
     }
+}
+
+function generateTempId()
+{
+    let num = Date.now();
+    let s = '', t;
+
+    while (num > 0) {
+        t = (num - 1) % 26;
+        s = String.fromCharCode(65 + t) + s;
+        num = Math.floor((num - t)/26);
+    }
+    return s || undefined;
 }
