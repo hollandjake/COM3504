@@ -1,10 +1,12 @@
 import * as idb from '../idb/index.js';
 
-let db;
+export let db;
 
 const DB_NAME= 'db';
-const PIDS_STORE_NAME= 'store_pids';
-const JOBS_STORE_NAME= 'store_jobs';
+export const PIDS_STORE_NAME= 'store_pids';
+export const JOBS_STORE_NAME= 'store_jobs';
+export const OFFLINE_JOBS_STORE_NAME= 'store_offline_jobs';
+export const OFFLINE_IMAGES_STORE_NAME= 'store_offline_images';
 
 /**
  * it inits the database
@@ -20,6 +22,18 @@ export async function initDatabase(){
                     upgradeDb.createObjectStore(JOBS_STORE_NAME, {
                         keyPath: 'id'
                     });
+
+                    upgradeDb.createObjectStore(JOBS_STORE_NAME, {
+                        keyPath: 'id'
+                    });
+
+                    upgradeDb.createObjectStore(OFFLINE_JOBS_STORE_NAME, {
+                        keyPath: 'id'
+                    })
+
+                    upgradeDb.createObjectStore(OFFLINE_IMAGES_STORE_NAME, {
+                        keyPath: 'jobId'
+                    })
                 }
             }
         });

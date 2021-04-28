@@ -4,6 +4,7 @@ import {getJob, getPID, storeJob, storeNewImage} from "../databases/indexedDB.js
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
 import {addAnnotationCanvas, sendChat, sendWritingMessage} from "./jobSocket.js";
+import {saveImage} from "../databases/database.js";
 
 let myself = "";
 let chats = {};
@@ -28,8 +29,8 @@ $(async function () {
     $('#addImage').submit(async function (e) {
         e.preventDefault();
 
-        let inputs = await getModalData($('#addImage'));
-        await addImage(inputs, JOB_ID);
+        let [formData, imageData] = await getModalData($('#addImage'));
+        addImage(formData, imageData, JOB_ID);
     })
 
     $('#imageCarousel').carousel({
@@ -58,15 +59,8 @@ async function initialisePage(job) {
     updateCarouselArrows();
 }
 
-async function addImage(inputs, jobID) {
-    $.ajax({
-        type: 'POST',
-        url: `/job/${jobID}/add-image`,
-        data: inputs,
-        processData: false,
-        contentType: false,
-        error: processImageCreationError
-    })
+function addImage(formData, imageData, jobId) {
+    saveImage(jobId, formData, imageData, () => {}, processImageCreationError);
 }
 
 //Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
