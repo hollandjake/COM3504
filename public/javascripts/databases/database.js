@@ -87,10 +87,6 @@ export function ajaxRequest(type, url, onsuccess, onoffline, onerror, data=null)
             } else {
                 onerror(response);
             }
-
         },
-        //statusCode:{
-        //    0: onoffline
-        //}
     })
 }
