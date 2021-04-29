@@ -5,6 +5,8 @@ export let db;
 const DB_NAME= 'db';
 export const PIDS_STORE_NAME= 'store_pids';
 export const JOBS_STORE_NAME= 'store_jobs';
+export const IMAGES_STORE_NAME= 'store_images';
+export const ANNOTATIONS_STORE_NAME= 'store_annotations';
 export const OFFLINE_JOBS_STORE_NAME= 'store_offline_jobs';
 export const OFFLINE_IMAGES_STORE_NAME= 'store_offline_images';
 
@@ -15,22 +17,30 @@ export async function initDatabase(){
     if (!db) {
         db = await idb.openDB(DB_NAME, 2, {
             upgrade(upgradeDb, oldVersion, newVersion) {
-                if (!upgradeDb.objectStoreNames.contains(PIDS_STORE_NAME)) {
                     upgradeDb.createObjectStore(PIDS_STORE_NAME, {
                         keyPath: 'PID'
                     });
+
                     upgradeDb.createObjectStore(JOBS_STORE_NAME, {
                         keyPath: '_id'
+                    });
+
+                    upgradeDb.createObjectStore(IMAGES_STORE_NAME, {
+                        keyPath: '_id'
+                    });
+
+                    upgradeDb.createObjectStore(ANNOTATIONS_STORE_NAME, {
+                        keyPath: 'imageId'
                     });
 
                     upgradeDb.createObjectStore(OFFLINE_JOBS_STORE_NAME, {
                         keyPath: '_id'
                     })
 
+
                     upgradeDb.createObjectStore(OFFLINE_IMAGES_STORE_NAME, {
                         keyPath: '_id'
                     })
-                }
             }
         });
     }
@@ -144,33 +154,6 @@ export async function storeJob(job) {
 export async function storeNewImage(jobId, image) {
     let job = await getJob(jobId);
     job.imageSequence.push(image);
-
-    if (!db) {
-        await initDatabase();
-    }
-    if (db) {
-        try{
-            let tx = await db.transaction(JOBS_STORE_NAME, 'readwrite');
-            let store = await tx.objectStore(JOBS_STORE_NAME);
-            await store.put(job);
-            await  tx.complete;
-        } catch(error) {
-            localStorage.setItem(job.id, JSON.stringify(job));
-        }
-    }
-    else {
-        localStorage.setItem(job.id, JSON.stringify(job));
-    }
-}
-
-export async function updateImageWithAnnotations(jobId, imageId, annotationData) {
-    let job = await getJob(jobId);
-
-    job.imageSequence.forEach(image => {
-        if (image._id === imageId) {
-            image.annotationData = annotationData;
-        }
-    })
 
     if (!db) {
         await initDatabase();

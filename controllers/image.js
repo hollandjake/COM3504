@@ -1,5 +1,16 @@
 const Image = require("../models/image");
 
+exports.get = async function (imageId) {
+    return await Image.findById(imageId).exec();
+}
+
+/**
+ * Fetches all the Jobs
+ */
+exports.getAll = async function () {
+    return await Image.find().exec();
+}
+
 /**
  * Saves a job and returns the saved object (including its new id)
  * @returns {Image}
@@ -15,7 +26,7 @@ exports.addImage = async function (imageData) {
 }
 
 exports.parseImage = function(req) {
-    let jobImage = {
+    let image = {
         title: req.body['image_title'],
         creator: req.body['image_creator'],
         description: req.body['image_description'],
@@ -23,13 +34,13 @@ exports.parseImage = function(req) {
     if (req.body['image_type'] === "upload") {
         let mimetype = req.files[0].mimetype;
         let imageData = req.files[0].buffer.toString('base64');
-        jobImage.imageUrl = `data:${mimetype};base64,${imageData}`;
+        image.imageData = `data:${mimetype};base64,${imageData}`;
     } else if (req.body['image_type'] === "camera") {
-        jobImage.imageUrl = req.body['image_source'];
+        image.imageData = req.body['image_source'];
     } else if (req.body['image_type'] === "url") {
-        jobImage.imageUrl = req.body['image_source'];
+        image.imageData = req.body['image_source'];
     } else {
         return null;
     }
-    return jobImage;
+    return image;
 }

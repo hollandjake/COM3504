@@ -1,4 +1,4 @@
-import {getPID} from "../databases/indexedDB.js";
+import {getPID} from "../databases/database.js";
 
 $(() => {
     const radioButtons = $('[data-for="image-source"]');
