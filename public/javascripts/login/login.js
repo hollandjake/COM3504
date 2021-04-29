@@ -1,10 +1,6 @@
-import {initDatabase, getPID, storePID} from "../databases/indexedDB.js";
+import {getPID, savePID} from "../databases/database.js";
 
 $(async function () {
-    //check for support
-    if ('indexedDB' in window) {
-        await initDatabase();
-    }
     //if they already have a name send them to index
     let name = await getPID('name');
     if (name) {
@@ -23,7 +19,7 @@ $(function() {
             //Simple validation
             name = name.trim();
             if (name.length > 0) {
-                storePID('name', name).then(() => window.location.replace('/'));
+                savePID('name', name).then(() => window.location.replace('/'));
             } else {
                 inputNameField.addClass('is-invalid');
             }

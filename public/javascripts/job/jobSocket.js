@@ -1,5 +1,6 @@
 import {newImageAdded, newChatMessage} from "./job.js";
 import {storeChatMessage} from "../databases/indexedDB.js";
+import {saveChatForImage} from "../databases/database.js";
 
 const job = io.connect('/job');
 let annotationCanvases = {}
@@ -10,7 +11,7 @@ $(function () {
     //Event for when a new image has been added
     job.on('newImage', newImageAdded);
     job.on('chat', async function (imageId, chatObj) {
-        await storeChatMessage(JOB_ID, imageId, chatObj);
+        saveChatForImage(imageId, chatObj);
         newChatMessage(imageId, chatObj);
     });
     job.on('draw', async function (imageId, event) {

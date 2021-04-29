@@ -70,10 +70,7 @@ router.post('/add-image', upload.any(), async function (req, res) {
             return;
         }
         let image = await jobController.addImage(req.query['id'],jobImage);
-        require('../bin/www').io.of('/job').in(req.query['id']).emit('newImage', {
-            status: 200,
-            image: image
-        });
+        require('../bin/www').io.of('/job').in(req.query['id']).emit('newImage', image.url);
         res.json({
             status: 200,
             image: image

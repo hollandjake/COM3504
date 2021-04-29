@@ -1,14 +1,20 @@
 import {loadImage} from "../components/preloadImage.js";
-import {getPID, storeJob} from "../databases/indexedDB.js";
-import {getJobs, saveJob} from "../databases/database.js";
+import {getPID, getJobs, saveJob} from "../databases/database.js";
 import {error} from "../components/error.js";
 import {getModalData} from "../components/modal.js";
-import {ajaxRequest} from "../databases/database.js";
+
+let loadedJobs = {};
 
 // On load
 $(async function () {
     //Ajax call to get the list of jobs
-    await getJobs(addAllJobs);
+    let currentlyRunningAddJobCallback = null;
+    await getJobs(async (jobsData) => {
+        if (currentlyRunningAddJobCallback) {
+            await currentlyRunningAddJobCallback;
+        }
+        currentlyRunningAddJobCallback = addAllJobs(jobsData)
+    });
 
     $('#addJob').submit(async function (e) {
         e.preventDefault();
@@ -32,7 +38,8 @@ $(async function () {
 
 export async function createJobElement(job) {
     if (job.imageSequence.length > 0) {
-        let image = await loadImage(job.imageSequence[0].imageUrl, job.name, "img img-fluid");
+        let imageData = (await (await fetch(job.imageSequence[0])).json()).image;
+        let image = await loadImage(imageData.imageData, job.name, "img img-fluid");
         let element = $(`<div class="card">` +
             '<div class="card-body">' +
             `<h5 class="card-title">${job.name}</h5>` +
@@ -57,7 +64,7 @@ function processJobCreationError(data) {
 async function addAllJobs(jobsData) {
     let jobListElement = $('#job-list-container');
 
-    jobListElement.empty(); //Remove the child nodes
+    let newJobsElements = {};
 
     if (!jobsData || jobsData.length === 0) {
         let element = $(`<div class="card">` +
@@ -71,17 +78,31 @@ async function addAllJobs(jobsData) {
         element.fadeIn(500);
     } else {
         jobListElement.addClass('card-columns');
-        jobsData.forEach(async job => {
+        for (const job of jobsData) {
             try {
-                let element = await createJobElement(job);
-                if (element) {
-                    element.fadeOut(0);
-                    jobListElement.append(element);
-                    element.fadeIn(500);
+                let jobString = JSON.stringify(job);
+                if (!(jobString in loadedJobs)) {
+                    let element = await createJobElement(job);
+                    if (element) {
+                        element.fadeOut(0);
+                        jobListElement.append(element);
+                        newJobsElements[jobString] = element;
+                        element.fadeIn(500);
+                    }
+                } else {
+                    newJobsElements[jobString] = loadedJobs[jobString];
                 }
             } catch (e) {
             }
-        })
+        }
     }
+
+    for (const [job, element] of Object.entries(loadedJobs)) {
+        if (!(job in newJobsElements)) {
+            element.remove();
+        }
+    }
+
+    loadedJobs = newJobsElements;
 
 }

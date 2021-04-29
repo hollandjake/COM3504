@@ -1,4 +1,4 @@
-import {getPID} from "../databases/indexedDB.js";
+import {getPID} from "../databases/database.js";
 
 async function loadName() {
     // Get name from IndexedDB and show it on the nav bar

@@ -1,10 +1,9 @@
 // On load
 import {error} from "../components/error.js";
-import {getPID, storeNewImage} from "../databases/indexedDB.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
 import {addAnnotationCanvas, sendChat} from "./jobSocket.js";
-import {saveImage, getJob} from "../databases/database.js";
+import {getPID, getJob, saveJobImage, saveImageDirectlyToCache, getChatDataForImage} from "../databases/database.js";
 
 let myself = "";
 let chats = {};
@@ -17,7 +16,9 @@ $(async function () {
         JOB_ID = window.location.search.match(/\?id=(\S+)/)[1];
     }
 
-    await getJob(JOB_ID, initialisePage, null);
+    await getJob(JOB_ID, initialisePage, (e) => {
+        console.log(e);
+    });
 
     $('#addImage').submit(async function (e) {
         e.preventDefault();
@@ -40,9 +41,12 @@ async function initialisePage(job) {
 
     for (let i = 0; i < job.imageSequence.length; i++) {
         try {
-            let element = await createImageElement(job.imageSequence[i]);
+            let imageData = await (await fetch(job.imageSequence[i])).json();
+            let element = await createImageElement(imageData.image);
             imageListElement.append(element);
-        } catch (ignored) {}
+        } catch (e) {
+            console.log(e);
+        }
     }
     $('.carousel-item:first').addClass('active');
     $('#job-title').html(job.name);
@@ -53,7 +57,8 @@ async function initialisePage(job) {
 }
 
 function addImage(formData, imageData, jobId) {
-    saveImage(jobId, formData, imageData, () => {}, processImageCreationError);
+    saveJobImage(jobId, formData, imageData, () => {
+    }, processImageCreationError);
 }
 
 //Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
@@ -136,9 +141,8 @@ async function createImageElement(image) {
         prevMessage: null
     }
 
-    if (image.chat) {
-        image.chat.forEach(chatObj => newChatMessage(image._id, chatObj));
-    }
+    let imageChat = (await getChatDataForImage(image._id)).chatData;
+    imageChat.forEach(chatObj => newChatMessage(image._id, chatObj));
 
     imageElement.find('#job-image').replaceWith(annotation.container);
 
@@ -184,15 +188,16 @@ function processImageCreationError(data) {
 }
 
 //Closes and clears modal form and moves the carousel to the new image
-export async function newImageAdded(data) {
+export async function newImageAdded(imageUrl) {
     try {
-        await storeNewImage(JOB_ID, data.image);
-        let element = await createImageElement(data.image);
+        let imageData = (await (await fetch(imageUrl)).json()).image;
+        await saveImageDirectlyToCache(JOB_ID, imageData);
+        let element = await createImageElement(imageData);
         if (element) {
             $('#image-container').append(element);
             updateCarouselArrows();
         }
-        if (data.image.creator === await getPID('name')) {
+        if (imageData.creator === await getPID('name')) {
             $('#addImage').modal('hide').trigger("reset");
             $('#imageCarousel').carousel($('#image-container .carousel-item').length - 1);
         }

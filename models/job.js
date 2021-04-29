@@ -11,16 +11,12 @@ const JobSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    imageSequence: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Image',
-        required: true
-    }]
+    imageSequence: [String]
 }, {_id: false, toJSON: {virtuals: true}});
-JobSchema.plugin(AutoIncrement);
+JobSchema.plugin(AutoIncrement, {inc_field: "_id", id: "job"});
 
 JobSchema.virtual('url').get(function () {
-    return "/job?id="+this._id;
+    return "/job?id=" + this._id;
 })
 
 module.exports = mongoose.model('Job', JobSchema);
