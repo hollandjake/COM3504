@@ -7,8 +7,7 @@ import {addAnnotationCanvas, sendChat, sendWritingMessage} from "./jobSocket.js"
 
 let myself = "";
 let chats = {};
-let whoIsWriting = new Map();
-let writingTimeouts = new Map();
+let currentlyTyping = new Map();
 
 $(async function () {
     myself = await getPID("name");
@@ -143,9 +142,7 @@ async function createImageElement(image) {
         sendChat(image._id, chatButton.find("input").val());
         chatButton.find("input").val("");
     });
-
-    let chatInput = imageElement.find('.chat-input');
-    chatInput.on('input', () => {
+    chatButton.find('.chat-input').on('input', () => {
         sendWritingMessage(image._id);
     });
 
@@ -174,24 +171,7 @@ async function createImageElement(image) {
     return imageElement;
 }
 
-async function removeWritingMessage(imageId, sender) {
-    if (whoIsWriting.has(imageId)) {
-        $("#" + imageId + sender).remove();
-        writingTimeouts.delete(imageId + sender);
-        let senders = whoIsWriting.get(imageId);
-        senders.splice(whoIsWriting.get(imageId).indexOf(sender));
-        whoIsWriting.set(imageId, senders);
-    }
-}
-
-async function writingTimout(imageId, sender) {
-    let timeout = setTimeout(function () {
-        removeWritingMessage(imageId, sender);
-    }, 5000);
-    writingTimeouts.set(imageId+sender, timeout);
-}
-
-async function addMessage(imageChat, messageElement) {
+function addMessage(imageChat, messageElement) {
     let scrollHeight = imageChat.container.prop('scrollHeight');
     let scrollPos = imageChat.container.scrollTop() + imageChat.container.innerHeight();
     const autoScroll = scrollHeight - scrollPos <= 0;
@@ -201,7 +181,7 @@ async function addMessage(imageChat, messageElement) {
     }
 }
 
-export async function newChatMessage(imageId, chatObj) {
+export function newChatMessage(imageId, chatObj) {
     if (imageId in chats) {
         const imageChat = chats[imageId];
         let newMessageElement = $(`<li><span class="message-sender">${chatObj.sender}</span><span class="message-text">${chatObj.message}</span></li>`)
@@ -209,26 +189,33 @@ export async function newChatMessage(imageId, chatObj) {
             newMessageElement.addClass("message-right");
         } else {
             newMessageElement.addClass("message-left");
-            await removeWritingMessage(imageId, chatObj.sender);
-            clearTimeout(writingTimeouts.get(imageId+chatObj.sender));
+            removeBobble(imageId, chatObj.sender);
         }
 
         if (imageChat.prevMessage && imageChat.prevMessage.sender === chatObj.sender) {
             newMessageElement.addClass("same-sender");
         }
-        await addMessage(imageChat, newMessageElement)
+        addMessage(imageChat, newMessageElement)
         imageChat.prevMessage = chatObj;
         imageChat.prevMessage.element = newMessageElement;
     }
 }
 
-export async function newWritingMessage(imageId, sender) {
-    if (imageId in chats) {
-        let writingMessage = whoIsWriting.get(imageId);
-        if (!writingMessage || !(writingMessage.includes(sender))) {
-            const imageChat = chats[imageId];
-            let newMessageElement = $(`
-                <li class="message-left" id="${imageId+sender}">
+function removeBobble(imageId, sender) {
+    if (currentlyTyping[imageId] && currentlyTyping[imageId][sender]) {
+        clearTimeout(currentlyTyping[imageId][sender].timeout);
+        currentlyTyping[imageId][sender].bobber.remove();
+        delete currentlyTyping[imageId][sender];
+    }
+}
+
+export function newWritingMessage(imageId, sender) {
+    if (!currentlyTyping[imageId]) {
+        currentlyTyping[imageId] = {};
+    }
+    if (!currentlyTyping[imageId][sender]) {
+        const element = $(`
+                <li class="message-left">
                     <span class="message-sender">${sender}</span>
                     <span class="message-text">
                         <div id="wave">
@@ -239,24 +226,17 @@ export async function newWritingMessage(imageId, sender) {
                     </span>
                 </li>
             `);
-
-            await addMessage(imageChat, newMessageElement)
-
-            if (writingMessage) {
-                writingMessage.push(sender);
-            } else {
-                writingMessage = [sender];
-            }
-            whoIsWriting.set(imageId, writingMessage);
-
-            await writingTimout(imageId, sender)
-        } else {
-            if (writingTimeouts.has(imageId+sender)) {
-                clearTimeout(writingTimeouts.get(imageId+sender));
-                await writingTimout(imageId, sender)
-            }
+        currentlyTyping[imageId][sender] = {
+            "bobber": element
         }
+        addMessage(chats[imageId], element);
     }
+    if ("timeout" in currentlyTyping[imageId][sender]) {
+        clearTimeout(currentlyTyping[imageId][sender].timeout);
+    }
+    currentlyTyping[imageId][sender].timeout = setTimeout(() => {
+        removeBobble(imageId, sender);
+    }, 5000);
 }
 
 function processImageCreationError(data) {
