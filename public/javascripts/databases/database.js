@@ -1,67 +1,69 @@
-//TODO: TOM
 import {db, initDatabase, JOBS_STORE_NAME, OFFLINE_IMAGES_STORE_NAME, OFFLINE_JOBS_STORE_NAME} from "./indexedDB.js";
 
-
 export function getJobs(callback) {
-        ajaxRequest('get', '/job/list',async (jobsData) => {
-            jobsData.forEach(job => {
-                saveToCache(JOBS_STORE_NAME, job._id, job)
-            });
-            jobsData = [...jobsData,... await getAllFromCache(OFFLINE_JOBS_STORE_NAME)];
-            callback(jobsData);
-        }, async (e) => {
-            console.log("its offline, can't get all jobs");
-            callback([...await getAllFromCache(JOBS_STORE_NAME),...await getAllFromCache(OFFLINE_JOBS_STORE_NAME)]);
-        }, async () => {
-            console.log("there was an error, can't get all jobs");
-            callback([...await getAllFromCache(JOBS_STORE_NAME),...await getAllFromCache(OFFLINE_JOBS_STORE_NAME)]);
-        }, null);
+    ajaxRequest(
+        'get',
+        '/job/list',
+        async (jobsData) => {
+            jobsData.forEach(job => saveToCache(JOBS_STORE_NAME, job._id, job));
+            callback([...jobsData, ...await getAllFromCache(OFFLINE_JOBS_STORE_NAME)]);
+        },
+        async () => callback([...await getAllFromCache(JOBS_STORE_NAME), ...await getAllFromCache(OFFLINE_JOBS_STORE_NAME)]),
+        async () => callback([...await getAllFromCache(JOBS_STORE_NAME), ...await getAllFromCache(OFFLINE_JOBS_STORE_NAME)])
+    );
 }
 
-export async function getJob(jobId, onsuccess, onerror) {
-    await ajaxRequest('get', '/job/list?id='+jobId,async (jobData) => {
-        if (!jobData) {
-            jobData = getFromCache(OFFLINE_JOBS_STORE_NAME, jobId);
-        } else {
-            await saveToCache(JOBS_STORE_NAME, jobData._id, jobData);
-        }
-        onsuccess(jobData);
-    }, (e) => {
-        console.log("its offline, can't get all jobs");
-        let jobData = getFromCache(JOBS_STORE_NAME, jobId);
-        if (!jobData) {
-            jobData = getFromCache(OFFLINE_JOBS_STORE_NAME, jobId);
-        }
-        onsuccess(jobData);
-    }, (e) => {
-        console.log("there was an error, can't get all jobs");
-        onerror('oof');
-    }, null);
-}
-
-export async function saveJob(jobForm, jobData, onerror) {
-    await ajaxRequest('POST', '/job/create',async (data) => {
-        await saveToCache(JOBS_STORE_NAME, data.job._id, data.job);
-        window.location.href = data.job.url;
-    }, (e) => {
-        console.log("its offline, can't get all jobs");
-        jobData._id = generateTempId();
-        let imageObj = generateTempImage (jobData, jobData._id)
-        let jobObj = {
-            _id: jobData._id,
-            name: jobData.name,
-            creator: jobData.creator,
-            imageSequence: [imageObj]
-        }
-        saveToCache(OFFLINE_JOBS_STORE_NAME, jobObj._id, jobObj);
-    }, (e) => {
-        onerror(('responseJSON' in e) ? e['responseJSON'] : {
+export function getJob(jobId, onsuccess, onerror) {
+    ajaxRequest(
+        'get',
+        `/job/list?id=${jobId}`,
+        async (jobData) => {
+            if (!jobData) {
+                jobData = getFromCache(OFFLINE_JOBS_STORE_NAME, jobId);
+            } else {
+                await saveToCache(JOBS_STORE_NAME, jobData._id, jobData);
+            }
+            onsuccess(jobData);
+        },
+        () => {
+            let jobData = getFromCache(JOBS_STORE_NAME, jobId);
+            if (!jobData) {
+                jobData = getFromCache(OFFLINE_JOBS_STORE_NAME, jobId);
+            }
+            onsuccess(jobData);
+        },
+        (e) => onerror(('responseJSON' in e) ? e['responseJSON'] : {
             error: "Something went wrong"
         })
-    }, jobForm);
+    );
 }
 
-//TODO: JAKE
+export function saveJob(jobForm, jobData, onerror) {
+    ajaxRequest(
+        'POST',
+        '/job/create',
+        async (data) => {
+            await saveToCache(JOBS_STORE_NAME, data.job._id, data.job);
+            window.location.href = data.job.url;
+        },
+        () => {
+            jobData._id = generateTempId();
+            let imageObj = generateTempImage(jobData, jobData._id)
+            let jobObj = {
+                _id: jobData._id,
+                name: jobData.name,
+                creator: jobData.creator,
+                imageSequence: [imageObj]
+            }
+            saveToCache(OFFLINE_JOBS_STORE_NAME, jobObj._id, jobObj);
+        },
+        (e) => onerror(('responseJSON' in e) ? e['responseJSON'] : {
+            error: "Something went wrong"
+        }),
+        jobForm
+    );
+}
+
 export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
     ajaxRequest(
         'POST',
@@ -75,7 +77,7 @@ export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
             onsuccess(data);
         },
         async () => {
-            let imageObj = generateTempImage (imageData, jobId)
+            let imageObj = generateTempImage(imageData, jobId)
             await saveToCache(OFFLINE_IMAGES_STORE_NAME, imageObj._id, imageObj);
 
             onsuccess(imageObj);
@@ -89,7 +91,7 @@ export function saveImage(jobId, imageForm, imageData, onsuccess, onerror) {
     )
 }
 
-function generateTempImage (imageData, jobId) {
+function generateTempImage(imageData, jobId) {
     let imageObj = {
         title: imageData['image_title'],
         creator: imageData['image_creator'],
@@ -159,7 +161,7 @@ async function getAllFromCache(storeName) {
         'readonly',
         (store) => result = store.getAll(),
         () => {
-            for(let i in Object.keys(localStorage)){
+            for (let i in Object.keys(localStorage)) {
                 if (i.startsWith(storeName)) {
                     result.push(localStorage.getItem(i));
                 }
@@ -207,15 +209,14 @@ async function executeOnCache(storeName, mode, idbOperation, localStorageOperati
     }
 }
 
-function generateTempId()
-{
+function generateTempId() {
     let num = Date.now();
     let s = '', t;
 
     while (num > 0) {
         t = (num - 1) % 26;
         s = String.fromCharCode(65 + t) + s;
-        num = Math.floor((num - t)/26);
+        num = Math.floor((num - t) / 26);
     }
     return s || undefined;
 }
