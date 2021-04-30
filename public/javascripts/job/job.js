@@ -5,8 +5,8 @@ import {getModalData} from "../components/modal.js";
 import {addAnnotationCanvas, sendChat} from "./jobSocket.js";
 import {
     getChatDataForImage,
-    getImage,
-    getJob,
+    getImage, getImageFromUrl,
+    getJob, getJobs,
     getPID,
     saveImageDirectlyToCache,
     saveJobImage
@@ -23,8 +23,12 @@ $(async function () {
         JOB_ID = window.location.search.match(/\?id=(\S+)/)[1];
     }
 
-    await getJob(JOB_ID, initialisePage, (e) => {
-        console.log(e);
+    let currentlyRunningAddJobCallback = null;
+    await getJob(JOB_ID, async (jobsData) => {
+        if (currentlyRunningAddJobCallback) {
+            await currentlyRunningAddJobCallback;
+        }
+        currentlyRunningAddJobCallback = initialisePage(jobsData)
     });
 
     $('#addImage').submit(async function (e) {
@@ -48,8 +52,8 @@ async function initialisePage(job) {
 
     for (let i = 0; i < job.imageSequence.length; i++) {
         try {
-            let imageData = await (await fetch(job.imageSequence[i])).json();
-            let element = await createImageElement(imageData.image);
+            let imageData = await new Promise((resolve, reject) => getImageFromUrl(job.imageSequence[i], resolve, reject));
+            let element = await createImageElement(imageData);
             imageListElement.append(element);
         } catch (e) {
             console.log(e);

@@ -45,6 +45,7 @@ export default class Annotate {
         let height = imageObject.height;
 
         let canvas = document.createElement("canvas");
+        canvas.id = image._id;
         canvas.classList = imageClasses;
         let ctx = canvas.getContext('2d');
         canvas.width = width;

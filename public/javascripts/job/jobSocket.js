@@ -1,5 +1,4 @@
 import {newImageAdded, newChatMessage} from "./job.js";
-import {storeChatMessage} from "../databases/indexedDB.js";
 import {saveChatForImage} from "../databases/database.js";
 
 const job = io.connect('/job');
