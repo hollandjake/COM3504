@@ -3,7 +3,14 @@ import {error} from "../components/error.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
 import {addAnnotationCanvas, sendChat} from "./jobSocket.js";
-import {getPID, getJob, saveJobImage, saveImageDirectlyToCache, getChatDataForImage} from "../databases/database.js";
+import {
+    getChatDataForImage,
+    getImage,
+    getJob,
+    getPID,
+    saveImageDirectlyToCache,
+    saveJobImage
+} from "../databases/database.js";
 
 let myself = "";
 let chats = {};
@@ -57,8 +64,7 @@ async function initialisePage(job) {
 }
 
 function addImage(formData, imageData, jobId) {
-    saveJobImage(jobId, formData, imageData, () => {
-    }, processImageCreationError);
+    saveJobImage(jobId, formData, imageData, null, processImageCreationError);
 }
 
 //Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
@@ -188,9 +194,8 @@ function processImageCreationError(data) {
 }
 
 //Closes and clears modal form and moves the carousel to the new image
-export async function newImageAdded(imageUrl) {
-    try {
-        let imageData = (await (await fetch(imageUrl)).json()).image;
+export async function newImageAdded(imageId) {
+    getImage(imageId, async (imageData) => {
         await saveImageDirectlyToCache(JOB_ID, imageData);
         let element = await createImageElement(imageData);
         if (element) {
@@ -201,10 +206,10 @@ export async function newImageAdded(imageUrl) {
             $('#addImage').modal('hide').trigger("reset");
             $('#imageCarousel').carousel($('#image-container .carousel-item').length - 1);
         }
-    } catch (e) {
+    }, (e) => {
         processImageCreationError({
             error: "Something went wrong"
         })
         console.log(e);
-    }
+    });
 }

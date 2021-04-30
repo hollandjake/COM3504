@@ -20,32 +20,36 @@ export function savePID(key, value) {
     return saveToCache(PIDS, key, {key, value});
 }
 
-export function getJobs(callback) {
-    getAllFromCache(JOBS)
-        .then(async jobStoreData => [...jobStoreData, ...await getAllFromCache(OFFLINE_JOBS)])
-        .then(callback)
+export function getJobs(onsuccess) {
+    if (onsuccess) {
+        getAllFromCache(JOBS)
+            .then(async jobStoreData => [...jobStoreData, ...await getAllFromCache(OFFLINE_JOBS)])
+            .then(onsuccess)
 
-    ajaxRequest(
-        'GET',
-        '/job/list',
-        async (jobsData) => {
-            jobsData.forEach(job => saveToCache(JOBS, job._id, job));
-            callback([...jobsData, ...await getAllFromCache(OFFLINE_JOBS)]);
-        },
-        async () => callback([...await getAllFromCache(JOBS), ...await getAllFromCache(OFFLINE_JOBS)]),
-        async () => callback([...await getAllFromCache(JOBS), ...await getAllFromCache(OFFLINE_JOBS)])
-    );
+        ajaxRequest(
+            'GET',
+            '/job/list',
+            async (jobsData) => {
+                jobsData.forEach(job => saveToCache(JOBS, job._id, job));
+                onsuccess([...jobsData, ...await getAllFromCache(OFFLINE_JOBS)]);
+            },
+            async () => onsuccess([...await getAllFromCache(JOBS), ...await getAllFromCache(OFFLINE_JOBS)]),
+            async () => onsuccess([...await getAllFromCache(JOBS), ...await getAllFromCache(OFFLINE_JOBS)])
+        );
+    }
 }
 
 export function getJob(jobId, onsuccess, onerror) {
-    getFromCache(JOBS, jobId)
-        .then(async foundJob => {
-            if (foundJob) return foundJob;
-            return await getFromCache(OFFLINE_JOBS, jobId);
-        })
-        .then(foundJob => {
-            if (foundJob) onsuccess(foundJob)
-        });
+    if (onsuccess) {
+        getFromCache(JOBS, jobId)
+            .then(async foundJob => {
+                if (foundJob) return foundJob;
+                return await getFromCache(OFFLINE_JOBS, jobId);
+            })
+            .then(foundJob => {
+                if (foundJob) onsuccess(foundJob)
+            });
+    }
 
     ajaxRequest(
         'GET',
@@ -56,18 +60,20 @@ export function getJob(jobId, onsuccess, onerror) {
             } else {
                 await saveToCache(JOBS, jobData._id, jobData);
             }
-            onsuccess(jobData);
+            if (onsuccess) onsuccess(jobData);
         },
         () => {
             let jobData = getFromCache(JOBS, jobId);
             if (!jobData) {
                 jobData = getFromCache(OFFLINE_JOBS, jobId);
             }
-            onsuccess(jobData);
+            if (onsuccess) onsuccess(jobData);
         },
-        (e) => onerror(('responseJSON' in e) ? e['responseJSON'] : {
-            error: "Something went wrong"
-        })
+        (e) => {
+            if (onerror) onerror(('responseJSON' in e) ? e['responseJSON'] : {
+                error: "Something went wrong"
+            })
+        }
     );
 }
 
@@ -79,20 +85,23 @@ export function saveJob(jobForm, jobData, onerror) {
             await saveToCache(JOBS, data.job._id, data.job);
             window.location.href = data.job.url;
         },
-        () => {
+        async () => {
             jobData._id = generateTempId();
-            let imageObj = generateTempImage(jobData)
+            let imageObj = await generateTempImage(jobData)
             let jobObj = {
                 _id: jobData._id,
                 name: jobData.name,
                 creator: jobData.creator,
                 imageSequence: [imageObj.url]
             }
-            saveToCache(OFFLINE_JOBS, jobObj._id, jobObj);
+            await saveToCache(OFFLINE_JOBS, jobObj._id, jobObj);
+            await saveImageDirectlyToCache(jobObj._id, imageObj);
         },
-        (e) => onerror(('responseJSON' in e) ? e['responseJSON'] : {
-            error: "Something went wrong"
-        }),
+        (e) => {
+            if (onerror) onerror(('responseJSON' in e) ? e['responseJSON'] : {
+                error: "Something went wrong"
+            })
+        },
         jobForm
     );
 }
@@ -102,43 +111,48 @@ export function saveImage(imageForm, imageData, onsuccess, onerror) {
         'POST',
         '/image/create',
         async (data) => {
-            await saveToCache(IMAGES, data._id, data);
-            onsuccess(data);
+            await saveToCache(IMAGES, data.image._id, data.image);
+            if (onsuccess) onsuccess(data.image);
         },
         async () => {
-            let imageObj = generateTempImage(imageData);
+            let imageObj = await generateTempImage(imageData);
             await saveToCache(OFFLINE_IMAGES, imageObj._id, imageObj);
+            if (onsuccess) onsuccess(imageObj);
         },
-        (e) => onerror(('responseJSON' in e) ? e['responseJSON'] : {
-            error: "Something went wrong"
-        }),
+        (e) => {
+            if (onerror) onerror(('responseJSON' in e) ? e['responseJSON'] : {
+                error: "Something went wrong"
+            })
+        },
         imageForm
     )
 }
 
 export function getImage(imageId, onsuccess, onerror) {
-    getFromCache(IMAGES, imageId)
-        .then(async foundImage => {
-            if (foundImage) return foundImage;
-            return await getFromCache(OFFLINE_IMAGES, id);
-        })
-        .then(foundImage => {
-            if (foundImage) onsuccess(foundImage)
-        });
+    if (onsuccess) {
+        getFromCache(IMAGES, imageId)
+            .then(async foundImage => {
+                if (foundImage) return foundImage;
+                return await getFromCache(OFFLINE_IMAGES, imageId);
+            })
+            .then(foundImage => {
+                if (foundImage) onsuccess(foundImage)
+            });
+    }
 
     ajaxRequest(
         'GET',
         `/image?id=${imageId}`,
         async (data) => {
-            await saveToCache(IMAGES, data._id, data);
-            onsuccess(data);
+            await saveToCache(IMAGES, data.image._id, data.image);
+            if (onsuccess) onsuccess(data.image);
         },
-        () => onerror({
-            error: "No Image provided"
-        }),
-        (e) => onerror(('responseJSON' in e) ? e['responseJSON'] : {
-            error: "Something went wrong"
-        })
+        null,
+        (e) => {
+            if (onerror) onerror(('responseJSON' in e) ? e['responseJSON'] : {
+                error: "Something went wrong"
+            })
+        }
     )
 }
 
@@ -153,12 +167,15 @@ export function saveJobImage(jobId, imageForm, imageData, onsuccess, onerror) {
                 job.imageSequence.push(data.url);
                 await saveToCache(JOBS, job._id, job);
             }
-            onsuccess(data);
+            if (onsuccess) onsuccess(data.image);
         },
         async () => saveImage(imageForm, imageData, onsuccess, onerror),
-        (e) => onerror(('responseJSON' in e) ? e['responseJSON'] : {
-            error: "Something went wrong"
-        }),
+        (e) => {
+            if (onerror)
+                onerror(('responseJSON' in e) ? e['responseJSON'] : {
+                    error: "Something went wrong"
+                })
+        },
         imageForm
     )
 }
@@ -183,7 +200,7 @@ export function saveAnnotationDataForImage(imageId, annotationData) {
 
 export async function getChatDataForImage(imageId) {
     const chatData = await getFromCache(CHATS, imageId);
-    return chatData ? chatData : {imageId:imageId, chatData:[]};
+    return chatData ? chatData : {imageId: imageId, chatData: []};
 }
 
 export function saveChatForImage(imageId, chatElement) {
@@ -196,7 +213,7 @@ export function saveChatForImage(imageId, chatElement) {
 
 /** UTILITIES **/
 
-function generateTempImage(imageData) {
+async function generateTempImage(imageData) {
     let imageObj = {
         title: imageData['image_title'],
         creator: imageData['image_creator'],
@@ -205,7 +222,11 @@ function generateTempImage(imageData) {
 
     switch (imageData['image_type']) {
         case 'upload':
-            imageObj.imageData = `data:image/png;base64,${imageData['image_source'].buffer.toString('base64')}`;
+            imageObj.imageData = await new Promise(resolve => {
+                let reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result)
+                reader.readAsDataURL(imageData['image_source']);
+            })
             break;
         case 'camera':
         case 'url':
@@ -214,6 +235,7 @@ function generateTempImage(imageData) {
     }
 
     imageObj._id = generateTempId();
+    imageObj.url = `/image?id=${imageObj._id}`
     return imageObj;
 }
 
@@ -260,14 +282,14 @@ export function ajaxRequest(type, url, onsuccess, onoffline, onerror, data = nul
             success: onsuccess,
             error: (response) => {
                 if (response.status === 0) {
-                    onoffline();
+                    if (onoffline) onoffline();
                 } else {
-                    onerror(response);
+                    if (onerror) onerror(response);
                 }
             },
         })
     } else {
-        onoffline();
+        if (onoffline) onoffline();
     }
 }
 
