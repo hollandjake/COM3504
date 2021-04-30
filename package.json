@@ -5,7 +5,8 @@
   "scripts": {
     "start": "./bin/www",
     "migrateDb": "./node_modules/.bin/migrate up -d mongodb://localhost:27017/jobs",
-    "rollbackDb": "./node_modules/.bin/migrate down add_test_jobs -d mongodb://localhost:27017/jobs"
+    "rollbackDb": "./node_modules/.bin/migrate down add_test_jobs -d mongodb://localhost:27017/jobs",
+    "resetDb": "npm run-script rollbackDb && npm run-script migrateDb"
   },
   "dependencies": {
     "bootstrap": "^4.6.0",
