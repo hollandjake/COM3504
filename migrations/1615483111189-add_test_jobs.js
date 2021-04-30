@@ -42,8 +42,9 @@ async function up() {
  * Make any changes that UNDO the up function side effects here (if possible)
  */
 async function down() {
+
     this('Job').counterReset('job', () => {});
-    this('Image').counterReset('job', () => {});
+    this('Image').counterReset('image', () => {});
     await this('Job').collection.drop();
     await this('Image').collection.drop();
 }

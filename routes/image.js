@@ -8,7 +8,12 @@ const imageController = require('../controllers/image');
 
 router.get('/list', async function (req, res) {
     if ("id" in req.query) {
-        res.send(await imageController.get(req.query['id']));
+        let foundImage = await imageController.get(req.query['id']);
+        if (foundImage) res.send(foundImage)
+        else res.status(404).json({
+            status: 404,
+            error: 'Image not found'
+        })
     } else {
         res.send(await imageController.getAll());
     }
@@ -48,7 +53,7 @@ router.get('/', async function (req, res) {
                 image: image
             })
         } else {
-            res.json({
+            res.status(404).json({
                 status: 404,
                 error: 'Image not found'
             })

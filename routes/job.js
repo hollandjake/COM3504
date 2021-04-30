@@ -9,7 +9,12 @@ const imageController = require('../controllers/image');
 
 router.get('/list', async function (req, res) {
     if ("id" in req.query) {
-        res.send(await jobController.get(req.query['id']));
+        let foundJob = await jobController.get(req.query['id']);
+        if (foundJob) res.json({status: 200, job: foundJob});
+        else res.status(404).json({
+            status: 404,
+            error: 'Job not found'
+        })
     } else {
         res.send(await jobController.getAll());
     }
@@ -52,10 +57,6 @@ router.get('/', async function (req, res) {
     } else {
         res.render('job', {title: `Job`, jobID: null});
     }
-})
-
-router.get('/check-online', async function (req, res) {
-    res.send("good");
 })
 
 router.post('/add-image', upload.any(), async function (req, res) {

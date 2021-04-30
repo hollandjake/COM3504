@@ -5,14 +5,14 @@ exports.get = async function (imageId) {
 }
 
 /**
- * Fetches all the Jobs
+ * Fetches all the images
  */
 exports.getAll = async function () {
     return await Image.find().exec();
 }
 
 /**
- * Saves a job and returns the saved object (including its new id)
+ * Saves an image and returns the saved object (including its new id)
  * @returns {Image}
  * @param imageData
  */

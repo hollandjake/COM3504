@@ -1,5 +1,5 @@
 import {loadImage} from "../components/preloadImage.js";
-import {getPID, getJobs, saveJob} from "../databases/database.js";
+import {getPID, getJobs, saveJob, getImage, getImageFromUrl} from "../databases/database.js";
 import {error} from "../components/error.js";
 import {getModalData} from "../components/modal.js";
 
@@ -38,7 +38,7 @@ $(async function () {
 
 export async function createJobElement(job) {
     if (job.imageSequence.length > 0) {
-        let imageData = (await (await fetch(job.imageSequence[0])).json()).image;
+        let imageData = await new Promise((resolve, reject) => getImageFromUrl(job.imageSequence[0], resolve, reject));
         let image = await loadImage(imageData.imageData, job.name, "img img-fluid");
         let element = $(`<div class="card">` +
             '<div class="card-body">' +
@@ -48,7 +48,7 @@ export async function createJobElement(job) {
             '</div>' +
             '</div>');
 
-        let imageContainer = $('<div class="card-img-bottom square-image"></div>');
+        let imageContainer = $('<div class="card-img-top square-image"></div>');
         imageContainer.append(image);
 
         element.prepend(imageContainer);
@@ -75,6 +75,7 @@ async function addAllJobs(jobsData) {
         element.fadeOut(0);
         jobListElement.removeClass('card-columns');
         jobListElement.append(element);
+        newJobsElements[""] = element;
         element.fadeIn(500);
     } else {
         jobListElement.addClass('card-columns');
