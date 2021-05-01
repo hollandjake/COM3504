@@ -23,18 +23,18 @@ async function up() {
     await this('Job').create({
         name: "Job 1",
         creator: "Tom",
-        imageSequence: [(await img1()).url, (await img1()).url]
+        imageSequence: [(await img1())._id, (await img1())._id]
     });
     await this('Job').create({
         name: "Job 2",
         creator: "Jake",
-        imageSequence: [(await img2()).url]
+        imageSequence: [(await img2())._id]
     });
 
     await this('Job').create({
         name: "Job 3",
         creator: "Billy",
-        imageSequence: [(await img1()).url]
+        imageSequence: [(await img1())._id]
     });
 }
 
