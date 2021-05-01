@@ -1,5 +1,5 @@
-import {newImageAdded, newChatMessage} from "./job.js";
-import {storeChatMessage} from "../databases/indexedDB.js";
+import {newImageAdded, newChatMessage, newWritingMessage} from "./job.js";
+import {storeChatMessage, getPID} from "../databases/indexedDB.js";
 
 const job = io.connect('/job');
 let annotationCanvases = {}
@@ -13,6 +13,9 @@ $(function () {
         await storeChatMessage(JOB_ID, imageId, chatObj);
         newChatMessage(imageId, chatObj);
     });
+    job.on('writingMessage', async function (imageId, sender) {
+        newWritingMessage(imageId, sender);
+    });
     job.on('draw', async function (imageId, event) {
         if (imageId in annotationCanvases) {
             annotationCanvases[imageId].onNetworkEvent(event);
@@ -24,9 +27,14 @@ export function addAnnotationCanvas(imageId, obj) {
     annotationCanvases[imageId] = obj;
 }
 
-export function sendChat(imageId, message) {
-    let userID = document.getElementById('nav-name').innerHTML;
+export async function sendChat(imageId, message) {
+    let userID = await getPID('name');
     job.emit('chat', userID, message, imageId);
+}
+
+export async function sendWritingMessage(imageId) {
+    let sender = await getPID('name');
+    job.emit('writingMessage', imageId, sender);
 }
 
 export function sendAnnotation(imageId, event) {

@@ -3,10 +3,11 @@ import {error} from "../components/error.js";
 import {getJob, getPID, storeJob, storeNewImage} from "../databases/indexedDB.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
-import {addAnnotationCanvas, sendChat} from "./jobSocket.js";
+import {addAnnotationCanvas, sendChat, sendWritingMessage} from "./jobSocket.js";
 
 let myself = "";
 let chats = {};
+let currentlyTyping = new Map();
 
 $(async function () {
     myself = await getPID("name");
@@ -135,11 +136,15 @@ async function createImageElement(image) {
         </div>
     `);
 
-    let chatButton = imageElement.find('.chat-submit')
+    let chatButton = imageElement.find('.chat-submit');
+    let chatInputBox = chatButton.find('input');
     chatButton.submit((e) => {
         e.preventDefault();
-        sendChat(image._id, chatButton.find("input").val());
-        chatButton.find("input").val("");
+        sendChat(image._id, chatInputBox.val());
+        chatInputBox.val("");
+    });
+    chatInputBox.on('input', () => {
+        sendWritingMessage(image._id);
     });
 
     let chatContainer = imageElement.find(".chat-container");
@@ -167,6 +172,16 @@ async function createImageElement(image) {
     return imageElement;
 }
 
+function addMessage(imageChat, messageElement) {
+    let scrollHeight = imageChat.container.prop('scrollHeight');
+    let scrollPos = imageChat.container.scrollTop() + imageChat.container.innerHeight();
+    const autoScroll = scrollHeight - scrollPos <= 0;
+    imageChat.container.append(messageElement);
+    if (autoScroll) {
+        imageChat.container.scrollTop(scrollHeight);
+    }
+}
+
 export function newChatMessage(imageId, chatObj) {
     if (imageId in chats) {
         const imageChat = chats[imageId];
@@ -175,22 +190,54 @@ export function newChatMessage(imageId, chatObj) {
             newMessageElement.addClass("message-right");
         } else {
             newMessageElement.addClass("message-left");
+            removeBobble(imageId, chatObj.sender);
         }
 
         if (imageChat.prevMessage && imageChat.prevMessage.sender === chatObj.sender) {
             newMessageElement.addClass("same-sender");
         }
-
-        let scrollHeight = imageChat.container.prop('scrollHeight');
-        let scrollPos = imageChat.container.scrollTop() + imageChat.container.innerHeight();
-        const autoScroll = scrollHeight - scrollPos <= 0;
-        imageChat.container.append(newMessageElement);
-        if (autoScroll) {
-            imageChat.container.scrollTop(scrollHeight);
-        }
+        addMessage(imageChat, newMessageElement)
         imageChat.prevMessage = chatObj;
         imageChat.prevMessage.element = newMessageElement;
     }
+}
+
+function removeBobble(imageId, sender) {
+    if (currentlyTyping[imageId] && currentlyTyping[imageId][sender]) {
+        clearTimeout(currentlyTyping[imageId][sender].timeout);
+        currentlyTyping[imageId][sender].bobber.remove();
+        delete currentlyTyping[imageId][sender];
+    }
+}
+
+export function newWritingMessage(imageId, sender) {
+    if (!currentlyTyping[imageId]) {
+        currentlyTyping[imageId] = {};
+    }
+    if (!currentlyTyping[imageId][sender]) {
+        const element = $(`
+                <li class="message-left">
+                    <span class="message-sender">${sender}</span>
+                    <span class="message-text">
+                        <div id="wave">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+                    </span>
+                </li>
+            `);
+        currentlyTyping[imageId][sender] = {
+            "bobber": element
+        }
+        addMessage(chats[imageId], element);
+    }
+    if ("timeout" in currentlyTyping[imageId][sender]) {
+        clearTimeout(currentlyTyping[imageId][sender].timeout);
+    }
+    currentlyTyping[imageId][sender].timeout = setTimeout(() => {
+        removeBobble(imageId, sender);
+    }, 5000);
 }
 
 function processImageCreationError(data) {
