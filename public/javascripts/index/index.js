@@ -1,5 +1,5 @@
 import {loadImage} from "../components/preloadImage.js";
-import {getPID, getJobs, saveJob, getImage, getImageFromUrl} from "../databases/database.js";
+import {getPID, getJobs, saveJob, getImage} from "../databases/database.js";
 import {error} from "../components/error.js";
 import {getModalData} from "../components/modal.js";
 
@@ -23,7 +23,9 @@ $(async function () {
             'job_creator': await getPID('name')
         })
 
-        await saveJob(formData, jobData, processJobCreationError);
+        await saveJob(formData, jobData, (job) => {
+            window.location.href = job.url;
+        },processJobCreationError);
     })
 
     $("#search-bar").on("keyup", function () {
@@ -38,7 +40,7 @@ $(async function () {
 
 export async function createJobElement(job) {
     if (job.imageSequence.length > 0) {
-        let imageData = await new Promise((resolve, reject) => getImageFromUrl(job.imageSequence[0], resolve, reject));
+        let imageData = await new Promise((resolve, reject) => getImage(job.imageSequence[0], resolve, reject));
         let image = await loadImage(imageData.imageData, job.name, "img img-fluid");
         let element = $(`<div class="card">` +
             '<div class="card-body">' +

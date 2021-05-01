@@ -5,9 +5,7 @@ import {getModalData} from "../components/modal.js";
 import {addAnnotationCanvas, sendChat} from "./jobSocket.js";
 import {
     getChatDataForImage,
-    getImage, getImageFromUrl,
-    getJob, getJobs,
-    getPID,
+    getImage, getJob, getPID,
     saveImageDirectlyToCache,
     saveJobImage
 } from "../databases/database.js";
@@ -52,7 +50,7 @@ async function initialisePage(job) {
 
     for (let i = 0; i < job.imageSequence.length; i++) {
         try {
-            let imageData = await new Promise((resolve, reject) => getImageFromUrl(job.imageSequence[i], resolve, reject));
+            let imageData = await new Promise((resolve, reject) => getImage(job.imageSequence[i], resolve, reject));
             let element = await createImageElement(imageData);
             imageListElement.append(element);
         } catch (e) {
@@ -68,7 +66,11 @@ async function initialisePage(job) {
 }
 
 function addImage(formData, imageData, jobId) {
-    saveJobImage(jobId, formData, imageData, null, processImageCreationError);
+    saveJobImage(jobId, formData, imageData, (data, onServer) => {
+        if (!onServer) {
+            newImageAdded(data._id);
+        }
+    }, processImageCreationError);
 }
 
 //Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button

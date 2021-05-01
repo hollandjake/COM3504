@@ -25,7 +25,7 @@ exports.addImage = async function (imageData) {
     }
 }
 
-exports.parseImage = function(req) {
+exports.parseImage = function (req) {
     let image = {
         title: req.body['image_title'],
         creator: req.body['image_creator'],
