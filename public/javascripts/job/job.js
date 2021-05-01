@@ -124,7 +124,7 @@ async function createImageElement(image) {
                         </ul>
                     </div>
                     <form class="chat-submit input-group pt-2">
-                        <input name="message" type="text" class="form-control chat-input" placeholder="Type here">
+                        <input name="message" type="text" class="form-control" placeholder="Type here">
                         <div class="input-group-append">
                             <button type="submit" class="btn btn-dark">
                                 <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
@@ -137,10 +137,10 @@ async function createImageElement(image) {
     `);
 
     let chatButton = imageElement.find('.chat-submit');
-    let chatInputBox = chatButton.find('.chat-input');
+    let chatInputBox = chatButton.find('input');
     chatButton.submit((e) => {
         e.preventDefault();
-        sendChat(image._id, chatButton.find("input").val());
+        sendChat(image._id, chatInputBox.val());
         chatInputBox.val("");
     });
     chatInputBox.on('input', () => {
