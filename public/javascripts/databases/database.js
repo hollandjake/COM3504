@@ -172,32 +172,17 @@ export function getImage(imageId, onsuccess, onerror) {
     }
 }
 
-export function saveJobImage(jobId, imageForm, imageData, onsuccess, onerror) {
+export function saveJobImage(jobId, imageForm, imageData, onoffline, onerror) {
     jobId = String(jobId);
     ajaxRequest(
         'POST',
         `/job/add-image?id=${jobId}`,
         async (data) => {
-            let job = await getFromCache(JOBS, jobId);
-            if (job) {
-                await saveToCache(IMAGES, data._id, data);
-                job.imageSequence.push(data._id);
-                await saveToCache(JOBS, job._id, job);
-            }
-            if (onsuccess) onsuccess(data.image, true);
+            await saveToCache(IMAGES, data._id, data);
         },
         async () => {
-            let job = await getFromCache(JOBS, jobId);
-            let offlineJob = await getFromCache(OFFLINE_JOBS, jobId);
             let cachedImageData = await new Promise((resolve, reject) => saveImage(imageForm, imageData, resolve, reject));
-            if (job) {
-                job.imageSequence.push(cachedImageData._id);
-                await saveToCache(JOBS, job._id, job);
-            } else if (offlineJob) {
-                offlineJob.imageSequence.push(cachedImageData._id);
-                await saveToCache(OFFLINE_JOBS, offlineJob._id, offlineJob);
-            }
-            if (onsuccess) onsuccess(cachedImageData, false);
+            if (onoffline) onoffline(cachedImageData);
         },
         (e) => {
             if (onerror)
@@ -209,14 +194,13 @@ export function saveJobImage(jobId, imageForm, imageData, onsuccess, onerror) {
     )
 }
 
-export async function saveImageDirectlyToCache(jobId, imageData) {
+export async function attachImageToJob(jobId, imageData) {
     jobId = String(jobId);
     let job = await getFromCache(JOBS, jobId);
     if (job) {
         job.imageSequence.push(imageData._id);
         await saveToCache(JOBS, jobId, job);
     }
-    await saveToCache(IMAGES, imageData._id, imageData);
 }
 
 export async function getAnnotationDataForImage(imageId) {

@@ -11,7 +11,7 @@ const JobSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    imageSequence: [String]
+    imageSequence: [Number]
 }, {_id: false, toJSON: {virtuals: true}});
 JobSchema.plugin(AutoIncrement, {inc_field: "_id", id: "job"});
 
