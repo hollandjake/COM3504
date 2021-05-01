@@ -12,7 +12,7 @@ const JobSchema = new mongoose.Schema({
         required: [true, "Creator is required"]
     },
     imageSequence: [{
-        type: String,
+        type: Number,
         required: [true, "Initial image is required"]
     }]
 }, {_id: false, toJSON: {virtuals: true}});

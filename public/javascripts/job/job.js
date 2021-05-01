@@ -4,9 +4,11 @@ import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
 import {addAnnotationCanvas, sendChat, sendWritingMessage} from "./jobSocket.js";
 import {
+    attachImageToJob,
     getChatDataForImage,
-    getImage, getJob, getPID,
-    saveImageDirectlyToCache,
+    getImage,
+    getJob,
+    getPID,
     saveJobImage
 } from "../databases/database.js";
 
@@ -67,10 +69,8 @@ async function initialisePage(job) {
 }
 
 function addImage(formData, imageData, jobId) {
-    saveJobImage(jobId, formData, imageData, (data, onServer) => {
-        if (!onServer) {
-            newImageAdded(data._id);
-        }
+    saveJobImage(jobId, formData, imageData, (data) => {
+        newImageAdded(data._id);
     }, processImageCreationError);
 }
 
@@ -249,7 +249,7 @@ function processImageCreationError(e) {
 //Closes and clears modal form and moves the carousel to the new image
 export async function newImageAdded(imageId) {
     getImage(imageId, async (imageData) => {
-        await saveImageDirectlyToCache(JOB_ID, imageData);
+        attachImageToJob(JOB_ID, imageData);
         let element = await createImageElement(imageData);
         if (element) {
             $('#image-container').append(element);
