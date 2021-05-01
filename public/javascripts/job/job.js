@@ -137,12 +137,13 @@ async function createImageElement(image) {
     `);
 
     let chatButton = imageElement.find('.chat-submit');
+    let chatInputBox = chatButton.find('.chat-input');
     chatButton.submit((e) => {
         e.preventDefault();
         sendChat(image._id, chatButton.find("input").val());
-        chatButton.find("input").val("");
+        chatInputBox.val("");
     });
-    chatButton.find('.chat-input').on('input', () => {
+    chatInputBox.on('input', () => {
         sendWritingMessage(image._id);
     });
 
