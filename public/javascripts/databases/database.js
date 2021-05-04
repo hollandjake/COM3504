@@ -266,6 +266,7 @@ export async function pushingToServer(onerror) {
         await deleteFromCache(OFFLINE_JOBS, job._id);
 
         let initImage = await getFromCache(OFFLINE_IMAGES, job.imageSequence[0])
+        await deleteFromCache(OFFLINE_IMAGES, initImage._id);
 
         let jobObj = {
             image_creator: initImage.creator,
@@ -280,22 +281,37 @@ export async function pushingToServer(onerror) {
         const formData = new FormData();
         Object.keys(jobObj).forEach(key => formData.append(key, jobObj[key]));
 
-        // let imageArray = job.imageSequence.shift();
-        //
-        // function addImageSequence(data, imageArray) {
-        //     for (const image of imageArray) {
-        //
-        //         console.log(image);
-        //
-        //         saveJobImage(data.job._id, formData, imageData, (data) => {
-        //             newImageAdded(data._id);
-        //         }, processImageCreationError);
-        //     }
-        // }
+        let imageArray;
+        if (job.imageSequence.length > 1) {
+            imageArray = job.imageSequence.shift();
+        } else {
+            imageArray = [];
+        }
 
-        await saveJob(formData, jobObj, () => {console.log("success")}, onerror);
+        async function addImageSequence(data, imageArray) {
+            for (const imageId of imageArray) {
 
-        //await saveJob(formData, jobObj, (data) => addImageSequence(data, imageArray), onerror);
+                if (typeof imageId === 'string') {
+                    let image = await getFromCache(OFFLINE_IMAGES, imageId);
+                    await deleteFromCache(OFFLINE_IMAGES, imageId);
+
+                    let imageObj = {
+                        image_creator: image.creator,
+                        image_description: image.description,
+                        image_source: image.imageData,
+                        image_title: image.title,
+                        image_type: image.type
+                    }
+
+                    const formData = new FormData();
+                    Object.keys(imageObj).forEach(key => formData.append(key, imageObj[key]));
+
+                    saveJobImage(data.job._id, formData, imageObj, () => {}, onerror);
+                }
+            }
+        }
+
+        await saveJob(formData, jobObj, (data) => addImageSequence(data, imageArray), onerror);
     }
 
     let onlineJobs = await getAllFromCache(JOBS);
@@ -321,29 +337,6 @@ export async function pushingToServer(onerror) {
             }
         }
     }
-
-    /*
-    for (const image of cachedImages) {
-        await deleteFromCache(OFFLINE_IMAGES_STORE_NAME, image._id);
-
-        let jobId = image._id.substr(0, image._id.indexOf('_'));
-
-        let imageObj = {
-            image_creator: image.creator,
-            image_description: image.description,
-            image_source: image.imageUrl,
-            image_title: image.title,
-            image_type: image.imageType
-        }
-
-        const formData = new FormData();
-        Object.keys(imageObj).forEach(key => formData.append(key, imageObj[key]));
-
-        saveImage(jobId, formData, imageObj, () => {}, onerror);
-
-    }
-
-     */
 }
 
 
