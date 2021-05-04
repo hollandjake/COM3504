@@ -200,6 +200,10 @@ export async function attachImageToJob(jobId, imageData) {
     if (job) {
         job.imageSequence.push(imageData._id);
         await saveToCache(JOBS, jobId, job);
+    } else {
+        job = await getFromCache(OFFLINE_JOBS, jobId);
+        job.imageSequence.push(imageData._id);
+        await saveToCache(OFFLINE_JOBS, jobId, job);
     }
 }
 
