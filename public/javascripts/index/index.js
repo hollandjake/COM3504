@@ -1,5 +1,5 @@
 import {loadImage} from "../components/preloadImage.js";
-import {getPID, getJobs, saveJob, getImage} from "../databases/database.js";
+import {getPID, getJobs, saveJob, getImage, pushingToServer} from "../databases/database.js";
 import {error} from "../components/error.js";
 import {getModalData} from "../components/modal.js";
 
@@ -7,6 +7,8 @@ let loadedJobs = {};
 
 // On load
 $(async function () {
+    await pushingToServer(processJobCreationError);
+
     //Ajax call to get the list of jobs
     let currentlyRunningAddJobCallback = null;
     await getJobs(async (jobsData) => {

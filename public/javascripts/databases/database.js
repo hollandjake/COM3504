@@ -235,7 +235,8 @@ async function generateTempImage(imageData) {
     let imageObj = {
         title: imageData['image_title'],
         creator: imageData['image_creator'],
-        description: imageData['image_description']
+        description: imageData['image_description'],
+        type: imageData['image_type']
     }
 
     switch (imageData['image_type']) {
@@ -258,16 +259,94 @@ async function generateTempImage(imageData) {
     return imageObj;
 }
 
-//TODO: BILLY
-export function pushingToServer() {
-    //TODO: FOR EACH CACHED_JOB in IDB_offline:
-    //TODO:     obj = REMOVE OBJ FROM IDB_offline
-    //TODO:     AJAX SEND TO SERVER saveJob(obj, callback)
+export async function pushingToServer(onerror) {
+    let cachedJobs = await getAllFromCache(OFFLINE_JOBS);
 
-    //TODO: FOR EACH CACHED_IMAGE in IDB_offline:
-    //TODO:     obj = REMOVE OBJ FROM IDB_offline
-    //TODO:     AJAX SEND TO SERVER saveImage(jobId, obj, callback)
+    for (const job of cachedJobs) {
+        await deleteFromCache(OFFLINE_JOBS, job._id);
+
+        let initImage = await getFromCache(OFFLINE_IMAGES, job.imageSequence[0])
+
+        let jobObj = {
+            image_creator: initImage.creator,
+            image_description: initImage.description,
+            image_source: initImage.imageData,
+            image_title: initImage.title,
+            image_type: initImage.type,
+            job_creator: job.creator,
+            job_name: job.name
+        }
+
+        const formData = new FormData();
+        Object.keys(jobObj).forEach(key => formData.append(key, jobObj[key]));
+
+        // let imageArray = job.imageSequence.shift();
+        //
+        // function addImageSequence(data, imageArray) {
+        //     for (const image of imageArray) {
+        //
+        //         console.log(image);
+        //
+        //         saveJobImage(data.job._id, formData, imageData, (data) => {
+        //             newImageAdded(data._id);
+        //         }, processImageCreationError);
+        //     }
+        // }
+
+        await saveJob(formData, jobObj, () => {console.log("success")}, onerror);
+
+        //await saveJob(formData, jobObj, (data) => addImageSequence(data, imageArray), onerror);
+    }
+
+    let onlineJobs = await getAllFromCache(JOBS);
+
+    for (const job of onlineJobs) {
+        for (const jobImage of job.imageSequence) {
+            if (typeof jobImage === 'string') {
+                let image = await getFromCache(OFFLINE_IMAGES, jobImage);
+                await deleteFromCache(OFFLINE_IMAGES, jobImage);
+
+                let imageObj = {
+                    image_creator: image.creator,
+                    image_description: image.description,
+                    image_source: image.imageData,
+                    image_title: image.title,
+                    image_type: image.type
+                }
+
+                const formData = new FormData();
+                Object.keys(imageObj).forEach(key => formData.append(key, imageObj[key]));
+
+                saveJobImage(job._id, formData, imageObj, () => {}, onerror);
+            }
+        }
+    }
+
+    /*
+    for (const image of cachedImages) {
+        await deleteFromCache(OFFLINE_IMAGES_STORE_NAME, image._id);
+
+        let jobId = image._id.substr(0, image._id.indexOf('_'));
+
+        let imageObj = {
+            image_creator: image.creator,
+            image_description: image.description,
+            image_source: image.imageUrl,
+            image_title: image.title,
+            image_type: image.imageType
+        }
+
+        const formData = new FormData();
+        Object.keys(imageObj).forEach(key => formData.append(key, imageObj[key]));
+
+        saveImage(jobId, formData, imageObj, () => {}, onerror);
+
+    }
+
+     */
 }
+
+
 
 function generateTempId() {
     let num = Date.now();
@@ -353,6 +432,14 @@ async function saveToCache(storeName, id, object) {
         store.put(object);
     }, () => {
         localStorage.setItem(`${storeName}_${id}`, JSON.stringify(object));
+    })
+}
+
+async function deleteFromCache(storeName, id) {
+    await executeOnCache(storeName, 'readwrite', (store) => {
+        store.delete(id);
+    }, () => {
+        localStorage.removeItem(`${storeName}_${id}`);
     })
 }
 
