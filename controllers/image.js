@@ -21,8 +21,9 @@ exports.parseImage = function(req) {
         description: req.body['image_description'],
     };
     if (req.body['image_type'] === "upload") {
+        let mimetype = req.files[0].mimetype;
         let imageData = req.files[0].buffer.toString('base64');
-        jobImage.imageUrl = `data:image/png;base64,${imageData}`;
+        jobImage.imageUrl = `data:${mimetype};base64,${imageData}`;
     } else if (req.body['image_type'] === "camera") {
         jobImage.imageUrl = req.body['image_source'];
     } else if (req.body['image_type'] === "url") {

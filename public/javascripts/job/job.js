@@ -257,7 +257,9 @@ export async function newImageAdded(data) {
         }
     } catch (e) {
         processImageCreationError({
-            error: "Something went wrong"
+            responseJSON: {
+                error: "Something went wrong"
+            }
         })
         console.log(e);
     }

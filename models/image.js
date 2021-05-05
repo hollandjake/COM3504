@@ -15,7 +15,11 @@ const ImageSchema = new mongoose.Schema({
     },
     imageUrl: {
         type: String,
-        required: [true, "Invalid image source"]
+        required: true,
+        validate: {
+            validator: v => (/(data:image\/.+)|((http|https):\/\/(\w+:?\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@\-/]))?)/).test(v),
+            message: "Invalid image source"
+        }
     },
 })
 
