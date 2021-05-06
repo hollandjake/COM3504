@@ -15,6 +15,7 @@ import {
 let myself = "";
 let chats = {};
 let currentlyTyping = new Map();
+const apiKey= 'AIzaSyAG7w627q-djB4gTTahssufwNOImRqdYKM';
 
 $(async function () {
     myself = await getPID("name");
@@ -121,6 +122,41 @@ async function createImageElement(image) {
                     </div>
                     <p class="card-text">${image.description}</p>
                 </div>
+                <hr>
+                <div class="card-body">
+                    <select class="form-control" id="knowledge-graph-type-${image._id}">
+                        <option selected value="no">Choose Knowledge Graph Type</option>
+                        <option value="Book">Book</option>
+                        <option value="BookSeries">BookSeries</option>
+                        <option value="EducationalOrganization">EducationalOrganization</option>
+                        <option value="Event">Event</option>
+                        <option value="GovernmentOrganization">GovernmentOrganization</option>
+                        <option value="LocalBusiness">LocalBusiness</option>
+                        <option value="Movie">Movie</option>
+                        <option value="MovieSeries">MovieSeries</option>
+                        <option value="MusicAlbum">MusicAlbum</option>
+                        <option value="MusicGroup">MusicGroup</option>
+                        <option value="MusicRecording">MusicRecording</option>
+                        <option value="Organization">Organization</option>
+                        <option value="Periodical">Periodical</option>
+                        <option value="Person">Person</option>
+                        <option value="Place">Place</option>
+                        <option value="SportsTeam">SportsTeam</option>
+                        <option value="TVEpisode">TVEpisode</option>
+                        <option value="TVSeries">TVSeries</option>
+                        <option value="VideoGame">VideoGame</option>
+                        <option value="VideoGameSeries">VideoGameSeries</option>
+                        <option value="WebSite">WebSite</option>
+                    </select>
+                    <div class="input-group pt-2">
+                        <input id="knowledge-graph-search-${image._id}" type="text" class="form-control" placeholder="Search knowledge graph...">
+                        <div class="input-group-append">
+                            <div class="btn btn-dark">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"></path><path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3z"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="card-footer">
                     <div class="card">
                         <ul class="card-body chat-container">
@@ -162,6 +198,17 @@ async function createImageElement(image) {
         sendWritingMessage(image._id);
     });
 
+    imageElement.find('#knowledge-graph-type-'+image._id).on("change", function() {
+        let config = {
+            'limit': 10,
+            'languages': ['en'],
+            'types': [this.value],
+            'maxDescChars': 100,
+            'selectHandler': selectItem,
+        }
+        KGSearchWidget(apiKey, document.getElementById('knowledge-graph-search-'+image._id), config);
+    });
+
     let chatContainer = imageElement.find(".chat-container");
     chatContainer.empty();
     chats[image._id] = {
@@ -184,6 +231,21 @@ async function createImageElement(image) {
     }).observe(imageElement.get(0), {attributeFilter: ['class'], attributeOldValue: true});
 
     return imageElement;
+}
+
+/**
+ * callback called when an element in the widget is selected
+ * @param event the Google Graph widget event {@link https://developers.google.com/knowledge-graph/how-tos/search-widget}
+ */
+function selectItem(event){
+    console.log(event);
+    /*let row= event.row;
+    // document.getElementById('resultImage').src= row.json.image.url;
+    document.getElementById('resultId').innerText= 'id: '+row.id;
+    document.getElementById('resultName').innerText= row.name;
+    document.getElementById('resultDescription').innerText= row.rc;
+    document.getElementById("resultUrl").href= row.qc;
+    document.getElementById('resultPanel').style.display= 'block';*/
 }
 
 function addMessage(imageChat, messageElement) {

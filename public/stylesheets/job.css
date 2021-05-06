@@ -109,3 +109,7 @@ div#wave .dot:nth-child(3) {
         transform: translateY(-10px);
     }
 }
+
+.kge-search-picker {
+    z-index: 10;
+}
