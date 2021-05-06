@@ -5,16 +5,16 @@ const JobSchema = new mongoose.Schema({
     _id: Number,
     name: {
         type: String,
-        required: true
+        required: [true, "Name is required"]
     },
     creator: {
         type: String,
-        required: true
+        required: [true, "Creator is required"]
     },
     imageSequence: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Image',
-        required: true
+        required: [true, "Initial image is required"]
     }]
 }, {_id: false, toJSON: {virtuals: true}});
 JobSchema.plugin(AutoIncrement);

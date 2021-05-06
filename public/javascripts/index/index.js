@@ -95,8 +95,8 @@ export function createJob(formData) {
     })
 }
 
-function processJobCreationError(data) {
-    $("#addJob").append(error(data.error));
+function processJobCreationError(e) {
+    $("#addJob").append(error(e['responseJSON'].error));
 }
 
 async function processJobCreation(data) {

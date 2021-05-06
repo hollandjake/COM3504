@@ -36,7 +36,7 @@ router.post('/create', upload.any(), async function (req, res) {
     } catch (e) {
         res.status(400).json({
             status: 400,
-            error: 'Failed to create Job',
+            error: `Failed to create Job:\n${Object.values(e.errors).map(e => `- ${e.message}`).join("\n")}`,
             job: req.body
         });
     }
@@ -58,7 +58,6 @@ router.post('/:jobId/add-image', upload.any(), async function (req, res) {
             return;
         }
         let image = await jobController.addImage(req.params['jobId'],jobImage);
-        // req.socket.broadcast.in(req.params['jobId']).emit('newImage', image);
         require('../bin/www').io.of('/job').in(req.params['jobId']).emit('newImage', {
             status: 200,
             image: image
@@ -70,7 +69,7 @@ router.post('/:jobId/add-image', upload.any(), async function (req, res) {
     } catch (e) {
         res.status(400).json({
             status: 400,
-            error: 'Failed to add image',
+            error: `Failed to add Image:\n${Object.values(e.errors).map(e => `- ${e.message}`).join("\n")}`,
             image: req.body
         });
     }

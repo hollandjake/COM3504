@@ -65,9 +65,7 @@ async function addImage(inputs, jobID) {
         data: inputs,
         processData: false,
         contentType: false,
-        error: function (e) {
-            processImageCreationError(e['responseJSON']);
-        }
+        error: processImageCreationError
     })
 }
 
@@ -240,8 +238,8 @@ export function newWritingMessage(imageId, sender) {
     }, 5000);
 }
 
-function processImageCreationError(data) {
-    $("#addImage").append(error(data.error));
+function processImageCreationError(e) {
+    $("#addImage").append(error(e['responseJSON'].error));
 }
 
 //Closes and clears modal form and moves the carousel to the new image
@@ -259,7 +257,9 @@ export async function newImageAdded(data) {
         }
     } catch (e) {
         processImageCreationError({
-            error: "Something went wrong"
+            responseJSON: {
+                error: "Something went wrong"
+            }
         })
         console.log(e);
     }
