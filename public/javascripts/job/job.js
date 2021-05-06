@@ -158,6 +158,32 @@ async function createImageElement(image) {
                             </div>
                         </div>
                     </div>
+                    <div class="knowledge-graph-results-container">
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-body">
+                                <h5 class="card-title">Result Name</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">Result ID</h6>
+                                <p class="card-text">Result DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult Description</p>
+                                <a href="https://www.google.com" class="card-link">Webpage</a>
+                            </div>
+                        </div>
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-body">
+                                <h5 class="card-title">Result Name</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">Result ID</h6>
+                                <p class="card-text">Result DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult Description</p>
+                                <a href="https://www.google.com" class="card-link">Webpage</a>
+                            </div>
+                        </div>
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-body">
+                                <h5 class="card-title">Result Name</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">Result ID</h6>
+                                <p class="card-text">Result DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult Description</p>
+                                <a href="https://www.google.com" class="card-link">Webpage</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-footer">
                     <div class="card">
