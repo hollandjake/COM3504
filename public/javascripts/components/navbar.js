@@ -1,4 +1,4 @@
-import {getPID} from "../databases/database.js";
+import {getPID, pushingToServer} from "../databases/database.js";
 
 async function loadName() {
     // Get name from IndexedDB and show it on the nav bar
@@ -14,4 +14,11 @@ async function loadName() {
     }
 }
 
-$(async () => await loadName());
+$(async function () {
+    await loadName();
+
+    window.addEventListener('online', pushingToServer);
+    //window.addEventListener('offline', pushingToServer);
+
+})
+

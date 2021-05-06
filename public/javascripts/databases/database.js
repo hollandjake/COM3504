@@ -266,6 +266,8 @@ async function addImageSequence(data, imageArray) {
             let image = await getFromCache(OFFLINE_IMAGES, imageId);
             await deleteFromCache(OFFLINE_IMAGES, imageId);
 
+            await toUpload(image)
+
             let imageObj = {
                 image_creator: image.creator,
                 image_description: image.description,
@@ -277,10 +279,25 @@ async function addImageSequence(data, imageArray) {
             const formData = new FormData();
             Object.keys(imageObj).forEach(key => formData.append(key, imageObj[key]));
 
-            saveJobImage(data.job._id, formData, imageObj, () => {}, onerror);
+            saveJobImage(data._id, formData, imageObj, () => {}, onerror);
         }
     }
 }
+
+async function toUpload(image) {
+    if (image.type == "upload") {
+        const imgData = image.imageData;
+        await fetch(imgData)
+            .then(res => res.blob())
+            .then(blob => {
+                const file = new File([blob], "File name",{ type: "image/png" })
+                image.imageData = file;
+            })
+    }
+    return image
+
+}
+
 
 export async function pushingToServer(onerror) {
     let cachedJobs = await getAllFromCache(OFFLINE_JOBS);
@@ -290,6 +307,8 @@ export async function pushingToServer(onerror) {
 
         let initImage = await getFromCache(OFFLINE_IMAGES, job.imageSequence[0])
         await deleteFromCache(OFFLINE_IMAGES, initImage._id);
+
+        await toUpload(initImage);
 
         let jobObj = {
             image_creator: initImage.creator,
@@ -316,6 +335,8 @@ export async function pushingToServer(onerror) {
             if (typeof jobImage === 'string') {
                 let image = await getFromCache(OFFLINE_IMAGES, jobImage);
                 await deleteFromCache(OFFLINE_IMAGES, jobImage);
+
+                await toUpload(image);
 
                 let imageObj = {
                     image_creator: image.creator,
