@@ -124,6 +124,41 @@ async function createImageElement(image) {
                     </div>
                     <p class="card-text">${image.description}</p>
                 </div>
+                <hr>
+                <div class="card-body">
+                    <select class="form-control" id="knowledge-graph-type-${image._id}">
+                        <option selected value="no">Choose Knowledge Graph Type</option>
+                        <option value="Book">Book</option>
+                        <option value="BookSeries">BookSeries</option>
+                        <option value="EducationalOrganization">EducationalOrganization</option>
+                        <option value="Event">Event</option>
+                        <option value="GovernmentOrganization">GovernmentOrganization</option>
+                        <option value="LocalBusiness">LocalBusiness</option>
+                        <option value="Movie">Movie</option>
+                        <option value="MovieSeries">MovieSeries</option>
+                        <option value="MusicAlbum">MusicAlbum</option>
+                        <option value="MusicGroup">MusicGroup</option>
+                        <option value="MusicRecording">MusicRecording</option>
+                        <option value="Organization">Organization</option>
+                        <option value="Periodical">Periodical</option>
+                        <option value="Person">Person</option>
+                        <option value="Place">Place</option>
+                        <option value="SportsTeam">SportsTeam</option>
+                        <option value="TVEpisode">TVEpisode</option>
+                        <option value="TVSeries">TVSeries</option>
+                        <option value="VideoGame">VideoGame</option>
+                        <option value="VideoGameSeries">VideoGameSeries</option>
+                        <option value="WebSite">WebSite</option>
+                    </select>
+                    <div class="input-group pt-2">
+                        <input id="knowledge-graph-search-${image._id}" type="text" class="form-control" placeholder="Search knowledge graph...">
+                        <div class="input-group-append">
+                            <div class="btn btn-dark">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"></path><path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3z"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="card-footer">
                     <div class="card">
                         <ul class="card-body chat-container">
