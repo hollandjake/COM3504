@@ -113,3 +113,11 @@ div#wave .dot:nth-child(3) {
 .kge-search-picker {
     z-index: 10;
 }
+.knowledge-graph-results-container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+}
+.knowledge-graph-results-container .card {
+    flex: 0 0 auto;
+}
