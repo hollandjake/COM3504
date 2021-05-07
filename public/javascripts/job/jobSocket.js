@@ -49,14 +49,34 @@ export async function sendWritingMessage(imageId) {
     job.emit('writingMessage', imageId, sender);
 }
 
+/**
+ * sends a socket.io event of the new knowledge graph element
+ * @param {Object} properties
+ * @param {String} properties.id
+ * @param {String} properties.name
+ * @param {String} properties.description
+ * @param {String} properties.url
+ * @param {int} properties.imageId
+ */
 export async function sendNewKnowledgeGraph(properties) {
     job.emit('newKnowledgeGraph', properties);
 }
 
+/**
+ * sends a socket.io event of the annotation colour for the knowledge graph element
+ * @param {int} imageId
+ * @param {String} graphId
+ * @param {String} color
+ */
 export async function sendKnowledgeGraphColor(imageId, graphId, color) {
     job.emit('knowledgeGraphColor',imageId, graphId, color);
 }
 
+/**
+ * sends a socket.io event of the removal of a knowledge graph element
+ * @param {int} imageId
+ * @param {String} graphId
+ */
 export async function sendKnowledgeGraphDeletion(imageId, graphId) {
     job.emit('knowledgeGraphDeleted',imageId, graphId);
 }

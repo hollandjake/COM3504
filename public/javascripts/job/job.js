@@ -201,14 +201,14 @@ async function createImageElement(image) {
         sendWritingMessage(image._id);
     });
 
-
+    //Updates the 'type' for which the knowledge uses to search
     imageElement.find('#knowledge-graph-type-'+image._id).on("change", function() {
         let config = {
             'limit': 10,
             'languages': ['en'],
             'types': [this.value],
             'maxDescChars': 100,
-            'selectHandler': (e) => {
+            'selectHandler': (e) => { //Handles the knowledge graph search bar
                 let properties = {
                     id: e.row.id.replaceAll('/',''),
                     name: e.row.name,
@@ -248,6 +248,15 @@ async function createImageElement(image) {
     return imageElement;
 }
 
+/**
+ * creates a knowledge graph card/element from an object of properties
+ * @param {Object} properties
+ * @param {String} properties.id
+ * @param {String} properties.name
+ * @param {String} properties.description
+ * @param {String} properties.url
+ * @param {int} properties.imageId
+ */
 function createKnowledgeGraphElement(properties) {
     let knowledgeGraphCard = $(`
         <div class="card knowledge-card" id="${properties.id}" style="width: 19rem;">
@@ -342,15 +351,35 @@ export function newWritingMessage(imageId, sender) {
     }, 5000);
 }
 
+/**
+ * handles an incoming socket.io event of a new knowledge graph element
+ * @param {Object} properties
+ * @param {String} properties.id
+ * @param {String} properties.name
+ * @param {String} properties.description
+ * @param {String} properties.url
+ * @param {int} properties.imageId
+ */
 export function newKnowledgeGraph(properties) {
     let knowledgeGraphElement = createKnowledgeGraphElement(properties);
     $('#knowledge-graph-results-container-'+properties.imageId).append(knowledgeGraphElement);
 }
 
+/**
+ * handles an incoming socket.io event of colour for a knowledge graph element
+ * @param {int} imageId
+ * @param {String} graphId
+ * @param {String} color
+ */
 export function updateKnowledgeGraphColor(imageId, graphId, color) {
     $('#knowledge-graph-results-container-'+imageId+' #'+graphId).css('border-color', color);
 }
 
+/**
+ * handles an incoming socket.io event of the removal of a knowledge graph element
+ * @param {int} imageId
+ * @param {String} graphId
+ */
 export function deleteKnowledgeGraph(imageId, graphId) {
     $('#knowledge-graph-results-container-'+imageId+' #'+graphId).remove();
 }
