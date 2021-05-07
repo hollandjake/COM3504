@@ -156,31 +156,7 @@ async function createImageElement(image) {
                             </div>
                         </div>
                     </div>
-                    <div class="knowledge-graph-results-container">
-                        <div class="card" style="width: 18rem;">
-                            <div class="card-body">
-                                <h5 class="card-title">Result Name</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">Result ID</h6>
-                                <p class="card-text">Result DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult Description</p>
-                                <a href="https://www.google.com" class="card-link">Webpage</a>
-                            </div>
-                        </div>
-                        <div class="card" style="width: 18rem;">
-                            <div class="card-body">
-                                <h5 class="card-title">Result Name</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">Result ID</h6>
-                                <p class="card-text">Result DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult Description</p>
-                                <a href="https://www.google.com" class="card-link">Webpage</a>
-                            </div>
-                        </div>
-                        <div class="card" style="width: 18rem;">
-                            <div class="card-body">
-                                <h5 class="card-title">Result Name</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">Result ID</h6>
-                                <p class="card-text">Result DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult DescriptionResult Description</p>
-                                <a href="https://www.google.com" class="card-link">Webpage</a>
-                            </div>
-                        </div>
+                    <div class="knowledge-graph-results-container pt-2" id="knowledge-graph-results-container-${image._id}">
                     </div>
                 </div>
                 <div class="card-footer">
@@ -224,13 +200,38 @@ async function createImageElement(image) {
         sendWritingMessage(image._id);
     });
 
+
     imageElement.find('#knowledge-graph-type-'+image._id).on("change", function() {
         let config = {
             'limit': 10,
             'languages': ['en'],
             'types': [this.value],
             'maxDescChars': 100,
-            'selectHandler': selectItem,
+            'selectHandler': (e) => {
+                let knowledgeGraphCard = $(`
+                    <div class="card knowledge-card" style="width: 19rem;">
+                        <div class="card-body">
+                            <h5 class="card-title">${e.row.name}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">${e.row.id}</h6>
+                            <p class="card-text">${e.row.rc}</p>
+                            <a href="${e.row.qc}" target="_blank" class="card-link"><button type="button" class="btn btn-info">Webpage</button></a>
+                        </div>
+                    </div>
+                `);
+                $(`<a><span class="btn btn-success colorpicker-input-addon annotate">Annotate</span></a>`).appendTo(knowledgeGraphCard.find('.card-body')).on("colorpickerChange", (e) => {
+                    let color = e.color.toString()
+                    annotation.color = color;
+                    knowledgeGraphCard.css('border-color', color);
+                }).colorpicker({
+                    useAlpha: false
+                }).children().removeClass('colorpicker-input-addon');
+                $(`<button type="button" class="btn btn-danger ml-1 float-right"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                    </button>`).appendTo(knowledgeGraphCard.find('.card-body')).click(() => {
+                    knowledgeGraphCard.remove();
+                })
+
+                imageElement.find('#knowledge-graph-results-container-'+image._id).append(knowledgeGraphCard);
+            },
         }
         KGSearchWidget(apiKey, document.getElementById('knowledge-graph-search-'+image._id), config);
     });
@@ -257,21 +258,6 @@ async function createImageElement(image) {
     }).observe(imageElement.get(0), {attributeFilter: ['class'], attributeOldValue: true});
 
     return imageElement;
-}
-
-/**
- * callback called when an element in the widget is selected
- * @param event the Google Graph widget event {@link https://developers.google.com/knowledge-graph/how-tos/search-widget}
- */
-function selectItem(event){
-    console.log(event);
-    /*let row= event.row;
-    // document.getElementById('resultImage').src= row.json.image.url;
-    document.getElementById('resultId').innerText= 'id: '+row.id;
-    document.getElementById('resultName').innerText= row.name;
-    document.getElementById('resultDescription').innerText= row.rc;
-    document.getElementById("resultUrl").href= row.qc;
-    document.getElementById('resultPanel').style.display= 'block';*/
 }
 
 function addMessage(imageChat, messageElement) {

@@ -17,6 +17,10 @@ export default class Annotate {
         return this._draw;
     }
 
+    set color(newColor) {
+        this._currentTool.color = newColor;
+    }
+
     async init() {
         const [container, canvas, ctx, imageSize] = await this.createCanvas(this._image, this._imageClasses, this._containerClasses);
         this._container = container;
