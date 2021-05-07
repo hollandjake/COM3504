@@ -2,7 +2,7 @@
 import {error} from "../components/error.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
-import {addAnnotationCanvas, sendChat, sendWritingMessage} from "./jobSocket.js";
+import {addAnnotationCanvas, sendChat, sendWritingMessage, sendNewKnowledgeGraph, sendKnowledgeGraphColor, sendKnowledgeGraphDeletion} from "./jobSocket.js";
 import {
     attachImageToJob,
     getChatDataForImage,
@@ -14,6 +14,7 @@ import {
 
 let myself = "";
 let chats = {};
+let annotationClasses = {};
 let currentlyTyping = new Map();
 const apiKey= 'AIzaSyAG7w627q-djB4gTTahssufwNOImRqdYKM';
 
@@ -106,6 +107,7 @@ function updateCarouselArrows() {
 
 async function createImageElement(image) {
     const annotation = await new Annotate(image, "card-img-top rounded-0", "card-img-top job-image rounded-0").init();
+    annotationClasses[image._id] = annotation;
 
     addAnnotationCanvas(image._id, annotation);
 
@@ -207,29 +209,16 @@ async function createImageElement(image) {
             'types': [this.value],
             'maxDescChars': 100,
             'selectHandler': (e) => {
-                let knowledgeGraphCard = $(`
-                    <div class="card knowledge-card" style="width: 19rem;">
-                        <div class="card-body">
-                            <h5 class="card-title">${e.row.name}</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">${e.row.id}</h6>
-                            <p class="card-text">${e.row.rc}</p>
-                            <a href="${e.row.qc}" target="_blank" class="card-link"><button type="button" class="btn btn-info">Webpage</button></a>
-                        </div>
-                    </div>
-                `);
-                $(`<a><span class="btn btn-success colorpicker-input-addon annotate">Annotate</span></a>`).appendTo(knowledgeGraphCard.find('.card-body')).on("colorpickerChange", (e) => {
-                    let color = e.color.toString()
-                    annotation.color = color;
-                    knowledgeGraphCard.css('border-color', color);
-                }).colorpicker({
-                    useAlpha: false
-                }).children().removeClass('colorpicker-input-addon');
-                $(`<button type="button" class="btn btn-danger ml-1 float-right"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                    </button>`).appendTo(knowledgeGraphCard.find('.card-body')).click(() => {
-                    knowledgeGraphCard.remove();
-                })
-
-                imageElement.find('#knowledge-graph-results-container-'+image._id).append(knowledgeGraphCard);
+                let properties = {
+                    id: e.row.id.replaceAll('/',''),
+                    name: e.row.name,
+                    description: e.row.rc,
+                    url: e.row.qc,
+                    imageId: image._id
+                }
+                let knowledgeGraphElement = createKnowledgeGraphElement(properties);
+                $('#knowledge-graph-results-container-'+image._id).append(knowledgeGraphElement);
+                sendNewKnowledgeGraph(properties);
             },
         }
         KGSearchWidget(apiKey, document.getElementById('knowledge-graph-search-'+image._id), config);
@@ -257,6 +246,32 @@ async function createImageElement(image) {
     }).observe(imageElement.get(0), {attributeFilter: ['class'], attributeOldValue: true});
 
     return imageElement;
+}
+
+function createKnowledgeGraphElement(properties) {
+    let knowledgeGraphCard = $(`
+        <div class="card knowledge-card" id="${properties.id}" style="width: 19rem;">
+            <div class="card-body">
+                <h5 class="card-title">${properties.name}</h5>
+                <p class="card-text">${properties.description}</p>
+                <a href="${properties.url}" target="_blank" class="card-link"><button type="button" class="btn btn-info">Webpage</button></a>
+            </div>
+        </div>
+    `);
+    $(`<a><span class="btn btn-success colorpicker-input-addon annotate">Annotate</span></a>`).appendTo(knowledgeGraphCard.find('.card-body')).on("colorpickerChange", (e) => {
+        let color = e.color.toString()
+        annotationClasses[properties.imageId].color = color;
+        knowledgeGraphCard.css('border-color', color);
+        sendKnowledgeGraphColor(properties.imageId, properties.id, color)
+    }).colorpicker({
+        useAlpha: false
+    }).children().removeClass('colorpicker-input-addon');
+    $(`<button type="button" class="btn btn-danger ml-1 float-right"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+       </button>`).appendTo(knowledgeGraphCard.find('.card-body')).click(() => {
+        knowledgeGraphCard.remove();
+        sendKnowledgeGraphDeletion(properties.imageId, properties.id);
+    });
+    return knowledgeGraphCard;
 }
 
 function addMessage(imageChat, messageElement) {
@@ -325,6 +340,19 @@ export function newWritingMessage(imageId, sender) {
     currentlyTyping[imageId][sender].timeout = setTimeout(() => {
         removeBobble(imageId, sender);
     }, 5000);
+}
+
+export function newKnowledgeGraph(properties) {
+    let knowledgeGraphElement = createKnowledgeGraphElement(properties);
+    $('#knowledge-graph-results-container-'+properties.imageId).append(knowledgeGraphElement);
+}
+
+export function updateKnowledgeGraphColor(imageId, graphId, color) {
+    $('#knowledge-graph-results-container-'+imageId+' #'+graphId).css('border-color', color);
+}
+
+export function deleteKnowledgeGraph(imageId, graphId) {
+    $('#knowledge-graph-results-container-'+imageId+' #'+graphId).remove();
 }
 
 function processImageCreationError(e) {

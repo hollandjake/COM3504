@@ -1,4 +1,4 @@
-import {newImageAdded, newChatMessage, newWritingMessage} from "./job.js";
+import {newImageAdded, newChatMessage, newWritingMessage, newKnowledgeGraph, updateKnowledgeGraphColor, deleteKnowledgeGraph} from "./job.js";
 import {saveChatForImage, getPID} from "../databases/database.js";
 
 const job = io.connect('/job');
@@ -15,6 +15,15 @@ $(function () {
     });
     job.on('writingMessage', async function (imageId, sender) {
         newWritingMessage(imageId, sender);
+    });
+    job.on('newKnowledgeGraph', async function (properties) {
+        newKnowledgeGraph(properties);
+    });
+    job.on('knowledgeGraphColor', async function (imageId, graphId, color) {
+        updateKnowledgeGraphColor(imageId, graphId, color);
+    });
+    job.on('knowledgeGraphDeleted', async function (imageId, graphId) {
+        deleteKnowledgeGraph(imageId, graphId);
     });
     job.on('draw', async function (imageId, event) {
         if (imageId in annotationCanvases) {
@@ -38,6 +47,18 @@ export async function sendChat(imageId, message) {
 export async function sendWritingMessage(imageId) {
     let sender = await getPID('name');
     job.emit('writingMessage', imageId, sender);
+}
+
+export async function sendNewKnowledgeGraph(properties) {
+    job.emit('newKnowledgeGraph', properties);
+}
+
+export async function sendKnowledgeGraphColor(imageId, graphId, color) {
+    job.emit('knowledgeGraphColor',imageId, graphId, color);
+}
+
+export async function sendKnowledgeGraphDeletion(imageId, graphId) {
+    job.emit('knowledgeGraphDeleted',imageId, graphId);
 }
 
 export function sendAnnotation(imageId, event) {
