@@ -2,6 +2,10 @@
     filter: invert(1) grayscale(100);
 }
 
+#image-container {
+    overflow: visible !important;
+}
+
 .job-image {
     max-height: 500px;
     object-fit: contain;
