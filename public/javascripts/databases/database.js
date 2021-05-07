@@ -233,6 +233,7 @@ export function saveChatForImage(imageId, chatElement) {
 /** UTILITIES **/
 
 async function generateTempImage(imageData) {
+
     let imageObj = {
         title: imageData['image_title'],
         creator: imageData['image_creator'],
@@ -289,14 +290,12 @@ async function addImageSequence(data, imageArray, oldId) {
 }
 
 async function toUpload(image) {
-    if (image.type == "upload") {
+    if (image.type === "upload") {
         const imgData = image.imageData;
+        const mimeType = imgData.match(/data:(.+?);/)[1];
         await fetch(imgData)
             .then(res => res.blob())
-            .then(blob => {
-                const file = new File([blob], "File name",{ type: "image/png" })
-                image.imageData = file;
-            })
+            .then(blob => image.imageData = new File([blob], "File name",{ type: mimeType }))
     }
     return image
 }
