@@ -7,6 +7,8 @@ let loadedJobs = {};
 
 // On load
 $(async function () {
+    await pushingToServer();
+
     //Ajax call to get the list of jobs
     let currentlyRunningAddJobCallback = null;
     await getJobs(async (jobsData) => {

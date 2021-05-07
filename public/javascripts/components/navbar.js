@@ -17,7 +17,7 @@ async function loadName() {
 $(async function () {
     await loadName();
 
-    window.addEventListener('online', pushingToServer);
+    //window.addEventListener('online', pushingToServer);
     //window.addEventListener('offline', pushingToServer);
 
 })

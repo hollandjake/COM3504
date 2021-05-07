@@ -172,13 +172,14 @@ export function getImage(imageId, onsuccess, onerror) {
     }
 }
 
-export function saveJobImage(jobId, imageForm, imageData, onoffline, onerror) {
+export function saveJobImage(jobId, imageForm, imageData, onsuccess, onoffline, onerror) {
     jobId = String(jobId);
     ajaxRequest(
         'POST',
         `/job/add-image?id=${jobId}`,
         async (data) => {
             await saveToCache(IMAGES, data._id, data);
+            onsuccess(data);
         },
         async () => {
             let cachedImageData = await new Promise((resolve, reject) => saveImage(imageForm, imageData, resolve, reject));
@@ -259,7 +260,10 @@ async function generateTempImage(imageData) {
     return imageObj;
 }
 
-async function addImageSequence(data, imageArray) {
+async function addImageSequence(data, imageArray, oldId) {
+
+    await annotationChatUpdate(oldId, data.imageSequence[0])
+
     for (const imageId of imageArray) {
 
         if (typeof imageId === 'string') {
@@ -279,7 +283,7 @@ async function addImageSequence(data, imageArray) {
             const formData = new FormData();
             Object.keys(imageObj).forEach(key => formData.append(key, imageObj[key]));
 
-            saveJobImage(data._id, formData, imageObj, () => {}, onerror);
+            saveJobImage(data._id, formData, imageObj, async (data) => {await annotationChatUpdate(imageId, data.image._id)}, async (cachedData) => {await annotationChatUpdate(imageId, cachedData._id)}, onerror);
         }
     }
 }
@@ -295,9 +299,23 @@ async function toUpload(image) {
             })
     }
     return image
-
 }
 
+async function annotationChatUpdate(oldId, newId) {
+    let annotations = await getFromCache(ANNOTATIONS, oldId);
+    if (annotations) {
+        await deleteFromCache(ANNOTATIONS, oldId);
+        annotations.imageId = newId;
+        await saveToCache(ANNOTATIONS, newId, annotations);
+    }
+
+    let chats = await getFromCache(CHATS, oldId);
+    if (chats) {
+        await deleteFromCache(CHATS, oldId);
+        chats.imageId = newId;
+        await saveToCache(CHATS, newId, chats);
+    }
+}
 
 export async function pushingToServer(onerror) {
     let cachedJobs = await getAllFromCache(OFFLINE_JOBS);
@@ -325,7 +343,7 @@ export async function pushingToServer(onerror) {
 
         job.imageSequence.shift();
 
-        await saveJob(formData, jobObj, (data) => addImageSequence(data, job.imageSequence), onerror);
+        await saveJob(formData, jobObj, (data) => addImageSequence(data, job.imageSequence, job._id), onerror);
     }
 
     let onlineJobs = await getAllFromCache(JOBS);
@@ -349,7 +367,7 @@ export async function pushingToServer(onerror) {
                 const formData = new FormData();
                 Object.keys(imageObj).forEach(key => formData.append(key, imageObj[key]));
 
-                saveJobImage(job._id, formData, imageObj, () => {}, onerror);
+                saveJobImage(job._id, formData, imageObj, async (data) => {await annotationChatUpdate(jobImage, data.image._id)}, async (cachedData) => {await annotationChatUpdate(jobImage, cachedData._id)}, onerror);
             }
         }
     }

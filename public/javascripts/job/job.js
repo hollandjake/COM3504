@@ -69,7 +69,7 @@ async function initialisePage(job) {
 }
 
 function addImage(formData, imageData, jobId) {
-    saveJobImage(jobId, formData, imageData, (data) => {
+    saveJobImage(jobId, formData, imageData, null, (data) => {
         newImageAdded(data._id);
     }, processImageCreationError);
 }
