@@ -161,68 +161,6 @@ async function createImageElement(image) {
                     <div class="knowledge-graph-results-container pt-2" id="knowledge-graph-results-container-${image._id}">
                     </div>
                 </div>
-                <div class="card-footer">
-                    <div class="card">
-                        <ul class="card-body chat-container">
-                            <li class="message-left multi-message">
-                                <span class="message-sender">Bob</span>
-                                <span class="message-text">Message left</span>
-                            </li>
-                            <li class="message-left same-sender">
-                                <span class="message-sender">Bob</span>
-                                <span class="message-text">Message left</span>
-                            </li>
-                            <li class="message-right">
-                                <span class="message-sender">Ed</span>
-                                <span class="message-text">Message right</span>
-                            </li>
-                        </ul>
-                    </div>
-                    <form class="chat-submit input-group pt-2">
-                        <input name="message" type="text" class="form-control" placeholder="Type here">
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-dark">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                <div class="card-body">
-                    <select class="form-control" id="knowledge-graph-type-${image._id}">
-                        <option selected value="no">Choose Knowledge Graph Type</option>
-                        <option value="Book">Book</option>
-                        <option value="BookSeries">BookSeries</option>
-                        <option value="EducationalOrganization">EducationalOrganization</option>
-                        <option value="Event">Event</option>
-                        <option value="GovernmentOrganization">GovernmentOrganization</option>
-                        <option value="LocalBusiness">LocalBusiness</option>
-                        <option value="Movie">Movie</option>
-                        <option value="MovieSeries">MovieSeries</option>
-                        <option value="MusicAlbum">MusicAlbum</option>
-                        <option value="MusicGroup">MusicGroup</option>
-                        <option value="MusicRecording">MusicRecording</option>
-                        <option value="Organization">Organization</option>
-                        <option value="Periodical">Periodical</option>
-                        <option value="Person">Person</option>
-                        <option value="Place">Place</option>
-                        <option value="SportsTeam">SportsTeam</option>
-                        <option value="TVEpisode">TVEpisode</option>
-                        <option value="TVSeries">TVSeries</option>
-                        <option value="VideoGame">VideoGame</option>
-                        <option value="VideoGameSeries">VideoGameSeries</option>
-                        <option value="WebSite">WebSite</option>
-                    </select>
-                    <div class="input-group pt-2">
-                        <input id="knowledge-graph-search-${image._id}" type="text" class="form-control" placeholder="Search knowledge graph...">
-                        <div class="input-group-append">
-                            <div class="btn btn-dark">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"></path><path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3z"></path></svg>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="knowledge-graph-results-container pt-2" id="knowledge-graph-results-container-${image._id}">
-                    </div>
-                </div>
             </div>
         </div>
     `);
