@@ -20,10 +20,12 @@ $(async function () {
 
     if (navigator.onLine) await pushingToServer(() => {console.log(error)});
 
-    window.addEventListener('online', async () => {
-        console.log("triggered");
-        await pushingToServer(() => {console.log(error)})
-    });
+    //TODO: move to service worker
+    setTimeout(() => {
+        window.addEventListener('online', async () => {
+            await pushingToServer(() => {console.log(error)})
+        });
+    }, 15000);
 
 })
 
