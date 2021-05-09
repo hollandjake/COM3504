@@ -1,4 +1,5 @@
 import * as idb from '../idb/index.js';
+import {convertToFormData} from "../components/modal.js";
 
 let db;
 
@@ -172,13 +173,14 @@ export function getImage(imageId, onsuccess, onerror) {
     }
 }
 
-export function saveJobImage(jobId, imageForm, imageData, onoffline, onerror) {
+export function saveJobImage(jobId, imageForm, imageData, onsuccess, onoffline, onerror) {
     jobId = String(jobId);
     ajaxRequest(
         'POST',
         `/job/add-image?id=${jobId}`,
         async (data) => {
             await saveToCache(IMAGES, data._id, data);
+            if (onsuccess) onsuccess(data);
         },
         async () => {
             let cachedImageData = await new Promise((resolve, reject) => saveImage(imageForm, imageData, resolve, reject));
@@ -232,10 +234,12 @@ export function saveChatForImage(imageId, chatElement) {
 /** UTILITIES **/
 
 async function generateTempImage(imageData) {
+
     let imageObj = {
         title: imageData['image_title'],
         creator: imageData['image_creator'],
-        description: imageData['image_description']
+        description: imageData['image_description'],
+        type: imageData['image_type']
     }
 
     switch (imageData['image_type']) {
@@ -258,15 +262,148 @@ async function generateTempImage(imageData) {
     return imageObj;
 }
 
-//TODO: BILLY
-export function pushingToServer() {
-    //TODO: FOR EACH CACHED_JOB in IDB_offline:
-    //TODO:     obj = REMOVE OBJ FROM IDB_offline
-    //TODO:     AJAX SEND TO SERVER saveJob(obj, callback)
+async function addImageSequence(data, imageArray, oldId) {
 
-    //TODO: FOR EACH CACHED_IMAGE in IDB_offline:
-    //TODO:     obj = REMOVE OBJ FROM IDB_offline
-    //TODO:     AJAX SEND TO SERVER saveImage(jobId, obj, callback)
+    imageArray.shift();
+
+    await idMigration(oldId, data.imageSequence[0])
+
+
+    for (const imageId of imageArray) {
+
+        if (typeof imageId === 'string') {
+            let image = await getFromCache(OFFLINE_IMAGES, imageId);
+            await deleteFromCache(OFFLINE_IMAGES, imageId);
+
+            await toUpload(image)
+
+            let imageObj = {
+                image_creator: image.creator,
+                image_description: image.description,
+                image_source: image.imageData,
+                image_title: image.title,
+                image_type: image.type
+            }
+
+            await new Promise((resolve, reject) => {
+                saveJobImage(data._id, convertToFormData(imageObj), imageObj, async (data) => {
+                    await idMigration(imageId, data.image._id)
+                    resolve()
+                }, async (cachedData) => {
+                    await idMigration(imageId, cachedData._id)
+                    resolve()
+                }, reject);
+            });
+
+        }
+    }
+
+    return [oldId, data._id]
+
+}
+
+async function toUpload(image) {
+    if (image.type === "upload") {
+        const imgData = image.imageData;
+        const mimeType = imgData.match(/data:(.+?);/)[1];
+        await fetch(imgData)
+            .then(res => res.blob())
+            .then(blob => image.imageData = new File([blob], "File name",{ type: mimeType }))
+    }
+    return image
+}
+
+async function idMigration(oldId, newId) {
+    let annotations = await getFromCache(ANNOTATIONS, oldId);
+    if (annotations) {
+        await deleteFromCache(ANNOTATIONS, oldId);
+        annotations.imageId = newId;
+        await saveToCache(ANNOTATIONS, newId, annotations);
+    }
+
+    let chats = await getFromCache(CHATS, oldId);
+    if (chats) {
+        await deleteFromCache(CHATS, oldId);
+        chats.imageId = newId;
+        await saveToCache(CHATS, newId, chats);
+    }
+}
+
+export async function pushingToServer(onerror) {
+
+    let cachedJobs = await getAllFromCache(OFFLINE_JOBS);
+
+    let updatedJobs= [];
+
+    for (const job of cachedJobs) {
+        await deleteFromCache(OFFLINE_JOBS, job._id);
+
+        let initImage = await getFromCache(OFFLINE_IMAGES, job.imageSequence[0])
+        await deleteFromCache(OFFLINE_IMAGES, initImage._id);
+
+        await toUpload(initImage);
+
+        let jobObj = {
+            image_creator: initImage.creator,
+            image_description: initImage.description,
+            image_source: initImage.imageData,
+            image_title: initImage.title,
+            image_type: initImage.type,
+            job_creator: job.creator,
+            job_name: job.name
+        }
+
+        await new Promise(async (resolve, reject) => {
+            await saveJob(convertToFormData(jobObj), jobObj, async (data) => {
+                updatedJobs.push(await addImageSequence(data, job.imageSequence, job._id));
+                resolve();
+            }, () => {
+                onerror;
+                resolve();
+            }, reject);
+        });
+
+    }
+
+    let onlineJobs = await getAllFromCache(JOBS);
+
+    for (const job of onlineJobs) {
+        for (const jobImage of job.imageSequence) {
+            if (typeof jobImage === 'string') {
+                let image = await getFromCache(OFFLINE_IMAGES, jobImage);
+                await deleteFromCache(OFFLINE_IMAGES, jobImage);
+
+                job.imageSequence = job.imageSequence.filter(x => x !== image._id)
+
+                await saveToCache(JOBS, job._id, job);
+
+                await toUpload(image);
+
+                let imageObj = {
+                    image_creator: image.creator,
+                    image_description: image.description,
+                    image_source: image.imageData,
+                    image_title: image.title,
+                    image_type: image.type
+                }
+
+                await new Promise((resolve, reject) => {
+                    saveJobImage(job._id, convertToFormData(imageObj), imageObj, async (data) => {
+                        await idMigration(jobImage, data.image._id)
+                        resolve()
+                    }, async (cachedData) => {
+                        await idMigration(jobImage, cachedData._id)
+                        resolve()
+                    }, reject);
+                });
+
+                updatedJobs.push([job._id, job._id])
+            }
+        }
+    }
+
+    $(document).trigger("jobsUpdated", [updatedJobs])
+
 }
 
 function generateTempId() {
@@ -312,7 +449,7 @@ export function ajaxRequest(type, url, onsuccess, onoffline, onerror, data = nul
     }
 }
 
-async function getAllFromCache(storeName) {
+export async function getAllFromCache(storeName) {
     let result = [];
 
     let localStorageExecutor = () => {
@@ -353,6 +490,14 @@ async function saveToCache(storeName, id, object) {
         store.put(object);
     }, () => {
         localStorage.setItem(`${storeName}_${id}`, JSON.stringify(object));
+    })
+}
+
+async function deleteFromCache(storeName, id) {
+    await executeOnCache(storeName, 'readwrite', (store) => {
+        store.delete(id);
+    }, () => {
+        localStorage.removeItem(`${storeName}_${id}`);
     })
 }
 

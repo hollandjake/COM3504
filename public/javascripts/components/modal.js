@@ -163,8 +163,13 @@ export async function getModalData(modal, extraFields = {}) {
         canvas.remove();
     }
 
-    const formData = new FormData();
-    Object.keys(finalData).forEach(key => formData.append(key, finalData[key]));
+    return [convertToFormData(finalData), finalData];
+}
 
-    return [formData, finalData];
+export function convertToFormData(data) {
+
+    const formData = new FormData();
+    Object.keys(data).forEach(key => formData.append(key, data[key]));
+
+    return formData
 }
