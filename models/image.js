@@ -23,6 +23,10 @@ const ImageSchema = new mongoose.Schema({
             message: "Invalid image source"
         }
     },
+    type: {
+        type: String,
+        required: [true, "Type is required"]
+    },
 }, {_id: false, toJSON: {virtuals: true}})
 ImageSchema.plugin(AutoIncrement, {inc_field: "_id", id: "image"});
 

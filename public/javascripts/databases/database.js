@@ -1,4 +1,5 @@
 import * as idb from '../idb/index.js';
+import {convertToFormData} from "../components/modal.js";
 
 let db;
 
@@ -179,7 +180,7 @@ export function saveJobImage(jobId, imageForm, imageData, onsuccess, onoffline, 
         `/job/add-image?id=${jobId}`,
         async (data) => {
             await saveToCache(IMAGES, data._id, data);
-            onsuccess(data);
+            if (onsuccess) onsuccess(data);
         },
         async () => {
             let cachedImageData = await new Promise((resolve, reject) => saveImage(imageForm, imageData, resolve, reject));
@@ -263,7 +264,10 @@ async function generateTempImage(imageData) {
 
 async function addImageSequence(data, imageArray, oldId) {
 
-    await annotationChatUpdate(oldId, data.imageSequence[0])
+    imageArray.shift();
+
+    await idMigration(oldId, data.imageSequence[0])
+
 
     for (const imageId of imageArray) {
 
@@ -281,12 +285,21 @@ async function addImageSequence(data, imageArray, oldId) {
                 image_type: image.type
             }
 
-            const formData = new FormData();
-            Object.keys(imageObj).forEach(key => formData.append(key, imageObj[key]));
+            await new Promise((resolve, reject) => {
+                saveJobImage(data._id, convertToFormData(imageObj), imageObj, async (data) => {
+                    await idMigration(imageId, data.image._id)
+                    resolve()
+                }, async (cachedData) => {
+                    await idMigration(imageId, cachedData._id)
+                    resolve()
+                }, reject);
+            });
 
-            saveJobImage(data._id, formData, imageObj, async (data) => {await annotationChatUpdate(imageId, data.image._id)}, async (cachedData) => {await annotationChatUpdate(imageId, cachedData._id)}, onerror);
         }
     }
+
+    return [oldId, data._id]
+
 }
 
 async function toUpload(image) {
@@ -300,7 +313,7 @@ async function toUpload(image) {
     return image
 }
 
-async function annotationChatUpdate(oldId, newId) {
+async function idMigration(oldId, newId) {
     let annotations = await getFromCache(ANNOTATIONS, oldId);
     if (annotations) {
         await deleteFromCache(ANNOTATIONS, oldId);
@@ -317,7 +330,10 @@ async function annotationChatUpdate(oldId, newId) {
 }
 
 export async function pushingToServer(onerror) {
+
     let cachedJobs = await getAllFromCache(OFFLINE_JOBS);
+
+    let updatedJobs= [];
 
     for (const job of cachedJobs) {
         await deleteFromCache(OFFLINE_JOBS, job._id);
@@ -337,12 +353,16 @@ export async function pushingToServer(onerror) {
             job_name: job.name
         }
 
-        const formData = new FormData();
-        Object.keys(jobObj).forEach(key => formData.append(key, jobObj[key]));
+        await new Promise(async (resolve, reject) => {
+            await saveJob(convertToFormData(jobObj), jobObj, async (data) => {
+                updatedJobs.push(await addImageSequence(data, job.imageSequence, job._id));
+                resolve();
+            }, () => {
+                onerror;
+                resolve();
+            }, reject);
+        });
 
-        job.imageSequence.shift();
-
-        await saveJob(formData, jobObj, (data) => addImageSequence(data, job.imageSequence, job._id), onerror);
     }
 
     let onlineJobs = await getAllFromCache(JOBS);
@@ -352,6 +372,10 @@ export async function pushingToServer(onerror) {
             if (typeof jobImage === 'string') {
                 let image = await getFromCache(OFFLINE_IMAGES, jobImage);
                 await deleteFromCache(OFFLINE_IMAGES, jobImage);
+
+                job.imageSequence = job.imageSequence.filter(x => x !== image._id)
+
+                await saveToCache(JOBS, job._id, job);
 
                 await toUpload(image);
 
@@ -363,13 +387,23 @@ export async function pushingToServer(onerror) {
                     image_type: image.type
                 }
 
-                const formData = new FormData();
-                Object.keys(imageObj).forEach(key => formData.append(key, imageObj[key]));
+                await new Promise((resolve, reject) => {
+                    saveJobImage(job._id, convertToFormData(imageObj), imageObj, async (data) => {
+                        await idMigration(jobImage, data.image._id)
+                        resolve()
+                    }, async (cachedData) => {
+                        await idMigration(jobImage, cachedData._id)
+                        resolve()
+                    }, reject);
+                });
 
-                saveJobImage(job._id, formData, imageObj, async (data) => {await annotationChatUpdate(jobImage, data.image._id)}, async (cachedData) => {await annotationChatUpdate(jobImage, cachedData._id)}, onerror);
+                updatedJobs.push([job._id, job._id])
             }
         }
     }
+
+    $(document).trigger("jobsUpdated", [updatedJobs])
+
 }
 
 function generateTempId() {
@@ -415,7 +449,7 @@ export function ajaxRequest(type, url, onsuccess, onoffline, onerror, data = nul
     }
 }
 
-async function getAllFromCache(storeName) {
+export async function getAllFromCache(storeName) {
     let result = [];
 
     let localStorageExecutor = () => {

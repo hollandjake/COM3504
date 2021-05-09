@@ -30,6 +30,7 @@ exports.parseImage = function (req) {
         title: req.body['image_title'],
         creator: req.body['image_creator'],
         description: req.body['image_description'],
+        type: req.body['image_type']
     };
     if (req.body['image_type'] === "upload") {
         let mimetype = req.files[0].mimetype;

@@ -32,6 +32,18 @@ $(async function () {
         currentlyRunningAddJobCallback = initialisePage(jobsData)
     });
 
+
+    $(document).bind("jobsUpdated",  (e, updatedJobs) => {
+        for (const index in updatedJobs) {
+            let ids = updatedJobs[index];
+            let oldId = ids[0];
+            let newId = ids[1];
+            if (oldId === JOB_ID) {
+                window.location.replace("/job?id=" + newId);
+            }
+        }
+    })
+
     $('#addImage').submit(async function (e) {
         e.preventDefault();
 
