@@ -1,9 +1,16 @@
 // On load
 import {error} from "../components/error.js";
-import {getJob, getPID, storeJob, storeNewImage} from "../databases/indexedDB.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
 import {addAnnotationCanvas, sendChat, sendWritingMessage} from "./jobSocket.js";
+import {
+    attachImageToJob,
+    getChatDataForImage,
+    getImage,
+    getJob,
+    getPID,
+    saveJobImage
+} from "../databases/database.js";
 
 let myself = "";
 let chats = {};
@@ -11,25 +18,37 @@ let currentlyTyping = new Map();
 
 $(async function () {
     myself = await getPID("name");
-    let jobLocal = await getJob(JOB_ID);
-    if (jobLocal) {
-        await initialisePage(jobLocal, true);
-    } else {
-        $.ajax({
-            type: 'get',
-            url: window.location.pathname + '/list',
-            success: async function (job) {
-                await initialisePage(job, true);
-                await storeJob(job);
-            }
-        });
+
+    JOB_ID = window.location.pathname;
+    if (window.location.search.match(/\?id=(\S+)/)) {
+        JOB_ID = window.location.search.match(/\?id=(\S+)/)[1];
     }
+
+    let currentlyRunningAddJobCallback = null;
+    await getJob(JOB_ID, async (jobsData) => {
+        if (currentlyRunningAddJobCallback) {
+            await currentlyRunningAddJobCallback;
+        }
+        currentlyRunningAddJobCallback = initialisePage(jobsData)
+    });
+
+
+    $(document).bind("jobsUpdated",  (e, updatedJobs) => {
+        for (const index in updatedJobs) {
+            let ids = updatedJobs[index];
+            let oldId = ids[0];
+            let newId = ids[1];
+            if (oldId === JOB_ID) {
+                window.location.replace("/job?id=" + newId);
+            }
+        }
+    })
 
     $('#addImage').submit(async function (e) {
         e.preventDefault();
 
-        let inputs = await getModalData($('#addImage'));
-        await addImage(inputs, JOB_ID);
+        let [formData, imageData] = await getModalData($('#addImage'));
+        addImage(formData, imageData, JOB_ID);
     })
 
     $('#imageCarousel').carousel({
@@ -46,9 +65,12 @@ async function initialisePage(job) {
 
     for (let i = 0; i < job.imageSequence.length; i++) {
         try {
-            let element = await createImageElement(job.imageSequence[i]);
+            let imageData = await new Promise((resolve, reject) => getImage(job.imageSequence[i], resolve, reject));
+            let element = await createImageElement(imageData);
             imageListElement.append(element);
-        } catch (ignored) {}
+        } catch (e) {
+            console.log(e);
+        }
     }
     $('.carousel-item:first').addClass('active');
     $('#job-title').html(job.name);
@@ -58,15 +80,10 @@ async function initialisePage(job) {
     updateCarouselArrows();
 }
 
-async function addImage(inputs, jobID) {
-    $.ajax({
-        type: 'POST',
-        url: `/job/${jobID}/add-image`,
-        data: inputs,
-        processData: false,
-        contentType: false,
-        error: processImageCreationError
-    })
+function addImage(formData, imageData, jobId) {
+    saveJobImage(jobId, formData, imageData, null, (data) => {
+        newImageAdded(data._id);
+    }, processImageCreationError);
 }
 
 //Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
@@ -153,9 +170,8 @@ async function createImageElement(image) {
         prevMessage: null
     }
 
-    if (image.chat) {
-        image.chat.forEach(chatObj => newChatMessage(image._id, chatObj));
-    }
+    let imageChat = (await getChatDataForImage(image._id)).chatData;
+    imageChat.forEach(chatObj => newChatMessage(image._id, chatObj));
 
     imageElement.find('#job-image').replaceWith(annotation.container);
 
@@ -243,24 +259,24 @@ function processImageCreationError(e) {
 }
 
 //Closes and clears modal form and moves the carousel to the new image
-export async function newImageAdded(data) {
-    try {
-        await storeNewImage(JOB_ID, data.image);
-        let element = await createImageElement(data.image);
+export async function newImageAdded(imageId) {
+    getImage(imageId, async (imageData) => {
+        attachImageToJob(JOB_ID, imageData);
+        let element = await createImageElement(imageData);
         if (element) {
             $('#image-container').append(element);
             updateCarouselArrows();
         }
-        if (data.image.creator === await getPID('name')) {
+        if (imageData.creator === await getPID('name')) {
             $('#addImage').modal('hide').trigger("reset");
             $('#imageCarousel').carousel($('#image-container .carousel-item').length - 1);
         }
-    } catch (e) {
+    }, (e) => {
         processImageCreationError({
             responseJSON: {
                 error: "Something went wrong"
             }
         })
         console.log(e);
-    }
+    });
 }

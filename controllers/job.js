@@ -1,15 +1,15 @@
 const Job = require("../models/job");
-const Image = require("../models/image");
+const ImageController = require("./image");
 
 exports.get = async function (jobId) {
-    return await Job.findById(jobId).populate('imageSequence').exec();
+    return await Job.findById(jobId).exec();
 }
 
 /**
  * Fetches all the Jobs
  */
 exports.getAll = async function () {
-    return await Job.find().populate('imageSequence').exec();
+    return await Job.find().exec();
 }
 
 /**
@@ -20,7 +20,7 @@ exports.getAll = async function () {
 exports.addJob = async function (jobData) {
     try {
         for (let i = 0, len = jobData.imageSequence.length; i < len; i++) {
-            jobData.imageSequence[i] = await Image.create(jobData.imageSequence[i]);
+            jobData.imageSequence[i] = (await ImageController.addImage(jobData.imageSequence[i]))._id;
         }
         return await Job.create(jobData);
     } catch (e) {
@@ -30,7 +30,7 @@ exports.addJob = async function (jobData) {
 }
 
 exports.addImage = async function (jobID, imageData) {
-    let newImage =  await Image.create(imageData);
-    await Job.findByIdAndUpdate(jobID, {$push: {imageSequence: newImage}});
+    let newImage = await ImageController.addImage(imageData);
+    await Job.findByIdAndUpdate(jobID, {$push: {imageSequence: newImage._id}});
     return newImage;
 }

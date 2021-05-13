@@ -1,6 +1,6 @@
 import {loadImage} from "../components/preloadImage.js";
-import {updateImageWithAnnotations} from "../databases/indexedDB.js";
 import {sendAnnotation} from "./jobSocket.js";
+import {getAnnotationDataForImage, saveAnnotationDataForImage} from "../databases/database.js";
 
 export default class Annotate {
     constructor(image, imageClasses, containerClasses) {
@@ -37,7 +37,7 @@ export default class Annotate {
     }
 
     async createCanvas(image, imageClasses, containerClasses) {
-        const imageObject = await loadImage(image.imageUrl, image.title, imageClasses);
+        const imageObject = await loadImage(image.imageData, image.title, imageClasses);
 
         const annotationContainer = $(`<div class="annotation-container ${containerClasses}"></div>`);
 
@@ -45,17 +45,19 @@ export default class Annotate {
         let height = imageObject.height;
 
         let canvas = document.createElement("canvas");
+        canvas.id = image._id;
         canvas.classList = imageClasses;
         let ctx = canvas.getContext('2d');
         canvas.width = width;
         canvas.height = height;
 
-        if (image.annotationData) {
+        let annotationData = await getAnnotationDataForImage(image._id);
+        if (annotationData) {
             let imageDOM = new Image();
             imageDOM.onload = function () {
                 ctx.drawImage(imageDOM, 0, 0);
             }
-            imageDOM.src = image.annotationData;
+            imageDOM.src = annotationData;
         }
 
         annotationContainer.append($(imageObject));
@@ -220,7 +222,7 @@ export default class Annotate {
         }
         this._scheduledSave = setTimeout(() => {
             this._image.annotationData = this._canvas.toDataURL();
-            updateImageWithAnnotations(JOB_ID, this._image._id, this._image.annotationData);
+            saveAnnotationDataForImage(this._image._id, this._image.annotationData);
         }, 100); //Save after 100ms of inactivity
     }
 

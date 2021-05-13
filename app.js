@@ -7,6 +7,7 @@ const logger = require('morgan');
 const indexRouter = require('./routes/index');
 const loginRouter = require('./routes/login');
 const jobRouter   = require('./routes/job');
+const imageRouter   = require('./routes/image');
 
 const jsonEscaper = require("escape-html-in-json");
 
@@ -29,6 +30,7 @@ app.use(express.static(path.join(__dirname, 'node_modules')));
 app.use('/', indexRouter);
 app.use('/login', loginRouter);
 app.use('/job', jobRouter);
+app.use('/image', imageRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

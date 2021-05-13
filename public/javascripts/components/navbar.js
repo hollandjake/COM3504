@@ -1,4 +1,4 @@
-import {getPID} from "../databases/indexedDB.js";
+import {getAllFromCache, getPID, pushingToServer} from "../databases/database.js";
 
 async function loadName() {
     // Get name from IndexedDB and show it on the nav bar
@@ -14,4 +14,18 @@ async function loadName() {
     }
 }
 
-$(async () => await loadName());
+$(async function () {
+
+    await loadName();
+
+    if (navigator.onLine) await pushingToServer(() => {console.log(error)});
+
+    //TODO: move to service worker
+    setTimeout(() => {
+        window.addEventListener('online', async () => {
+            await pushingToServer(() => {console.log(error)})
+        });
+    }, 15000);
+
+})
+

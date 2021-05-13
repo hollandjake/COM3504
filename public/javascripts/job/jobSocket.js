@@ -1,5 +1,5 @@
 import {newImageAdded, newChatMessage, newWritingMessage} from "./job.js";
-import {storeChatMessage, getPID} from "../databases/indexedDB.js";
+import {saveChatForImage, getPID} from "../databases/database.js";
 
 const job = io.connect('/job');
 let annotationCanvases = {}
@@ -10,7 +10,7 @@ $(function () {
     //Event for when a new image has been added
     job.on('newImage', newImageAdded);
     job.on('chat', async function (imageId, chatObj) {
-        await storeChatMessage(JOB_ID, imageId, chatObj);
+        saveChatForImage(imageId, chatObj);
         newChatMessage(imageId, chatObj);
     });
     job.on('writingMessage', async function (imageId, sender) {
