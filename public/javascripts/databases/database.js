@@ -336,10 +336,8 @@ export async function pushingToServer(onerror) {
     let updatedJobs= [];
 
     for (const job of cachedJobs) {
-        await deleteFromCache(OFFLINE_JOBS, job._id);
 
         let initImage = await getFromCache(OFFLINE_IMAGES, job.imageSequence[0])
-        await deleteFromCache(OFFLINE_IMAGES, initImage._id);
 
         await toUpload(initImage);
 
@@ -355,12 +353,14 @@ export async function pushingToServer(onerror) {
 
         await new Promise(async (resolve, reject) => {
             await saveJob(convertToFormData(jobObj), jobObj, async (data) => {
-                updatedJobs.push(await addImageSequence(data, job.imageSequence, job._id));
-                resolve();
-            }, () => {
-                onerror;
-                resolve();
-            }, reject);
+                    updatedJobs.push(await addImageSequence(data, job.imageSequence, job._id));
+                    await deleteFromCache(OFFLINE_IMAGES, initImage._id);
+                    await deleteFromCache(OFFLINE_JOBS, job._id);
+                    resolve();
+                },
+                onerror,
+                reject
+            );
         });
 
     }
@@ -371,7 +371,6 @@ export async function pushingToServer(onerror) {
         for (const jobImage of job.imageSequence) {
             if (typeof jobImage === 'string') {
                 let image = await getFromCache(OFFLINE_IMAGES, jobImage);
-                await deleteFromCache(OFFLINE_IMAGES, jobImage);
 
                 job.imageSequence = job.imageSequence.filter(x => x !== image._id)
 
@@ -390,9 +389,9 @@ export async function pushingToServer(onerror) {
                 await new Promise((resolve, reject) => {
                     saveJobImage(job._id, convertToFormData(imageObj), imageObj, async (data) => {
                         await idMigration(jobImage, data.image._id)
+                        await deleteFromCache(OFFLINE_IMAGES, jobImage);
                         resolve()
                     }, async (cachedData) => {
-                        await idMigration(jobImage, cachedData._id)
                         resolve()
                     }, reject);
                 });

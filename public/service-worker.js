@@ -85,7 +85,6 @@ self.addEventListener('activate', function (e) {
 });
 
 //queries
-//TODO: Decide favoured cache method
 //TODO: slow when server offline rather than just blocking in network tab (links to above)
 
 //issues
@@ -124,14 +123,14 @@ self.addEventListener('fetch', function (e) {
         e.respondWith(
             caches.open(cacheName).then(function (cache) {
                 return cache.match(e.request, {ignoreSearch: shouldIgnore}).then(async function (response) {
-                    return fetch(e.request, fetchMode)
+                    return await fetch(e.request, fetchMode)
                         .then(function (networkResponse) {
                             cache.add(e.request.url);
                             return networkResponse;
 
                         })
-                        .catch(function (networkResponse) {
-                            return networkResponse || response
+                        .catch(function () {
+                            return response
                         })
                 });
             }),
