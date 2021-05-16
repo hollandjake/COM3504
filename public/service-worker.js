@@ -35,7 +35,7 @@ let filesToCache = [
     '/stylesheets/job.css',
     '/stylesheets/login.css',
     '/stylesheets/modal.css',
-    'https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js',
+    '/jquery/dist/jquery.min.js',
     "/job",
     "/bootstrap-icons/font/fonts/bootstrap-icons.woff?231ce25e89ab5804f9a6c427b8d325c9",
     "/bootstrap-icons/font/fonts/bootstrap-icons.woff2?231ce25e89ab5804f9a6c427b8d325c9",
@@ -120,43 +120,23 @@ self.addEventListener('fetch', function (e) {
             fetchMode = {mode:"cors"}
         }
 
-
-        //network falling back to cache
-        e.respondWith(
-            fetch(e.request, fetchMode)
-                .then(function (response) {
-                    console.log(response);
-                    if (!response.ok ||  response.statusCode>299) {
-                        console.log("error: " + response.error());
-                    } else {
-                        cache.add(e.request.url);
-                        console.log("cached " + e.request.url);
-                        return response;
-                    }
-                })
-                .catch(function () {
-                    return caches.match(e.request, {ignoreSearch:shouldIgnore}).then(function (response) {
-                        return response
-                    })
-                })
-        );
-
-
-        /*
         //stale while revalidate
         e.respondWith(
-          caches.open(cacheName).then(function (cache) {
-            return cache.match(e.request, {ignoreSearch:shouldIgnore}).then(function (response) {
-              let fetchPromise = fetch(e.request, fetchMode).then(function (networkResponse) {
-                cache.add(e.request.url);
-                return networkResponse;
-              });
-              return response || fetchPromise;
-            });
-          }),
+            caches.open(cacheName).then(function (cache) {
+                return cache.match(e.request, {ignoreSearch: shouldIgnore}).then(async function (response) {
+                    return fetch(e.request, fetchMode)
+                        .then(function (networkResponse) {
+                            cache.add(e.request.url);
+                            return networkResponse;
+
+                        })
+                        .catch(function (networkResponse) {
+                            return networkResponse || response
+                        })
+                });
+            }),
         );
 
-         */
 
 
     }

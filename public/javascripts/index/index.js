@@ -52,7 +52,7 @@ export async function createJobElement(job) {
             '<div class="card-body">' +
             `<h5 class="card-title">${job.name}</h5>` +
             `<h6 class="card-subtitle mb-2 text-muted">By ${job.creator}</h6>` +
-            `<a href="/job?id=${job.id}" class="stretched-link"></a>` +
+            `<a href="${job.url}" class="stretched-link"></a>` +
             '</div>' +
             '</div>');
 
