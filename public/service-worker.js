@@ -84,9 +84,15 @@ self.addEventListener('activate', function (e) {
     return self.clients.claim();
 });
 
+//queries
+//TODO: Decide favoured cache method
+//TODO: slow when server offline rather than just blocking in network tab (links to above)
 
+//issues
+//TODO: jobs not always loading first try
 //TODO: Preload multi image jobs
 //TODO: fix coors problem
+//TODO: socket still working when network down (should be fine, discussion board)
 
 self.addEventListener('fetch', function (e) {
     console.log('[Service Worker] Fetch', e.request.url);
@@ -114,45 +120,44 @@ self.addEventListener('fetch', function (e) {
             fetchMode = {mode:"cors"}
         }
 
+
+        //network falling back to cache
         e.respondWith(
-            caches.match(e.request, {ignoreSearch:shouldIgnore}).then(function (response) {
-                return response
-                    || fetch(e.request, fetchMode)
-                        .then(function (response) {
-                            console.log(response);
-                            // note if network error happens, fetch does not return
-                            // an error. it just returns response not ok
-                            // https://www.tjvantoll.com/2015/09/13/fetch-and-errors/
-                            if (!response.ok ||  response.statusCode>299) {
-                                console.log("error: " + response.error());
-                            } else {
-                                cache.add(e.request.url);
-                                console.log("cached " + e.request.url)
-                                return response;
-                            }
-                        })
-                        .catch(function (err) {
-                            console.log("error: " + err);
-                        })
-            })
+            fetch(e.request, fetchMode)
+                .then(function (response) {
+                    console.log(response);
+                    if (!response.ok ||  response.statusCode>299) {
+                        console.log("error: " + response.error());
+                    } else {
+                        cache.add(e.request.url);
+                        console.log("cached " + e.request.url);
+                        return response;
+                    }
+                })
+                .catch(function () {
+                    return caches.match(e.request, {ignoreSearch:shouldIgnore}).then(function (response) {
+                        return response
+                    })
+                })
         );
+
+
+        /*
+        //stale while revalidate
+        e.respondWith(
+          caches.open(cacheName).then(function (cache) {
+            return cache.match(e.request, {ignoreSearch:shouldIgnore}).then(function (response) {
+              let fetchPromise = fetch(e.request, fetchMode).then(function (networkResponse) {
+                cache.add(e.request.url);
+                return networkResponse;
+              });
+              return response || fetchPromise;
+            });
+          }),
+        );
+
+         */
+
+
     }
 });
-
-/*
-async function addOfflineJobs() {
-    let resultObject = await getOfflineJobs();
-
-    for (const key of Object.keys(resultObject[0])) {
-
-        let finalData = resultObject[0][key].offlineJob
-
-        const formData = new FormData();
-        Object.keys(finalData).forEach(key => formData.append(key, finalData[key]));
-
-        await createJob([formData, finalData]);
-    }
-    await deleteOfflineJobs();
-}
-
- */

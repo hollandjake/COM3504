@@ -6,7 +6,7 @@ exports.init = function(io) {
     socket.on('chat', async function(sender, message, imageId) {
       if (message.length > 0) {
         let chatObj = {sender: sender, message: message};
-        io.of('/job').emit('chat', imageId, chatObj);
+        socket.broadcast.emit('chat', imageId, chatObj);
       }
     });
     socket.on('writingMessage', async function(imageId, sender) {

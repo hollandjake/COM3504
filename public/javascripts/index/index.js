@@ -16,6 +16,12 @@ $(async function () {
         currentlyRunningAddJobCallback = addAllJobs(jobsData)
     });
 
+    $(document).bind("jobsUpdated",  (e, updatedJobs) => {
+        if (updatedJobs.length > 0) {
+            window.location.replace("/");
+        }
+    })
+
     $('#addJob').submit(async function (e) {
         e.preventDefault();
 
