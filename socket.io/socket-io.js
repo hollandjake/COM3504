@@ -12,8 +12,8 @@ exports.init = function(io) {
     socket.on('writingMessage', async function(imageId, sender) {
       socket.broadcast.emit('writingMessage', imageId, sender);
     });
-    socket.on('newKnowledgeGraph', async function(properties) {
-      socket.broadcast.emit('newKnowledgeGraph', properties);
+    socket.on('newKnowledgeGraph', async function(JSONLD, imageId, color) {
+      socket.broadcast.emit('newKnowledgeGraph', JSONLD, imageId, color);
     });
     socket.on('knowledgeGraphColor', async function(imageId, graphId, color) {
       socket.broadcast.emit('knowledgeGraphColor', imageId, graphId, color);

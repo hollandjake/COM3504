@@ -6,6 +6,7 @@ import {addAnnotationCanvas, sendChat, sendWritingMessage, sendNewKnowledgeGraph
 import {
     attachImageToJob,
     getChatDataForImage,
+    getKnowledgeGraphDataForImage,
     getImage,
     getJob,
     getPID,
@@ -177,6 +178,7 @@ async function createImageElement(image) {
     });
 
     //Updates the 'type' for which the knowledge uses to search
+    let knowledgeGraphContainer = imageElement.find('#knowledge-graph-results-container-'+image._id);
     imageElement.find('#knowledge-graph-type-'+image._id).on("change", function() {
         let config = {
             'limit': 10,
@@ -184,16 +186,10 @@ async function createImageElement(image) {
             'types': [this.value],
             'maxDescChars': 100,
             'selectHandler': (e) => { //Handles the knowledge graph search bar
-                let properties = {
-                    id: e.row.id.replaceAll('/',''),
-                    name: e.row.name,
-                    description: e.row.rc,
-                    url: e.row.qc,
-                    imageId: image._id
-                }
-                let knowledgeGraphElement = createKnowledgeGraphElement(properties);
+                let JSONLD = e.row.json;
+                let knowledgeGraphElement = createKnowledgeGraphElement(JSONLD, image._id, 'grey');
                 $('#knowledge-graph-results-container-'+image._id).append(knowledgeGraphElement);
-                sendNewKnowledgeGraph(properties);
+                sendNewKnowledgeGraph(JSONLD, image._id, 'grey');
             },
         }
         KGSearchWidget(apiKey, document.getElementById('knowledge-graph-search-'+image._id), config);
@@ -210,6 +206,9 @@ async function createImageElement(image) {
     let imageChat = (await getChatDataForImage(image._id)).chatData;
     imageChat.forEach(chatObj => newChatMessage(image._id, chatObj));
 
+    let imageKnowledgeGraph = (await getKnowledgeGraphDataForImage(image._id)).knowledgeGraphData;
+    imageKnowledgeGraph.forEach(knowledgeGraphObj => knowledgeGraphContainer.append(createKnowledgeGraphElement(knowledgeGraphObj.JSONLD, image._id, knowledgeGraphObj.color)));
+
     imageElement.find('#job-image').replaceWith(annotation.container);
 
     annotation.addButtons(imageElement.find('.card-header'));
@@ -225,35 +224,38 @@ async function createImageElement(image) {
 
 /**
  * creates a knowledge graph card/element from an object of properties
- * @param {Object} properties
- * @param {String} properties.id
- * @param {String} properties.name
- * @param {String} properties.description
- * @param {String} properties.url
- * @param {int} properties.imageId
+ * @param {Object} JSONLD
+ * @param {String} JSONLD.@id
+ * @param {String} JSONLD.name
+ * @param {String} JSONLD.detailedDescription.articleBody
+ * @param {String} JSONLD.url
+ * @param {int} imageId
+ * @param {String} color
  */
-function createKnowledgeGraphElement(properties) {
+function createKnowledgeGraphElement(JSONLD, imageId, color) {
+    let ID = JSONLD['@id'].replaceAll('/','');
     let knowledgeGraphCard = $(`
-        <div class="card knowledge-card" id="${properties.id}" style="width: 19rem;">
+        <div class="card knowledge-card" id="${ID}">
             <div class="card-body">
-                <h5 class="card-title">${properties.name}</h5>
-                <p class="card-text">${properties.description}</p>
-                <a href="${properties.url}" target="_blank" class="card-link"><button type="button" class="btn btn-info">Webpage</button></a>
+                <h5 class="card-title">${JSONLD.name}</h5>
+                <p class="card-text">${JSONLD.detailedDescription.articleBody}</p>
+                <a href="${JSONLD.url}" target="_blank" class="card-link"><button type="button" class="btn btn-info">Webpage</button></a>
             </div>
         </div>
     `);
+    knowledgeGraphCard.css('border-color', color);
     $(`<a><span class="btn btn-success colorpicker-input-addon annotate">Annotate</span></a>`).appendTo(knowledgeGraphCard.find('.card-body')).on("colorpickerChange", (e) => {
         let color = e.color.toString()
-        annotationClasses[properties.imageId].color = color;
+        annotationClasses[imageId].color = color;
         knowledgeGraphCard.css('border-color', color);
-        sendKnowledgeGraphColor(properties.imageId, properties.id, color)
+        sendKnowledgeGraphColor(imageId, JSONLD['@id'], color)
     }).colorpicker({
         useAlpha: false
     }).children().removeClass('colorpicker-input-addon');
     $(`<button type="button" class="btn btn-danger ml-1 float-right"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
        </button>`).appendTo(knowledgeGraphCard.find('.card-body')).click(() => {
         knowledgeGraphCard.remove();
-        sendKnowledgeGraphDeletion(properties.imageId, properties.id);
+        sendKnowledgeGraphDeletion(imageId, JSONLD['@id']);
     });
     return knowledgeGraphCard;
 }
@@ -328,16 +330,17 @@ export function newWritingMessage(imageId, sender) {
 
 /**
  * handles an incoming socket.io event of a new knowledge graph element
- * @param {Object} properties
- * @param {String} properties.id
- * @param {String} properties.name
- * @param {String} properties.description
- * @param {String} properties.url
- * @param {int} properties.imageId
+ * @param {Object} JSONLD
+ * @param {String} JSONLD.@id
+ * @param {String} JSONLD.name
+ * @param {String} JSONLD.detailedDescription.articleBody
+ * @param {String} JSONLD.url
+ * @param {int} imageId
+ * @param {String} color
  */
-export function newKnowledgeGraph(properties) {
-    let knowledgeGraphElement = createKnowledgeGraphElement(properties);
-    $('#knowledge-graph-results-container-'+properties.imageId).append(knowledgeGraphElement);
+export function newKnowledgeGraph(JSONLD, imageId, color) {
+    let knowledgeGraphElement = createKnowledgeGraphElement(JSONLD, imageId, color);
+    $('#knowledge-graph-results-container-'+imageId).append(knowledgeGraphElement);
 }
 
 /**
@@ -347,6 +350,7 @@ export function newKnowledgeGraph(properties) {
  * @param {String} color
  */
 export function updateKnowledgeGraphColor(imageId, graphId, color) {
+    graphId = graphId.replaceAll('/','');
     $('#knowledge-graph-results-container-'+imageId+' #'+graphId).css('border-color', color);
 }
 

@@ -9,6 +9,7 @@ const JOBS = 'store_jobs';
 const IMAGES = 'store_images';
 const ANNOTATIONS = 'store_annotations';
 const CHATS = 'store_chats';
+const KNOWLEDGE_GRAPH = 'store_knowledge_graph';
 const OFFLINE_JOBS = 'store_offline_jobs';
 const OFFLINE_IMAGES = 'store_offline_images';
 
@@ -274,6 +275,41 @@ export function saveChatForImage(imageId, chatElement) {
         })
 }
 
+export async function getKnowledgeGraphDataForImage(imageId) {
+    const knowledgeGraphData = await getFromCache(KNOWLEDGE_GRAPH, imageId);
+    return knowledgeGraphData ? knowledgeGraphData : {imageId: imageId, knowledgeGraphData: []};
+}
+
+export function saveKnowledgeForImage(imageId, knowledgeGraphJSON, color) {
+    getKnowledgeGraphDataForImage(imageId)
+        .then(knowledgeGraphData => {
+            knowledgeGraphData.knowledgeGraphData.push({JSONLD: knowledgeGraphJSON, color: color});
+            saveToCache(KNOWLEDGE_GRAPH, imageId, knowledgeGraphData);
+        })
+}
+
+export function updateKnowledgeColorForImage(imageId, knowledgeGraphID, color) {
+    getKnowledgeGraphDataForImage(imageId)
+        .then(knowledgeGraphData => {
+            knowledgeGraphData.knowledgeGraphData.forEach(element => {
+                if (element.JSONLD['@id'] === knowledgeGraphID) {
+                    element.color = color;
+                }
+            });
+            saveToCache(KNOWLEDGE_GRAPH, imageId, knowledgeGraphData);
+        })
+}
+
+export function removeKnowledgeGraphForImage(imageId, knowledgeGraphID) {
+    getKnowledgeGraphDataForImage(imageId)
+        .then(knowledgeGraphData => {
+            knowledgeGraphData.knowledgeGraphData = knowledgeGraphData.knowledgeGraphData.filter(data => {
+                return data.JSONLD['@id'] !== knowledgeGraphID;
+            });
+            saveToCache(KNOWLEDGE_GRAPH, imageId, knowledgeGraphData);
+        })
+}
+
 /** UTILITIES **/
 
 async function generateTempImage(imageData) {
@@ -329,6 +365,13 @@ async function idMigration(oldId, newId) {
         await deleteFromCache(CHATS, oldId);
         chats.imageId = newId;
         await saveToCache(CHATS, newId, chats);
+    }
+
+    let knowledgeGraph = await getFromCache(KNOWLEDGE_GRAPH, oldId);
+    if (knowledgeGraph) {
+        await deleteFromCache(KNOWLEDGE_GRAPH, oldId);
+        knowledgeGraph.imageId = newId;
+        await saveToCache(KNOWLEDGE_GRAPH, newId, knowledgeGraph);
     }
 }
 
@@ -551,6 +594,10 @@ export async function initDatabase() {
                 });
 
                 upgradeDb.createObjectStore(CHATS, {
+                    keyPath: 'imageId'
+                });
+
+                upgradeDb.createObjectStore(KNOWLEDGE_GRAPH, {
                     keyPath: 'imageId'
                 });
 

@@ -1,5 +1,5 @@
 import {newImageAdded, newChatMessage, newWritingMessage, newKnowledgeGraph, updateKnowledgeGraphColor, deleteKnowledgeGraph} from "./job.js";
-import {saveChatForImage, getPID} from "../databases/database.js";
+import {saveChatForImage, getPID, saveKnowledgeForImage, updateKnowledgeColorForImage, removeKnowledgeGraphForImage} from "../databases/database.js";
 
 const job = io.connect('/job');
 let annotationCanvases = {}
@@ -16,13 +16,16 @@ $(function () {
     job.on('writingMessage', async function (imageId, sender) {
         newWritingMessage(imageId, sender);
     });
-    job.on('newKnowledgeGraph', async function (properties) {
-        newKnowledgeGraph(properties);
+    job.on('newKnowledgeGraph', async function (JSONLD, imageId, color) {
+        saveKnowledgeForImage(imageId, JSONLD, color);
+        newKnowledgeGraph(JSONLD, imageId, color);
     });
     job.on('knowledgeGraphColor', async function (imageId, graphId, color) {
+        updateKnowledgeColorForImage(imageId, graphId, color);
         updateKnowledgeGraphColor(imageId, graphId, color);
     });
     job.on('knowledgeGraphDeleted', async function (imageId, graphId) {
+        removeKnowledgeGraphForImage(imageId, graphId);
         deleteKnowledgeGraph(imageId, graphId);
     });
     job.on('draw', async function (imageId, event) {
@@ -51,15 +54,17 @@ export async function sendWritingMessage(imageId) {
 
 /**
  * sends a socket.io event of the new knowledge graph element
- * @param {Object} properties
- * @param {String} properties.id
- * @param {String} properties.name
- * @param {String} properties.description
- * @param {String} properties.url
- * @param {int} properties.imageId
+ * @param {Object} JSONLD
+ * @param {String} JSONLD.@id
+ * @param {String} JSONLD.name
+ * @param {String} JSONLD.detailedDescription.articleBody
+ * @param {String} JSONLD.url
+ * @param {int} imageId
+ * @param {String} color
  */
-export async function sendNewKnowledgeGraph(properties) {
-    job.emit('newKnowledgeGraph', properties);
+export async function sendNewKnowledgeGraph(JSONLD, imageId, color) {
+    saveKnowledgeForImage(imageId, JSONLD, color);
+    job.emit('newKnowledgeGraph', JSONLD, imageId, color);
 }
 
 /**
@@ -69,6 +74,7 @@ export async function sendNewKnowledgeGraph(properties) {
  * @param {String} color
  */
 export async function sendKnowledgeGraphColor(imageId, graphId, color) {
+    updateKnowledgeColorForImage(imageId, graphId, color);
     job.emit('knowledgeGraphColor',imageId, graphId, color);
 }
 
@@ -78,6 +84,7 @@ export async function sendKnowledgeGraphColor(imageId, graphId, color) {
  * @param {String} graphId
  */
 export async function sendKnowledgeGraphDeletion(imageId, graphId) {
+    removeKnowledgeGraphForImage(imageId, graphId);
     job.emit('knowledgeGraphDeleted',imageId, graphId);
 }
 

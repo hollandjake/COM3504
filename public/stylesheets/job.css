@@ -128,9 +128,9 @@ div#wave .dot:nth-child(3) {
 }
 .knowledge-card {
     border-style: solid;
-    border-color: grey;
     border-width: 2px;
     height: fit-content;
+    width: 19rem;
 }
 .annotate {
     background-color: #28a745 !important;
