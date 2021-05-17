@@ -89,9 +89,6 @@ self.addEventListener('activate', function (e) {
     return self.clients.claim();
 });
 
-//issues
-//TODO: fix coors problem
-
 self.addEventListener('fetch', function (e) {
 
     if (!e.request.url.includes(e.currentTarget.location.hostname)) {

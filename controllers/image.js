@@ -53,6 +53,11 @@ exports.parseImage = async function (req) {
 }
 
 const getBase64FromUrl = async (url) => {
+
+    if ((/(data:image\/.+)/).test(url)) {
+        return url
+    }
+
     const data = await axios.get(url, {responseType:"arraybuffer"});
 
     const base64 = Buffer.from(data.data).toString("base64");
