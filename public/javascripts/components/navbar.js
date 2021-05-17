@@ -1,4 +1,4 @@
-import {getImages, getPID, pushingToServer} from "../databases/database.js";
+import {getImages, getJobs, getPID, pushingToServer} from "../databases/database.js";
 
 async function loadName() {
     // Get name from IndexedDB and show it on the nav bar
@@ -32,11 +32,13 @@ $(async function () {
     }
 
     if (navigator.onLine)  {
+        getJobs();
         getImages();
         await pushingToServer(() => {console.log(error)});
     }
 
     window.addEventListener('online', async () => {
+        getJobs();
         getImages();
         await pushingToServer(() => {console.log(error)})
     });
