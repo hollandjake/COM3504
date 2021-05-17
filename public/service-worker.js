@@ -51,7 +51,8 @@ let filesToCache = [
 /**
  * installation event: it adds all the files to be cached
  */
-self.addEventListener('install', function (e) {
+self.addEventListener('install', async function (e) {
+    await self.skipWaiting();
     console.log('[ServiceWorker] Install');
     e.waitUntil(
         caches.open(cacheName).then(function (cacheX) {
@@ -61,14 +62,18 @@ self.addEventListener('install', function (e) {
         })
     );
     console.log("changed");
-});
 
+
+});
 
 
 /**
  * activation of service worker: it removes all cashed files if necessary
  */
 self.addEventListener('activate', function (e) {
+    if (self.clients && clients.claim) {
+        clients.claim();
+    }
     console.log('[ServiceWorker] Activate');
     e.waitUntil(
         caches.keys().then(function (keyList) {
@@ -84,18 +89,10 @@ self.addEventListener('activate', function (e) {
     return self.clients.claim();
 });
 
-//queries
-//TODO: slow when server offline rather than just blocking in network tab (links to above)
-
 //issues
-//TODO: jobs not always loading first try
-//TODO: Preload multi image jobs
 //TODO: fix coors problem
-//TODO: socket still working when network down (should be fine, discussion board)
 
 self.addEventListener('fetch', function (e) {
-    console.log('[Service Worker] Fetch', e.request.url);
-
     let ignoreUrls = ['/socket.io/?', '/check-online', '/add-image?id=']
 
     let ignore = false;
@@ -113,30 +110,40 @@ self.addEventListener('fetch', function (e) {
             shouldIgnore = true;
         }
 
-        let fetchMode = {mode:"no-cors"}
+        let fetchMode = {mode:"no-cors"};
 
         if (e.request.url.indexOf("https") > -1) {
-            fetchMode = {mode:"cors"}
+            fetchMode = {mode:"cors"};
         }
 
         //stale while revalidate
         e.respondWith(
             caches.open(cacheName).then(function (cache) {
                 return cache.match(e.request, {ignoreSearch: shouldIgnore}).then(async function (response) {
-                    return await fetch(e.request, fetchMode)
+                    if (!navigator.onLine) return response;
+                    return Promise.race([timeout(400), fetch(e.request, fetchMode)])
                         .then(function (networkResponse) {
                             cache.add(e.request.url);
                             return networkResponse;
-
                         })
                         .catch(function () {
-                            return response
+                            return response;
                         })
                 });
             }),
         );
-
-
-
     }
 });
+
+
+function timeout(delay) {
+    return new Promise(function(resolve, reject) {
+        setTimeout(function() {
+            reject(new Response('', {
+                status: 408,
+                statusText: 'Request timed out.'
+            }));
+        }, delay);
+    });
+}
+
