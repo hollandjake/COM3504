@@ -136,19 +136,23 @@ export function getImages(onsuccess) {
         'GET',
         '/image/list',
         async (imagesData) => {
+            let allImages = await getAllFromCache(IMAGES);
+            allImages = allImages.map(image => image._id)
             imagesData.forEach(image => {
-                fetch(image.imageData)
-                    .then((data) => {
-                        return data.blob()
-                    })
-                    .then(blob => {
-                        let reader = new FileReader();
-                        reader.onloadend = () => {
-                            image.imageData = reader.result;
-                            saveToCache(IMAGES, image._id, image);
-                        }
-                        reader.readAsDataURL(blob);
-                    })
+                if (!allImages.includes(image._id)) {
+                    fetch(image.imageData)
+                        .then((data) => {
+                            return data.blob()
+                        })
+                        .then(blob => {
+                            let reader = new FileReader();
+                            reader.onloadend = () => {
+                                image.imageData = reader.result;
+                                saveToCache(IMAGES, image._id, image);
+                            }
+                            reader.readAsDataURL(blob);
+                        })
+                }
             });
             if (onsuccess) onsuccess([...imagesData, ...await getAllFromCache(OFFLINE_IMAGES)]);
         },

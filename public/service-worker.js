@@ -93,6 +93,11 @@ self.addEventListener('activate', function (e) {
 //TODO: fix coors problem
 
 self.addEventListener('fetch', function (e) {
+
+    if (!e.request.url.includes(e.currentTarget.location.hostname)) {
+        return
+    }
+
     let ignoreUrls = ['/socket.io/?', '/check-online', '/add-image?id=']
 
     let ignore = false;
