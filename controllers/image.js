@@ -1,5 +1,7 @@
 const Image = require("../models/image");
 
+const axios = require("axios")
+
 exports.get = async function (imageId) {
     return await Image.findById(imageId).exec();
 }
@@ -25,7 +27,7 @@ exports.addImage = async function (imageData) {
     }
 }
 
-exports.parseImage = function (req) {
+exports.parseImage = async function (req) {
     let image = {
         title: req.body['image_title'],
         creator: req.body['image_creator'],
@@ -39,9 +41,20 @@ exports.parseImage = function (req) {
     } else if (req.body['image_type'] === "camera") {
         image.imageData = req.body['image_source'];
     } else if (req.body['image_type'] === "url") {
-        image.imageData = req.body['image_source'];
+        try {
+            image.imageData = await getBase64FromUrl(req.body['image_source'])
+        } catch (e) {
+            console.log(e);
+        }
     } else {
         return null;
     }
     return image;
+}
+
+const getBase64FromUrl = async (url) => {
+    const data = await axios.get(url, {responseType:"arraybuffer"});
+
+    const base64 = Buffer.from(data.data).toString("base64");
+    return "data:" + data.headers["content-type"] + ";base64," + base64
 }
