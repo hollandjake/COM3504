@@ -1,0 +1,235 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "version": "1.0.0",
+    "title": "COM3504 Assignment",
+    "description": "User management API",
+    "termsOfService": "http://api_url/terms/",
+    "contact": {
+      "name": "Team \"; DROP TABLE grades; --\"",
+      "email": "wbabbage1@shef.ac.uk",
+      "url": "http://shef.ac.uk"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/",
+      "description": "Main Server"
+    }
+  ],
+  "paths": {
+    "/image/list": {
+      "get": {
+        "tags": [
+          "Image Operations"
+        ],
+        "description": "Return an image from its ID",
+        "parameters": [
+          {
+            "name": "Image ID",
+            "in": "query",
+            "description": "specifies the image ID",
+            "required": true,
+            "example": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image correctly returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Image"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No image ID specified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "No image id specified try '/image?id=someid'"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Image not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Image not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/image?id={}": {
+      "get": {
+        "tags": [
+          "Image Operations"
+        ],
+        "description": "Return an image from its ID",
+        "parameters": [
+          {
+            "name": "Image ID",
+            "in": "query",
+            "description": "specifies the image ID",
+            "required": true,
+            "example": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image correctly returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Image"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No image ID specified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "No image id specified try '/image?id=someid'"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Image not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Image not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "_id": {
+        "type": "number",
+        "description": "ID of object",
+        "example": "3"
+      },
+      "title": {
+        "type": "string",
+        "description": "Title of object",
+        "example": "Object name",
+        "required": true
+      },
+      "creator": {
+        "type": "string",
+        "description": "Creator of object",
+        "example": "John Doe",
+        "required": true
+      },
+      "description": {
+        "type": "string",
+        "description": "Description of object",
+        "example": "Object number 5 of 7",
+        "required": true
+      },
+      "imageData": {
+        "type": "string",
+        "description": "Base64 encoding of image",
+        "example": "data:image/png;base64,",
+        "required": true
+      },
+      "type": {
+        "type": "string",
+        "description": "Upload type of object",
+        "example": "url",
+        "required": true
+      },
+      "name": {
+        "type": "string",
+        "description": "Name of object",
+        "example": "Job 7",
+        "required": true
+      },
+      "imageSequence": {
+        "type": "number",
+        "description": "Image IDs in job",
+        "example": "[1, 2]",
+        "required": true
+      },
+      "Image": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "$ref": "#/components/schemas/_id"
+          },
+          "title": {
+            "$ref": "#/components/schemas/title"
+          },
+          "creator": {
+            "$ref": "#/components/schemas/creator"
+          },
+          "description": {
+            "$ref": "#/components/schemas/description"
+          },
+          "imageData": {
+            "$ref": "#/components/schemas/imageData"
+          },
+          "type": {
+            "$ref": "#/components/schemas/type"
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "$ref": "#/components/schemas/_id"
+          },
+          "name": {
+            "$ref": "#/components/schemas/name"
+          },
+          "creator": {
+            "$ref": "#/components/schemas/creator"
+          },
+          "imageSequence": {
+            "$ref": "#/components/schemas/imageSequence"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
