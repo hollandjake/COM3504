@@ -246,7 +246,7 @@ function createKnowledgeGraphElement(JSONLD, imageId, color) {
     knowledgeGraphCard.css('border-color', color);
     $(`<a><span class="btn btn-success colorpicker-input-addon annotate">Annotate</span></a>`).appendTo(knowledgeGraphCard.find('.card-body')).on("colorpickerChange", (e) => {
         let color = e.color.toString()
-        annotationClasses[imageId].color = color;
+        annotationClasses[imageId].colorPicker.setValue(e.color);
         knowledgeGraphCard.css('border-color', color);
         sendKnowledgeGraphColor(imageId, JSONLD['@id'], color)
     }).colorpicker({

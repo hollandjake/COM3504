@@ -7,6 +7,7 @@ export default class Annotate {
         this._image = image;
         this._imageClasses = imageClasses;
         this._containerClasses = containerClasses;
+        this._colorPicker = null;
     }
 
     get container() {
@@ -17,8 +18,8 @@ export default class Annotate {
         return this._draw;
     }
 
-    set color(newColor) {
-        this._currentTool.color = newColor;
+    get colorPicker() {
+        return this._colorPicker;
     }
 
     async init() {
@@ -294,6 +295,8 @@ export default class Annotate {
         }).colorpicker({
             color: this._currentTool.color,
             useAlpha: false
+        }).on("colorpickerCreate", e => {
+            this._colorPicker = e.colorpicker;
         });
     }
 }
