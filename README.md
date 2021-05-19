@@ -49,7 +49,7 @@ Division of work approved by Fabio:
 - [x] Socket.io Chat box [#14](https://github.com/hollandjake/COM3504/issues/14)
 - [x] Socket.io Annotation [#15](https://github.com/hollandjake/COM3504/issues/15)
 - [ ] Swagger documentation [#16](https://github.com/hollandjake/COM3504/issues/16)
-- [ ] ServiceWorker [#18](https://github.com/hollandjake/COM3504/issues/18)
+- [x] ServiceWorker [#18](https://github.com/hollandjake/COM3504/issues/18)
 
 ### Unassigned / Part 2
 - [ ] Knowledge graph image [#23](https://github.com/hollandjake/COM3504/issues/23)
