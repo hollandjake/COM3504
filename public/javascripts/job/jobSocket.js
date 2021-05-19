@@ -1,5 +1,5 @@
-import {newImageAdded, newChatMessage, newWritingMessage} from "./job.js";
-import {saveChatForImage, getPID} from "../databases/database.js";
+import {newImageAdded, newChatMessage, newWritingMessage, newKnowledgeGraph, updateKnowledgeGraphColor, deleteKnowledgeGraph} from "./job.js";
+import {saveChatForImage, getPID, saveKnowledgeForImage, updateKnowledgeColorForImage, removeKnowledgeGraphForImage} from "../databases/database.js";
 
 const job = io.connect('/job');
 let annotationCanvases = {}
@@ -15,6 +15,18 @@ $(function () {
     });
     job.on('writingMessage', async function (imageId, sender) {
         newWritingMessage(imageId, sender);
+    });
+    job.on('newKnowledgeGraph', async function (JSONLD, imageId, color) {
+        saveKnowledgeForImage(imageId, JSONLD, color);
+        newKnowledgeGraph(JSONLD, imageId, color);
+    });
+    job.on('knowledgeGraphColor', async function (imageId, graphId, color) {
+        updateKnowledgeColorForImage(imageId, graphId, color);
+        updateKnowledgeGraphColor(imageId, graphId, color);
+    });
+    job.on('knowledgeGraphDeleted', async function (imageId, graphId) {
+        removeKnowledgeGraphForImage(imageId, graphId);
+        deleteKnowledgeGraph(imageId, graphId);
     });
     job.on('draw', async function (imageId, event) {
         if (imageId in annotationCanvases) {
@@ -38,6 +50,42 @@ export async function sendChat(imageId, message) {
 export async function sendWritingMessage(imageId) {
     let sender = await getPID('name');
     job.emit('writingMessage', imageId, sender);
+}
+
+/**
+ * sends a socket.io event of the new knowledge graph element
+ * @param {Object} JSONLD
+ * @param {String} JSONLD.@id
+ * @param {String} JSONLD.name
+ * @param {String} JSONLD.detailedDescription.articleBody
+ * @param {String} JSONLD.url
+ * @param {int} imageId
+ * @param {String} color
+ */
+export async function sendNewKnowledgeGraph(JSONLD, imageId, color) {
+    saveKnowledgeForImage(imageId, JSONLD, color);
+    job.emit('newKnowledgeGraph', JSONLD, imageId, color);
+}
+
+/**
+ * sends a socket.io event of the annotation colour for the knowledge graph element
+ * @param {int} imageId
+ * @param {String} graphId
+ * @param {String} color
+ */
+export async function sendKnowledgeGraphColor(imageId, graphId, color) {
+    updateKnowledgeColorForImage(imageId, graphId, color);
+    job.emit('knowledgeGraphColor',imageId, graphId, color);
+}
+
+/**
+ * sends a socket.io event of the removal of a knowledge graph element
+ * @param {int} imageId
+ * @param {String} graphId
+ */
+export async function sendKnowledgeGraphDeletion(imageId, graphId) {
+    removeKnowledgeGraphForImage(imageId, graphId);
+    job.emit('knowledgeGraphDeleted',imageId, graphId);
 }
 
 export function sendAnnotation(imageId, event) {

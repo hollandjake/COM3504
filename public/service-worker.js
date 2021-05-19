@@ -45,6 +45,8 @@ let filesToCache = [
     "/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css",
     "/bootstrap/dist/js/bootstrap.bundle.min.js",
     "/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js",
+    "https://www.gstatic.com/knowledge/kgsearch/widget/1.0/widget.min.js",
+    "https://www.gstatic.com/knowledge/kgsearch/widget/1.0/widget.min.css"
 ];
 
 

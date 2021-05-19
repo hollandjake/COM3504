@@ -12,6 +12,15 @@ exports.init = function(io) {
     socket.on('writingMessage', async function(imageId, sender) {
       socket.broadcast.emit('writingMessage', imageId, sender);
     });
+    socket.on('newKnowledgeGraph', async function(JSONLD, imageId, color) {
+      socket.broadcast.emit('newKnowledgeGraph', JSONLD, imageId, color);
+    });
+    socket.on('knowledgeGraphColor', async function(imageId, graphId, color) {
+      socket.broadcast.emit('knowledgeGraphColor', imageId, graphId, color);
+    });
+    socket.on('knowledgeGraphDeleted', async function(imageId, graphId) {
+      socket.broadcast.emit('knowledgeGraphDeleted', imageId, graphId);
+    });
     socket.on('draw', async function(imageId, event) {
       socket.broadcast.emit('draw', imageId, event);
     });

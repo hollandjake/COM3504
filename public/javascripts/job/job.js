@@ -2,10 +2,11 @@
 import {error} from "../components/error.js";
 import Annotate from "./annotate.js";
 import {getModalData} from "../components/modal.js";
-import {addAnnotationCanvas, sendChat, sendWritingMessage} from "./jobSocket.js";
+import {addAnnotationCanvas, sendChat, sendWritingMessage, sendNewKnowledgeGraph, sendKnowledgeGraphColor, sendKnowledgeGraphDeletion} from "./jobSocket.js";
 import {
     attachImageToJob,
     getChatDataForImage,
+    getKnowledgeGraphDataForImage,
     getImage,
     getJob,
     getPID,
@@ -14,7 +15,9 @@ import {
 
 let myself = "";
 let chats = {};
+let annotationClasses = {};
 let currentlyTyping = new Map();
+const apiKey= 'AIzaSyAG7w627q-djB4gTTahssufwNOImRqdYKM';
 
 $(async function () {
     myself = await getPID("name");
@@ -32,6 +35,12 @@ $(async function () {
         currentlyRunningAddJobCallback = initialisePage(jobsData)
     });
 
+    window.addEventListener("online", e => {
+        $('.knowledge-graph-search').prop('disabled', false);
+    });
+    window.addEventListener("offline", e => {
+        $('.knowledge-graph-search').prop('disabled', true);
+    });
 
     $(document).bind("jobsUpdated",  (e, updatedJobs) => {
         for (const index in updatedJobs) {
@@ -105,6 +114,7 @@ function updateCarouselArrows() {
 
 async function createImageElement(image) {
     const annotation = await new Annotate(image, "card-img-top rounded-0", "card-img-top job-image rounded-0").init();
+    annotationClasses[image._id] = annotation;
 
     addAnnotationCanvas(image._id, annotation);
 
@@ -147,6 +157,43 @@ async function createImageElement(image) {
                         </div>
                     </form>
                 </div>
+                <hr>
+                <div class="card-body">
+                    <select class="form-control" id="knowledge-graph-type-${image._id}">
+                        <option selected value="no">Choose Knowledge Graph Type</option>
+                        <option value="Book">Book</option>
+                        <option value="BookSeries">BookSeries</option>
+                        <option value="EducationalOrganization">EducationalOrganization</option>
+                        <option value="Event">Event</option>
+                        <option value="GovernmentOrganization">GovernmentOrganization</option>
+                        <option value="LocalBusiness">LocalBusiness</option>
+                        <option value="Movie">Movie</option>
+                        <option value="MovieSeries">MovieSeries</option>
+                        <option value="MusicAlbum">MusicAlbum</option>
+                        <option value="MusicGroup">MusicGroup</option>
+                        <option value="MusicRecording">MusicRecording</option>
+                        <option value="Organization">Organization</option>
+                        <option value="Periodical">Periodical</option>
+                        <option value="Person">Person</option>
+                        <option value="Place">Place</option>
+                        <option value="SportsTeam">SportsTeam</option>
+                        <option value="TVEpisode">TVEpisode</option>
+                        <option value="TVSeries">TVSeries</option>
+                        <option value="VideoGame">VideoGame</option>
+                        <option value="VideoGameSeries">VideoGameSeries</option>
+                        <option value="WebSite">WebSite</option>
+                    </select>
+                    <div class="input-group pt-2">
+                        <input id="knowledge-graph-search-${image._id}" type="text" class="form-control knowledge-graph-search" placeholder="Search knowledge graph...">
+                        <div class="input-group-append">
+                            <div class="btn btn-dark">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"></path><path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3z"></path></svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="knowledge-graph-results-container pt-2" id="knowledge-graph-results-container-${image._id}">
+                    </div>
+                </div>
             </div>
         </div>
     `);
@@ -162,6 +209,24 @@ async function createImageElement(image) {
         sendWritingMessage(image._id);
     });
 
+    //Updates the 'type' for which the knowledge uses to search
+    let knowledgeGraphContainer = imageElement.find('#knowledge-graph-results-container-'+image._id);
+    imageElement.find('#knowledge-graph-type-'+image._id).on("change", function() {
+        let config = {
+            'limit': 10,
+            'languages': ['en'],
+            'types': [this.value],
+            'maxDescChars': 100,
+            'selectHandler': (e) => { //Handles the knowledge graph search bar
+                let JSONLD = e.row.json;
+                let knowledgeGraphElement = createKnowledgeGraphElement(JSONLD, image._id, 'grey');
+                $('#knowledge-graph-results-container-'+image._id).append(knowledgeGraphElement);
+                sendNewKnowledgeGraph(JSONLD, image._id, 'grey');
+            },
+        }
+        KGSearchWidget(apiKey, document.getElementById('knowledge-graph-search-'+image._id), config);
+    });
+
     let chatContainer = imageElement.find(".chat-container");
     chatContainer.empty();
     chats[image._id] = {
@@ -172,6 +237,9 @@ async function createImageElement(image) {
 
     let imageChat = (await getChatDataForImage(image._id)).chatData;
     imageChat.forEach(chatObj => newChatMessage(image._id, chatObj));
+
+    let imageKnowledgeGraph = (await getKnowledgeGraphDataForImage(image._id)).knowledgeGraphData;
+    imageKnowledgeGraph.forEach(knowledgeGraphObj => knowledgeGraphContainer.append(createKnowledgeGraphElement(knowledgeGraphObj.JSONLD, image._id, knowledgeGraphObj.color)));
 
     imageElement.find('#job-image').replaceWith(annotation.container);
 
@@ -184,6 +252,44 @@ async function createImageElement(image) {
     }).observe(imageElement.get(0), {attributeFilter: ['class'], attributeOldValue: true});
 
     return imageElement;
+}
+
+/**
+ * creates a knowledge graph card/element from an object of properties
+ * @param {Object} JSONLD
+ * @param {String} JSONLD.@id
+ * @param {String} JSONLD.name
+ * @param {String} JSONLD.detailedDescription.articleBody
+ * @param {String} JSONLD.url
+ * @param {int} imageId
+ * @param {String} color
+ */
+function createKnowledgeGraphElement(JSONLD, imageId, color) {
+    let ID = JSONLD['@id'].replaceAll('/','');
+    let knowledgeGraphCard = $(`
+        <div class="card knowledge-card" id="${ID}">
+            <div class="card-body">
+                <h5 class="card-title">${JSONLD.name}</h5>
+                <p class="card-text">${JSONLD.detailedDescription.articleBody}</p>
+                <a href="${JSONLD.url}" target="_blank" class="card-link"><button type="button" class="btn btn-info">Webpage</button></a>
+            </div>
+        </div>
+    `);
+    knowledgeGraphCard.css('border-color', color);
+    $(`<a><span class="btn btn-success colorpicker-input-addon annotate">Annotate</span></a>`).appendTo(knowledgeGraphCard.find('.card-body')).on("colorpickerChange", (e) => {
+        let color = e.color.toString()
+        annotationClasses[imageId].colorPicker.setValue(e.color);
+        knowledgeGraphCard.css('border-color', color);
+        sendKnowledgeGraphColor(imageId, JSONLD['@id'], color)
+    }).colorpicker({
+        useAlpha: false
+    }).children().removeClass('colorpicker-input-addon');
+    $(`<button type="button" class="btn btn-danger ml-1 float-right"><svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"/><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+       </button>`).appendTo(knowledgeGraphCard.find('.card-body')).click(() => {
+        knowledgeGraphCard.remove();
+        sendKnowledgeGraphDeletion(imageId, JSONLD['@id']);
+    });
+    return knowledgeGraphCard;
 }
 
 function addMessage(imageChat, messageElement) {
@@ -252,6 +358,41 @@ export function newWritingMessage(imageId, sender) {
     currentlyTyping[imageId][sender].timeout = setTimeout(() => {
         removeBobble(imageId, sender);
     }, 5000);
+}
+
+/**
+ * handles an incoming socket.io event of a new knowledge graph element
+ * @param {Object} JSONLD
+ * @param {String} JSONLD.@id
+ * @param {String} JSONLD.name
+ * @param {String} JSONLD.detailedDescription.articleBody
+ * @param {String} JSONLD.url
+ * @param {int} imageId
+ * @param {String} color
+ */
+export function newKnowledgeGraph(JSONLD, imageId, color) {
+    let knowledgeGraphElement = createKnowledgeGraphElement(JSONLD, imageId, color);
+    $('#knowledge-graph-results-container-'+imageId).append(knowledgeGraphElement);
+}
+
+/**
+ * handles an incoming socket.io event of colour for a knowledge graph element
+ * @param {int} imageId
+ * @param {String} graphId
+ * @param {String} color
+ */
+export function updateKnowledgeGraphColor(imageId, graphId, color) {
+    graphId = graphId.replaceAll('/','');
+    $('#knowledge-graph-results-container-'+imageId+' #'+graphId).css('border-color', color);
+}
+
+/**
+ * handles an incoming socket.io event of the removal of a knowledge graph element
+ * @param {int} imageId
+ * @param {String} graphId
+ */
+export function deleteKnowledgeGraph(imageId, graphId) {
+    $('#knowledge-graph-results-container-'+imageId+' #'+graphId).remove();
 }
 
 function processImageCreationError(e) {

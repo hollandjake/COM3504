@@ -2,6 +2,10 @@
     filter: invert(1) grayscale(100);
 }
 
+#image-container {
+    overflow: visible !important;
+}
+
 .job-image {
     max-height: 500px;
     object-fit: contain;
@@ -108,4 +112,26 @@ div#wave .dot:nth-child(3) {
     30% {
         transform: translateY(-10px);
     }
+}
+
+.kge-search-picker {
+    z-index: 10;
+}
+.knowledge-graph-results-container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 1em;
+}
+.knowledge-graph-results-container .card {
+    flex: 0 0 auto;
+}
+.knowledge-card {
+    border-style: solid;
+    border-width: 2px;
+    height: fit-content;
+    width: 19rem;
+}
+.annotate {
+    background-color: #28a745 !important;
 }
