@@ -9,6 +9,7 @@
     "resetDb": "npm run-script rollbackDb && npm run-script migrateDb"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "bootstrap-colorpicker": "^3.2.0",
     "bootstrap-icons": "^1.4.1",

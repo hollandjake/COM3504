@@ -1,4 +1,4 @@
-import {getAllFromCache, getPID, pushingToServer} from "../databases/database.js";
+import {getImages, getJobs, getPID, pushingToServer} from "../databases/database.js";
 
 async function loadName() {
     // Get name from IndexedDB and show it on the nav bar
@@ -18,14 +18,30 @@ $(async function () {
 
     await loadName();
 
-    if (navigator.onLine) await pushingToServer(() => {console.log(error)});
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+            .getRegistration("/")
+            .then(function(registration) {
+                if (registration) {
+                    registration.update();
+                } else {
+                    navigator.serviceWorker.register('./service-worker.js');
+                    console.log('Service Worker Registered');
+                }
+            });
+    }
 
-    //TODO: move to service worker
-    setTimeout(() => {
-        window.addEventListener('online', async () => {
-            await pushingToServer(() => {console.log(error)})
-        });
-    }, 15000);
+    if (navigator.onLine)  {
+        getJobs();
+        getImages();
+        await pushingToServer(() => {console.log(error)});
+    }
+
+    window.addEventListener('online', async () => {
+        getJobs();
+        getImages();
+        await pushingToServer(() => {console.log(error)})
+    });
 
 })
 

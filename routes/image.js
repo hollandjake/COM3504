@@ -21,7 +21,7 @@ router.get('/list', async function (req, res) {
 
 router.post('/create', upload.any(), async function (req, res) {
     try {
-        let image = imageController.parseImage(req);
+        let image = await imageController.parseImage(req);
         if (!image) {
             res.status(400).json({
                 status: 400,

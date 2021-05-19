@@ -30,6 +30,9 @@ export function addAnnotationCanvas(imageId, obj) {
 export async function sendChat(imageId, message) {
     let userID = await getPID('name');
     job.emit('chat', userID, message, imageId);
+    let chatObj = {sender: userID, message: message};
+    saveChatForImage(imageId, chatObj);
+    newChatMessage(imageId, chatObj);
 }
 
 export async function sendWritingMessage(imageId) {

@@ -22,7 +22,7 @@ router.get('/list', async function (req, res) {
 
 router.post('/create', upload.any(), async function (req, res) {
     try {
-        let jobImage = imageController.parseImage(req);
+        let jobImage = await imageController.parseImage(req);
         if (!jobImage) {
             res.status(400).json({
                 status: 400,
@@ -61,7 +61,7 @@ router.get('/', async function (req, res) {
 
 router.post('/add-image', upload.any(), async function (req, res) {
     try {
-        let jobImage = imageController.parseImage(req);
+        let jobImage = await imageController.parseImage(req);
         if (!jobImage) {
             res.status(400).json({
                 status: 400,

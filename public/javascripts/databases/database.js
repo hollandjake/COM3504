@@ -99,19 +99,21 @@ export function saveJob(jobForm, jobData, onsuccess, onerror) {
             onsuccess(data.job);
         },
         async () => {
-            jobData._id = generateTempId();
-            let imageObj = await new Promise((resolve, reject) => saveImage(jobForm, jobData, resolve, reject));
-            console.log(imageObj);
-            let jobObj = {
-                _id: jobData._id,
-                url: `/job?id=${jobData._id}`,
-                name: jobData['job_name'],
-                creator: jobData['job_creator'],
-                imageSequence: [imageObj._id]
+            if (jobData) {
+                jobData._id = generateTempId();
+                let imageObj = await new Promise((resolve, reject) => saveImage(jobForm, jobData, resolve, reject));
+                console.log(imageObj);
+                let jobObj = {
+                    _id: jobData._id,
+                    url: `/job?id=${jobData._id}`,
+                    name: jobData['job_name'],
+                    creator: jobData['job_creator'],
+                    imageSequence: [imageObj._id]
+                }
+                await saveToCache(OFFLINE_JOBS, jobObj._id, jobObj);
+                console.log(await getFromCache(OFFLINE_JOBS, jobObj._id));
+                onsuccess(jobObj);
             }
-            await saveToCache(OFFLINE_JOBS, jobObj._id, jobObj);
-            console.log(await getFromCache(OFFLINE_JOBS, jobObj._id));
-            onsuccess(jobObj);
         },
         (e) => {
             if (onerror) onerror(('responseJSON' in e) ? e['responseJSON'] : {
@@ -119,6 +121,47 @@ export function saveJob(jobForm, jobData, onsuccess, onerror) {
             })
         },
         jobForm
+    );
+}
+
+export function getImages(onsuccess) {
+    if (onsuccess) {
+        getAllFromCache(IMAGES)
+            .then(async imageStoreData => [...imageStoreData, ...await getAllFromCache(OFFLINE_IMAGES)])
+            .then((data) => {
+                onsuccess(data);
+            })
+    }
+    ajaxRequest(
+        'GET',
+        '/image/list',
+        async (imagesData) => {
+            let allImages = await getAllFromCache(IMAGES);
+            allImages = allImages.map(image => image._id)
+            imagesData.forEach(image => {
+                if (!allImages.includes(image._id)) {
+                    fetch(image.imageData)
+                        .then((data) => {
+                            return data.blob()
+                        })
+                        .then(blob => {
+                            let reader = new FileReader();
+                            reader.onloadend = () => {
+                                image.imageData = reader.result;
+                                saveToCache(IMAGES, image._id, image);
+                            }
+                            reader.readAsDataURL(blob);
+                        })
+                }
+            });
+            if (onsuccess) onsuccess([...imagesData, ...await getAllFromCache(OFFLINE_IMAGES)]);
+        },
+        async () => {
+            if (onsuccess) onsuccess([...await getAllFromCache(IMAGES), ...await getAllFromCache(OFFLINE_IMAGES)])
+        },
+        async () => {
+            if (onsuccess) onsuccess([...await getAllFromCache(IMAGES), ...await getAllFromCache(OFFLINE_IMAGES)])
+        }
     );
 }
 
@@ -262,53 +305,13 @@ async function generateTempImage(imageData) {
     return imageObj;
 }
 
-async function addImageSequence(data, imageArray, oldId) {
-
-    imageArray.shift();
-
-    await idMigration(oldId, data.imageSequence[0])
-
-
-    for (const imageId of imageArray) {
-
-        if (typeof imageId === 'string') {
-            let image = await getFromCache(OFFLINE_IMAGES, imageId);
-            await deleteFromCache(OFFLINE_IMAGES, imageId);
-
-            await toUpload(image)
-
-            let imageObj = {
-                image_creator: image.creator,
-                image_description: image.description,
-                image_source: image.imageData,
-                image_title: image.title,
-                image_type: image.type
-            }
-
-            await new Promise((resolve, reject) => {
-                saveJobImage(data._id, convertToFormData(imageObj), imageObj, async (data) => {
-                    await idMigration(imageId, data.image._id)
-                    resolve()
-                }, async (cachedData) => {
-                    await idMigration(imageId, cachedData._id)
-                    resolve()
-                }, reject);
-            });
-
-        }
-    }
-
-    return [oldId, data._id]
-
-}
-
 async function toUpload(image) {
     if (image.type === "upload") {
         const imgData = image.imageData;
         const mimeType = imgData.match(/data:(.+?);/)[1];
         await fetch(imgData)
             .then(res => res.blob())
-            .then(blob => image.imageData = new File([blob], "File name",{ type: mimeType }))
+            .then(blob => image.imageData = new File([blob], "File name", {type: mimeType}))
     }
     return image
 }
@@ -333,13 +336,11 @@ export async function pushingToServer(onerror) {
 
     let cachedJobs = await getAllFromCache(OFFLINE_JOBS);
 
-    let updatedJobs= [];
+    let updatedJobs = [];
 
     for (const job of cachedJobs) {
-        await deleteFromCache(OFFLINE_JOBS, job._id);
 
         let initImage = await getFromCache(OFFLINE_IMAGES, job.imageSequence[0])
-        await deleteFromCache(OFFLINE_IMAGES, initImage._id);
 
         await toUpload(initImage);
 
@@ -354,13 +355,20 @@ export async function pushingToServer(onerror) {
         }
 
         await new Promise(async (resolve, reject) => {
-            await saveJob(convertToFormData(jobObj), jobObj, async (data) => {
-                updatedJobs.push(await addImageSequence(data, job.imageSequence, job._id));
-                resolve();
-            }, () => {
-                onerror;
-                resolve();
-            }, reject);
+            await saveJob(convertToFormData(jobObj), null, async (data) => {
+                    await idMigration(initImage._id, data.imageSequence[0]);
+                    await deleteFromCache(OFFLINE_IMAGES, initImage._id);
+                    await deleteFromCache(OFFLINE_JOBS, job._id);
+                    for (let i = 1; i < job.imageSequence.length; i++) {
+                        data.imageSequence.push(job.imageSequence[i]);
+                    }
+                    await saveToCache(JOBS, data._id, data);
+                    updatedJobs.push([job._id, data._id])
+                    resolve();
+                },
+                onerror,
+                reject
+            );
         });
 
     }
@@ -371,7 +379,6 @@ export async function pushingToServer(onerror) {
         for (const jobImage of job.imageSequence) {
             if (typeof jobImage === 'string') {
                 let image = await getFromCache(OFFLINE_IMAGES, jobImage);
-                await deleteFromCache(OFFLINE_IMAGES, jobImage);
 
                 job.imageSequence = job.imageSequence.filter(x => x !== image._id)
 
@@ -390,9 +397,9 @@ export async function pushingToServer(onerror) {
                 await new Promise((resolve, reject) => {
                     saveJobImage(job._id, convertToFormData(imageObj), imageObj, async (data) => {
                         await idMigration(jobImage, data.image._id)
+                        await deleteFromCache(OFFLINE_IMAGES, jobImage);
                         resolve()
                     }, async (cachedData) => {
-                        await idMigration(jobImage, cachedData._id)
                         resolve()
                     }, reject);
                 });
