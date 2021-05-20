@@ -258,7 +258,7 @@ export function saveImage(imageForm, imageData, onsuccess, onerror) {
 }
 
 /**
- *
+ * gets an image
  * @param {int} imageId
  * @param {function} onsuccess
  * @param {function} onerror
@@ -333,7 +333,7 @@ export function saveJobImage(jobId, imageForm, imageData, onsuccess, onoffline, 
 }
 
 /**
- *
+ * attaches an image to a job
  * @param {String} jobId
  * @param {Object} imageData
  * @param {String} imageData.creator
