@@ -241,7 +241,7 @@ export function saveJobImage(jobId, imageForm, imageData, onsuccess, onoffline, 
         'POST',
         `/job/add-image?id=${jobId}`,
         async (data) => {
-            data.imageData = await getImageAsBase64(data.imageData);
+            data.image.imageData = await getImageAsBase64(data.image.imageData);
             await saveToCache(IMAGES, data._id, data);
             if (onsuccess) onsuccess(data);
         },
@@ -405,7 +405,7 @@ export async function pushingToServer(onerror) {
 
         let initImage = await getFromCache(OFFLINE_IMAGES, job.imageSequence[0])
 
-        await toUpload(initImage);
+        initImage = await toUpload(initImage);
 
         let jobObj = {
             image_creator: initImage.creator,
@@ -447,7 +447,7 @@ export async function pushingToServer(onerror) {
 
                 await saveToCache(JOBS, job._id, job);
 
-                await toUpload(image);
+                image = await toUpload(image);
 
                 let imageObj = {
                     image_creator: image.creator,
