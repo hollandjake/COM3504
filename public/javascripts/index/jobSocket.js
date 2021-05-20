@@ -1,7 +1,9 @@
 import {createJobElement} from "./index.js";
 const job = io.connect('/job');
 
-// On load
+/**
+ * initialises socket.io events when page loads
+ */
 $(function () {
     //Event for when a new job has been added
     job.on('newJob', async function (data) {

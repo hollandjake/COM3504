@@ -4,7 +4,9 @@ import {saveChatForImage, getPID, saveKnowledgeForImage, updateKnowledgeColorFor
 const job = io.connect('/job');
 let annotationCanvases = {}
 
-// On load
+/**
+ * initialises socket.io events when page loads
+ */
 $(function () {
     job.emit('join', JOB_ID);
     //Event for when a new image has been added
@@ -35,10 +37,20 @@ $(function () {
     });
 })
 
+/**
+ * updates the list of canvases for this job
+ * @param {int} imageId
+ * @param {Object} obj
+ */
 export function addAnnotationCanvas(imageId, obj) {
     annotationCanvases[imageId] = obj;
 }
 
+/**
+ * sends a socket.io event of a new chat message
+ * @param {int} imageId
+ * @param {String} message
+ */
 export async function sendChat(imageId, message) {
     let userID = await getPID('name');
     job.emit('chat', userID, message, imageId);
@@ -47,6 +59,10 @@ export async function sendChat(imageId, message) {
     newChatMessage(imageId, chatObj);
 }
 
+/**
+ * sends a socket.io event of writing a new chat message
+ * @param {int} imageId
+ */
 export async function sendWritingMessage(imageId) {
     let sender = await getPID('name');
     job.emit('writingMessage', imageId, sender);
@@ -88,6 +104,11 @@ export async function sendKnowledgeGraphDeletion(imageId, graphId) {
     job.emit('knowledgeGraphDeleted',imageId, graphId);
 }
 
+/**
+ * sends a socket.io event of a new annotation
+ * @param {int} imageId
+ * @param {Event} event
+ */
 export function sendAnnotation(imageId, event) {
     //Send straight to emitting client
     annotationCanvases[imageId].onNetworkEvent(event);

@@ -1,5 +1,8 @@
 import {getPID} from "../databases/database.js";
 
+/**
+ * initialises the modal
+ */
 $(() => {
     const radioButtons = $('[data-for="image-source"]');
     const urlField = $('[data-for="url"]');
@@ -82,6 +85,11 @@ $(() => {
         uploadPreview.attr('src', file);
     });
 
+    /**
+     * loads the camera
+     * @param {jQuery} videoElement
+     * @returns {Promise<boolean>}
+     */
     async function loadCam(videoElement) {
         videoElement.hide();
         try {
@@ -119,6 +127,11 @@ $(() => {
         }
     }
 
+    /**
+     * stops the camera
+     * @param {jQuery} videoElement
+     * @returns {Promise<void>}
+     */
     async function killCam(videoElement) {
         videoElement.hide();
         if (stream) {
@@ -128,6 +141,19 @@ $(() => {
     }
 })
 
+/**
+ * gets the modal data
+ * @param {jQuery} modal
+ * @param {{}} extraFields
+ * @returns {Object} data
+ * @returns {form} data.finalData
+ * @returns {Object} data.finalData
+ * @returns {String} data.finalData.image_creator
+ * @returns {String} data.finalData.image_description
+ * @returns {String} data.finalData.image_title
+ * @returns {String} data.finalData.image_type
+ * @returns {Object} data.finalData.image_source
+ */
 export async function getModalData(modal, extraFields = {}) {
     let finalData = {};
 
@@ -166,10 +192,15 @@ export async function getModalData(modal, extraFields = {}) {
     return [convertToFormData(finalData), finalData];
 }
 
+/**
+ * converts data to form data
+ * @param {Object} data
+ * @returns {FormData}
+ */
 export function convertToFormData(data) {
 
     const formData = new FormData();
     Object.keys(data).forEach(key => formData.append(key, data[key]));
 
-    return formData
+    return formData;
 }
