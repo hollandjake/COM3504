@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-let cache= null;
-let dataCacheName = 'assignmentData';
 let cacheName = 'assigmentCache';
 let filesToCache = [
     '/',
+    '/job',
+    '/login',
     '/javascripts/components/error.js',
     '/javascripts/components/modal.js',
     '/javascripts/components/navbar.js',
     '/javascripts/components/preloadImage.js',
+    '/javascripts/components/widget.min.js',
     '/javascripts/databases/database.js',
     '/javascripts/idb/index.js',
     '/javascripts/idb/wrap-idb-value.js',
@@ -35,114 +36,77 @@ let filesToCache = [
     '/stylesheets/job.css',
     '/stylesheets/login.css',
     '/stylesheets/modal.css',
+    '/stylesheets/widget.min.css',
     '/jquery/dist/jquery.min.js',
-    "/job",
-    "/bootstrap-icons/font/fonts/bootstrap-icons.woff?231ce25e89ab5804f9a6c427b8d325c9",
-    "/bootstrap-icons/font/fonts/bootstrap-icons.woff2?231ce25e89ab5804f9a6c427b8d325c9",
-    "/login",
+    '/bootstrap-icons/font/fonts/bootstrap-icons.woff?231ce25e89ab5804f9a6c427b8d325c9',
+    '/bootstrap-icons/font/fonts/bootstrap-icons.woff2?231ce25e89ab5804f9a6c427b8d325c9',
+    '/bootstrap-icons/font/bootstrap-icons.css',
     "/bootstrap/dist/css/bootstrap.min.css",
-    "/bootstrap-icons/font/bootstrap-icons.css",
-    "/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css",
-    "/bootstrap/dist/js/bootstrap.bundle.min.js",
-    "/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js",
-    "https://www.gstatic.com/knowledge/kgsearch/widget/1.0/widget.min.js",
-    "https://www.gstatic.com/knowledge/kgsearch/widget/1.0/widget.min.css"
+    '/bootstrap/dist/js/bootstrap.bundle.min.js',
+    '/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css',
+    '/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js',
+    '/images/favicon.svg',
 ];
 
 
 /**
  * installation event: it adds all the files to be cached
  */
-self.addEventListener('install', async function (e) {
-    await self.skipWaiting();
-    console.log('[ServiceWorker] Install');
-    e.waitUntil(
-        caches.open(cacheName).then(function (cacheX) {
-            console.log('[ServiceWorker] Caching app shell');
-            cache= cacheX;
-            return cache.addAll(filesToCache);
-        })
-    );
-    console.log("changed");
+self.addEventListener('install', function (e) {
+    cacheName += Date.now();
 
-
+    e.waitUntil([
+        self.skipWaiting(),
+        caches.open(cacheName).then(cache => cache.addAll(filesToCache))
+    ])
 });
-
 
 /**
  * activation of service worker: it removes all cashed files if necessary
  */
 self.addEventListener('activate', function (e) {
-    if (self.clients && clients.claim) {
-        clients.claim();
-    }
-    console.log('[ServiceWorker] Activate');
-    e.waitUntil(
-        caches.keys().then(function (keyList) {
-            return Promise.all(keyList.map(function (key) {
-                if (key !== cacheName && key !== dataCacheName) {
-                    console.log('[ServiceWorker] Removing old cache', key);
-                    return caches.delete(key);
-                }
-            }));
-        })
-    );
-
-    return self.clients.claim();
+    e.waitUntil([
+        self.clients.claim(),
+        caches.keys().then(keyList => Promise.all(keyList.filter(key => key !== cacheName).map(key => caches.delete(key))))
+    ]);
 });
 
 self.addEventListener('fetch', function (e) {
 
-    if (!e.request.url.includes(e.currentTarget.location.hostname)) {
+    if (!e.request.url.startsWith(e.currentTarget.origin)) {
         return
     }
 
-    let ignoreUrls = ['/socket.io/?', '/check-online', '/add-image?id=']
+    let ignoreUrls = ['/socket.io/?', '/job/', '/image']
 
-    let ignore = false;
-
-    ignoreUrls.forEach((url) => {
-        if (e.request.url.indexOf(url) > -1) {
-           ignore = true
-        }
-    });
-    if (ignore) {
-        //console.log("ignored" + e.request.url)
-    } else {
+    if (!(ignoreUrls.some(url => e.request.url.startsWith(e.currentTarget.origin + url)))) {
         let shouldIgnore = false;
-        if (e.request.url.match(/job\?/)) {
+        if (e.request.url.includes('job?')) {
             shouldIgnore = true;
-        }
-
-        let fetchMode = {mode:"no-cors"};
-
-        if (e.request.url.indexOf("https") > -1) {
-            fetchMode = {mode:"cors"};
         }
 
         //stale while revalidate
         e.respondWith(
-            caches.open(cacheName).then(function (cache) {
-                return cache.match(e.request, {ignoreSearch: shouldIgnore}).then(async function (response) {
-                    if (!navigator.onLine) return response;
-                    return Promise.race([timeout(400), fetch(e.request, fetchMode)])
-                        .then(function (networkResponse) {
-                            cache.add(e.request.url);
-                            return networkResponse;
-                        })
-                        .catch(function () {
-                            return response;
-                        })
-                });
-            }),
+            caches.open(cacheName).then(
+                cache => cache.match(e.request, {ignoreSearch: shouldIgnore})
+                    .then(async response => {
+                        if (!navigator.onLine) return response;
+                        return Promise.race([timeout(400), fetch(e.request)])
+                            .then(networkResponse => {
+                                cache.add(e.request);
+                                return networkResponse;
+                            })
+                            .catch(() => response)
+                    })
+            )
         );
     }
 });
 
 
 function timeout(delay) {
-    return new Promise(function(resolve, reject) {
-        setTimeout(function() {
+    return new Promise(function (resolve, reject) {
+        setTimeout(function () {
             reject(new Response('', {
                 status: 408,
                 statusText: 'Request timed out.'

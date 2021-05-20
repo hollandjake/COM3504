@@ -101,8 +101,7 @@ async function addAllJobs(jobsData) {
                 } else {
                     newJobsElements[jobString] = loadedJobs[jobString];
                 }
-            } catch (e) {
-            }
+            } catch (ignored) {}
         }
     }
 

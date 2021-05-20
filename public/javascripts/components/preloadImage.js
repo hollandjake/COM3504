@@ -7,4 +7,16 @@ export const loadImage = (src, alt, classes) =>
         img.onload = () => resolve(img);
         img.onerror = reject;
         img.src = src;
-    })
+    });
+
+export const getImageAsBase64 = async (imageData) => {
+
+    if ((/(data:image\/.+)/).test(imageData)) {
+        return imageData
+    }
+
+    const data = await axios.get(imageData, {responseType: "arraybuffer"});
+
+    const base64 = Buffer.from(data.data).toString("base64");
+    return "data:" + data.headers["content-type"] + ";base64," + base64;
+}

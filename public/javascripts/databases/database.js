@@ -1,5 +1,6 @@
 import * as idb from '../idb/index.js';
 import {convertToFormData} from "../components/modal.js";
+import {getImageAsBase64} from "../components/preloadImage.js";
 
 let db;
 
@@ -34,10 +35,24 @@ export function getJobs(onsuccess) {
             'GET',
             '/job/list',
             async (jobsData) => {
+                let allJobs = await getAllFromCache(JOBS);
+                allJobs = allJobs.map(job => job._id);
+
                 jobsData.forEach(job => {
                     job._id = String(job._id);
-                    saveToCache(JOBS, job._id, job)
+
+                    if (!allJobs.includes(job._id)) {
+                        saveToCache(JOBS, job._id, job);
+                    }
                 });
+
+                let jobsDataIds = jobsData.map(job => job._id);
+                allJobs.forEach(jobId => {
+                    if (!jobsDataIds.includes(jobId)) {
+                        deleteFromCache(JOBS, jobId);
+                    }
+                })
+
                 onsuccess([...jobsData, ...await getAllFromCache(OFFLINE_JOBS)]);
             },
             async () => onsuccess([...await getAllFromCache(JOBS), ...await getAllFromCache(OFFLINE_JOBS)]),
@@ -141,20 +156,21 @@ export function getImages(onsuccess) {
             allImages = allImages.map(image => image._id)
             imagesData.forEach(image => {
                 if (!allImages.includes(image._id)) {
-                    fetch(image.imageData)
-                        .then((data) => {
-                            return data.blob()
-                        })
-                        .then(blob => {
-                            let reader = new FileReader();
-                            reader.onloadend = () => {
-                                image.imageData = reader.result;
-                                saveToCache(IMAGES, image._id, image);
-                            }
-                            reader.readAsDataURL(blob);
-                        })
+                    getImageAsBase64(image.imageData).then(data => {
+                        image.imageData = data;
+                        saveToCache(IMAGES, image._id, image);
+                    });
                 }
             });
+            let imageDataIds = imagesData.map(image => image._id);
+            allImages.forEach(imageId => {
+                if (!imageDataIds.includes(imageId)) {
+                    deleteFromCache(IMAGES, imageId);
+                    deleteFromCache(ANNOTATIONS, imageId);
+                    deleteFromCache(CHATS, imageId);
+                    deleteFromCache(KNOWLEDGE_GRAPH, imageId);
+                }
+            })
             if (onsuccess) onsuccess([...imagesData, ...await getAllFromCache(OFFLINE_IMAGES)]);
         },
         async () => {
@@ -171,6 +187,7 @@ export function saveImage(imageForm, imageData, onsuccess, onerror) {
         'POST',
         '/image/create',
         async (data) => {
+            data.image.imageData = await getImageAsBase64(data.image.imageData);
             await saveToCache(IMAGES, data.image._id, data.image);
             if (onsuccess) onsuccess(data.image);
         },
@@ -204,6 +221,7 @@ export function getImage(imageId, onsuccess, onerror) {
             'GET',
             `/image?id=${imageId}`,
             async (data) => {
+                data.image.imageData = await getImageAsBase64(data.image.imageData);
                 await saveToCache(IMAGES, data.image._id, data.image);
                 if (onsuccess) onsuccess(data.image);
             },
@@ -223,6 +241,7 @@ export function saveJobImage(jobId, imageForm, imageData, onsuccess, onoffline, 
         'POST',
         `/job/add-image?id=${jobId}`,
         async (data) => {
+            data.image.imageData = await getImageAsBase64(data.image.imageData);
             await saveToCache(IMAGES, data._id, data);
             if (onsuccess) onsuccess(data);
         },
@@ -331,6 +350,7 @@ async function generateTempImage(imageData) {
             break;
         case 'camera':
         case 'url':
+            imageData['image_source'] = await getImageAsBase64(imageData['image_source']);
             imageObj.imageData = imageData['image_source'];
             break;
     }
@@ -385,7 +405,7 @@ export async function pushingToServer(onerror) {
 
         let initImage = await getFromCache(OFFLINE_IMAGES, job.imageSequence[0])
 
-        await toUpload(initImage);
+        initImage = await toUpload(initImage);
 
         let jobObj = {
             image_creator: initImage.creator,
@@ -427,7 +447,7 @@ export async function pushingToServer(onerror) {
 
                 await saveToCache(JOBS, job._id, job);
 
-                await toUpload(image);
+                image = await toUpload(image);
 
                 let imageObj = {
                     image_creator: image.creator,
