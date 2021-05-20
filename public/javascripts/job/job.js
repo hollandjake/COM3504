@@ -77,9 +77,7 @@ async function initialisePage(job) {
             let imageData = await new Promise((resolve, reject) => getImage(job.imageSequence[i], resolve, reject));
             let element = await createImageElement(imageData);
             imageListElement.append(element);
-        } catch (e) {
-            console.log(e);
-        }
+        } catch (ignored) {}
     }
     $('.carousel-item:first').addClass('active');
     $('#job-title').html(job.name);
@@ -90,9 +88,7 @@ async function initialisePage(job) {
 }
 
 function addImage(formData, imageData, jobId) {
-    saveJobImage(jobId, formData, imageData, null, (data) => {
-        newImageAdded(data._id);
-    }, processImageCreationError);
+    saveJobImage(jobId, formData, imageData, null, (data) => newImageAdded(data._id), processImageCreationError);
 }
 
 //Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
@@ -160,7 +156,7 @@ async function createImageElement(image) {
                 <hr>
                 <div class="card-body">
                     <select class="form-control" id="knowledge-graph-type-${image._id}">
-                        <option selected value="no">Choose Knowledge Graph Type</option>
+                        <option selected value="All">All</option>
                         <option value="Book">Book</option>
                         <option value="BookSeries">BookSeries</option>
                         <option value="EducationalOrganization">EducationalOrganization</option>
@@ -215,7 +211,6 @@ async function createImageElement(image) {
         let config = {
             'limit': 10,
             'languages': ['en'],
-            'types': [this.value],
             'maxDescChars': 100,
             'selectHandler': (e) => { //Handles the knowledge graph search bar
                 let JSONLD = e.row.json;
@@ -223,6 +218,9 @@ async function createImageElement(image) {
                 $('#knowledge-graph-results-container-'+image._id).append(knowledgeGraphElement);
                 sendNewKnowledgeGraph(JSONLD, image._id, 'grey');
             },
+        };
+        if (this.value !== "All") {
+            config['types'] = [this.value];
         }
         KGSearchWidget(apiKey, document.getElementById('knowledge-graph-search-'+image._id), config);
     });
