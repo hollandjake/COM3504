@@ -43,6 +43,7 @@ Division of work approved by Fabio:
 - [x] Socket.io Upload new image [#20](https://github.com/hollandjake/COM3504/issues/20)
 - [x] Store images in indexedDB [#17](https://github.com/hollandjake/COM3504/issues/17)
 - [x] Dynamic cache fetching from indexedDB [#22](https://github.com/hollandjake/COM3504/issues/22)
+- [x] Knowledge graph image [#23](https://github.com/hollandjake/COM3504/issues/23)
 ### Billy
 - [x] Job Page HTML/CSS [#12](https://github.com/hollandjake/COM3504/issues/12)
 - [x] Job Page Image Carousel [#13](https://github.com/hollandjake/COM3504/issues/13)
@@ -52,5 +53,4 @@ Division of work approved by Fabio:
 - [x] ServiceWorker [#18](https://github.com/hollandjake/COM3504/issues/18)
 
 ### Unassigned / Part 2
-- [ ] Knowledge graph image [#23](https://github.com/hollandjake/COM3504/issues/23)
 - [x] WebRTC [#43](https://github.com/hollandjake/COM3504/issues/43)
