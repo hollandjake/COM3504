@@ -158,10 +158,21 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "message": "Failed to create Image - No image file specified"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Failed to create Image"
+                        }
+                      }
+                    },
+                    "imageForm": {
+                      "$ref": "#/components/schemas/ImageForm"
+                    }
+                  }
                 }
               }
             }
@@ -271,12 +282,21 @@
             "description": "Failed to create job",
             "content": {
               "application/json": {
-                "properties": {
-                  "error": {
-                    "$ref": "#/components/schemas/Error"
-                  },
-                  "imageForm": {
-                    "$ref": "#/components/schemas/JobForm"
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string",
+                          "example": "Failed to create Job"
+                        }
+                      }
+                    },
+                    "imageForm": {
+                      "$ref": "#/components/schemas/ImageForm"
+                    }
                   }
                 }
               }
@@ -322,7 +342,7 @@
             }
           },
           "400": {
-            "description": "Failed to create Image",
+            "description": "Failed to add Image",
             "content": {
               "application/json": {
                 "schema": {
@@ -332,7 +352,8 @@
                       "type": "object",
                       "properties": {
                         "error": {
-                          "type": "string"
+                          "type": "string",
+                          "example": "Failed to add image"
                         }
                       }
                     },
