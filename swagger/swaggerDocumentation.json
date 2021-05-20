@@ -22,61 +22,6 @@
     }
   ],
   "paths": {
-    "/image/list": {
-      "get": {
-        "tags": [
-          "Image Operations"
-        ],
-        "description": "Return an image from its ID",
-        "parameters": [
-          {
-            "name": "Image ID",
-            "in": "query",
-            "description": "specifies the image ID",
-            "required": true,
-            "example": 3
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Image correctly returned",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Image"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "No image ID specified",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "message": "No image id specified try '/image?id=someid'"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Image not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "message": "Image not found"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/image?id={}": {
       "get": {
         "tags": [
@@ -131,13 +76,272 @@
           }
         }
       }
+    },
+    "/image/list": {
+      "get": {
+        "tags": [
+          "Image Operations"
+        ],
+        "description": "Get all images, or a single specified image",
+        "parameters": [
+          {
+            "name": "Image ID",
+            "in": "query",
+            "description": "Specifies the image ID if only returning one image",
+            "required": false,
+            "example": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image/images correctly returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Image"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ImageArray"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Images not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Images not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/image/create": {
+      "post": {
+        "tags": [
+          "Image Operations"
+        ],
+        "description": "Create a new image",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Image created correctly",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Image"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to create Image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Failed to create Image - No image file specified"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/job?id={}": {
+      "get": {
+        "tags": [
+          "Job Operations"
+        ],
+        "description": "Renders the job page for the specified job, or if Job ID is null then renders a blank job page",
+        "parameters": [
+          {
+            "name": "Job ID",
+            "in": "query",
+            "description": "specifies the job ID",
+            "required": false,
+            "example": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Renders the page of the specified job, or blank job page if not a valid job"
+          }
+        }
+      }
+    },
+    "/job/list": {
+      "get": {
+        "tags": [
+          "Job Operations"
+        ],
+        "description": "Get all jobs, or a single specified job",
+        "parameters": [
+          {
+            "name": "Job ID",
+            "in": "query",
+            "description": "Specifies the job ID if only returning one job",
+            "required": false,
+            "example": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job/jobs correctly returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Job"
+                    },
+                    {
+                      "$ref": "#/components/schemas/JobArray"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Job not found"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/job/create": {
+      "post": {
+        "tags": [
+          "Image Operations"
+        ],
+        "description": "Create a new image",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Image created correctly",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Image"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to create Image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Failed to create Image - No image file specified"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/job/add-image": {
+      "post": {
+        "tags": [
+          "Image Operations"
+        ],
+        "description": "Create a new image",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageForm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Image created correctly",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Image"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Failed to create Image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "message": "Failed to create Image - No image file specified"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
-      "_id": {
+      "number_id": {
         "type": "number",
         "description": "ID of object",
+        "example": "3"
+      },
+      "string_id": {
+        "type": "string",
+        "description": "ID of offline object",
+        "example": "3"
+      },
+      "offline_id": {
+        "type": "string",
+        "description": "ID of offline object",
         "example": "3"
       },
       "title": {
@@ -186,7 +390,7 @@
         "type": "object",
         "properties": {
           "_id": {
-            "$ref": "#/components/schemas/_id"
+            "$ref": "#/components/schemas/number_id"
           },
           "title": {
             "$ref": "#/components/schemas/title"
@@ -205,11 +409,46 @@
           }
         }
       },
+      "ImageArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Image"
+        }
+      },
+      "ImageForm": {
+        "type": "object",
+        "properties": {
+          "image_creator": {
+            "$ref": "#/components/schemas/creator"
+          },
+          "image_description": {
+            "$ref": "#/components/schemas/description"
+          },
+          "image_source": {
+            "$ref": "#/components/schemas/imageData"
+          },
+          "image_title": {
+            "$ref": "#/components/schemas/title"
+          },
+          "image_type": {
+            "$ref": "#/components/schemas/type"
+          },
+          "job_creator": {
+            "$ref": "#/components/schemas/creator"
+          },
+          "job_name": {
+            "$ref": "#/components/schemas/name"
+          },
+          "_id": {
+            "$ref": "#/components/schemas/offline_id"
+          }
+        }
+      },
       "Job": {
         "type": "object",
         "properties": {
           "_id": {
-            "$ref": "#/components/schemas/_id"
+            "$ref": "#/components/schemas/string_id"
           },
           "name": {
             "$ref": "#/components/schemas/name"
@@ -220,6 +459,12 @@
           "imageSequence": {
             "$ref": "#/components/schemas/imageSequence"
           }
+        }
+      },
+      "JobArray": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Job"
         }
       },
       "Error": {
