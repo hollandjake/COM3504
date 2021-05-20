@@ -154,7 +154,7 @@
             }
           },
           "400": {
-            "description": "Failed to create Image",
+            "description": "Failed to create image",
             "content": {
               "application/json": {
                 "schema": {
@@ -243,14 +243,14 @@
     "/job/create": {
       "post": {
         "tags": [
-          "Image Operations"
+          "Job Operations"
         ],
-        "description": "Create a new image",
+        "description": "Create a new job",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ImageForm"
+                "$ref": "#/components/schemas/JobForm"
               }
             }
           },
@@ -258,24 +258,26 @@
         },
         "responses": {
           "200": {
-            "description": "Image created correctly",
+            "description": "Job created correctly",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Image"
+                  "$ref": "#/components/schemas/Job"
                 }
               }
             }
           },
           "400": {
-            "description": "Failed to create Image",
+            "description": "Failed to create job",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "message": "Failed to create Image - No image file specified"
+                "properties": {
+                  "error": {
+                    "$ref": "#/components/schemas/Error"
+                  },
+                  "imageForm": {
+                    "$ref": "#/components/schemas/JobForm"
+                  }
                 }
               }
             }
@@ -283,12 +285,21 @@
         }
       }
     },
-    "/job/add-image": {
+    "/job/add-image?id={}": {
       "post": {
         "tags": [
-          "Image Operations"
+          "Job Operations"
         ],
         "description": "Create a new image",
+        "parameters": [
+          {
+            "name": "Job ID",
+            "in": "query",
+            "description": "Specifies the ID of the job to add the image to",
+            "required": false,
+            "example": 3
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -315,10 +326,20 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "message": "Failed to create Image - No image file specified"
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "imageForm": {
+                      "$ref": "#/components/schemas/ImageForm"
+                    }
+                  }
                 }
               }
             }
@@ -342,7 +363,7 @@
       "offline_id": {
         "type": "string",
         "description": "ID of offline object",
-        "example": "3"
+        "example": "GSWAMDKOB"
       },
       "title": {
         "type": "string",
@@ -467,10 +488,36 @@
           "$ref": "#/components/schemas/Job"
         }
       },
+      "JobForm": {
+        "type": "object",
+        "properties": {
+          "job_name": {
+            "$ref": "#/components/schemas/name"
+          },
+          "job_creator": {
+            "$ref": "#/components/schemas/creator"
+          },
+          "image_creator": {
+            "$ref": "#/components/schemas/creator"
+          },
+          "image_description": {
+            "$ref": "#/components/schemas/description"
+          },
+          "image_source": {
+            "$ref": "#/components/schemas/imageData"
+          },
+          "image_title": {
+            "$ref": "#/components/schemas/title"
+          },
+          "image_type": {
+            "$ref": "#/components/schemas/type"
+          }
+        }
+      },
       "Error": {
         "type": "object",
         "properties": {
-          "message": {
+          "error": {
             "type": "string"
           }
         }
