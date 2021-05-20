@@ -22,6 +22,19 @@
     }
   ],
   "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "Index Operations"
+        ],
+        "description": "Renders the index page if the user is signed in, or the login page if they are not",
+        "responses": {
+          "200": {
+            "description": "Renders the index page if the user is signed in, or the login page if they are not"
+          }
+        }
+      }
+    },
     "/image?id={}": {
       "get": {
         "tags": [
