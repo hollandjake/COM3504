@@ -1,6 +1,6 @@
 /**
  * creates an error message element
- * @param {String} errorMessage
+ * @param {string} errorMessage
  * @returns {Element} error
  */
 export function error(errorMessage) {

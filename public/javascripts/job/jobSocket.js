@@ -49,7 +49,7 @@ export function addAnnotationCanvas(imageId, obj) {
 /**
  * sends a socket.io event of a new chat message
  * @param {int} imageId
- * @param {String} message
+ * @param {string} message
  */
 export async function sendChat(imageId, message) {
     let userID = await getPID('name');
@@ -71,12 +71,12 @@ export async function sendWritingMessage(imageId) {
 /**
  * sends a socket.io event of the new knowledge graph element
  * @param {Object} JSONLD
- * @param {String} JSONLD.@id
- * @param {String} JSONLD.name
- * @param {String} JSONLD.detailedDescription.articleBody
- * @param {String} JSONLD.url
+ * @param {string} JSONLD.@id
+ * @param {string} JSONLD.name
+ * @param {string} JSONLD.detailedDescription.articleBody
+ * @param {string} JSONLD.url
  * @param {int} imageId
- * @param {String} color
+ * @param {string} color
  */
 export async function sendNewKnowledgeGraph(JSONLD, imageId, color) {
     saveKnowledgeForImage(imageId, JSONLD, color);
@@ -86,8 +86,8 @@ export async function sendNewKnowledgeGraph(JSONLD, imageId, color) {
 /**
  * sends a socket.io event of the annotation colour for the knowledge graph element
  * @param {int} imageId
- * @param {String} graphId
- * @param {String} color
+ * @param {string} graphId
+ * @param {string} color
  */
 export async function sendKnowledgeGraphColor(imageId, graphId, color) {
     updateKnowledgeColorForImage(imageId, graphId, color);
@@ -97,7 +97,7 @@ export async function sendKnowledgeGraphColor(imageId, graphId, color) {
 /**
  * sends a socket.io event of the removal of a knowledge graph element
  * @param {int} imageId
- * @param {String} graphId
+ * @param {string} graphId
  */
 export async function sendKnowledgeGraphDeletion(imageId, graphId) {
     removeKnowledgeGraphForImage(imageId, graphId);

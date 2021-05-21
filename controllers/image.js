@@ -30,7 +30,7 @@ exports.addImage = async function (imageData) {
 /**
  * parses the request data in an image object
  * @param req
- * @returns {Promise<{image}|null>}
+ * @returns {Promise<{Image}|null>}
  */
 exports.parseImage = async function (req) {
     let image = {
@@ -60,7 +60,7 @@ exports.parseImage = async function (req) {
 /**
  * gets the base64 format from a url
  * @param url
- * @returns {Promise<string|*>}
+ * @returns {Promise<string>}
  */
 const getBase64FromUrl = async (url) => {
 

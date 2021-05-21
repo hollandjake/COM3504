@@ -6,15 +6,15 @@ export default class Annotate {
     /**
      * constructor for the annotate class
      * @param {Object} image
-     * @param {String} image.creator
-     * @param {String} image.description
-     * @param {String} image.id
-     * @param {String} image.imageData
-     * @param {String} image.title
-     * @param {String} image.type
-     * @param {String} image.url
-     * @param {String} imageClasses
-     * @param {String} containerClasses
+     * @param {string} image.creator
+     * @param {string} image.description
+     * @param {string} image.id
+     * @param {string} image.imageData
+     * @param {string} image.title
+     * @param {string} image.type
+     * @param {string} image.url
+     * @param {string} imageClasses
+     * @param {string} containerClasses
      */
     constructor(image, imageClasses, containerClasses) {
         this._image = image;
@@ -71,15 +71,15 @@ export default class Annotate {
     /**
      * creates a canvas
      * @param {Object} image
-     * @param {String} image.creator
-     * @param {String} image.description
-     * @param {String} image.id
-     * @param {String} image.imageData
-     * @param {String} image.title
-     * @param {String} image.type
-     * @param {String} image.url
-     * @param {String} imageClasses
-     * @param {String} containerClasses
+     * @param {string} image.creator
+     * @param {string} image.description
+     * @param {string} image.id
+     * @param {string} image.imageData
+     * @param {string} image.title
+     * @param {string} image.type
+     * @param {string} image.url
+     * @param {string} imageClasses
+     * @param {string} containerClasses
      * @returns {Element} annotationContainer
      * @returns {Element} canvas
      * @returns {CanvasRenderingContext2D} ctx
@@ -242,44 +242,44 @@ export default class Annotate {
 
     /**
      * handles incoming socket.io drawing events
-     * @params {Event} event;
+     * @params {Event} e;
      */
-    onNetworkEvent(event) {
+    onNetworkEvent(e) {
         this._draw.translate(0.5, 0.5);
         this._draw.beginPath();
-        this._draw.strokeStyle = event.color;
-        this._draw.lineWidth = event.thickness;
+        this._draw.strokeStyle = e.color;
+        this._draw.lineWidth = e.thickness;
         this._draw.globalCompositeOperation = 'source-over';
-        switch (event.type) {
+        switch (e.type) {
             case 'eraser':
                 this._draw.globalCompositeOperation = 'destination-out';
                 this._draw.lineCap = 'round';
-                this._draw.moveTo(event.start.x, event.start.y);
-                this._draw.lineTo(event.end.x, event.end.y);
+                this._draw.moveTo(e.start.x, e.start.y);
+                this._draw.lineTo(e.end.x, e.end.y);
                 break;
             case 'line':
                 this._draw.lineCap = 'round';
-                this._draw.moveTo(event.start.x, event.start.y);
-                this._draw.lineTo(event.end.x, event.end.y);
+                this._draw.moveTo(e.start.x, e.start.y);
+                this._draw.lineTo(e.end.x, e.end.y);
                 break;
             case 'arrow':
-                const headLength = event.headLength ? event.headLength : 10;
-                const dx = event.end.x - event.start.x;
-                const dy = event.end.y - event.start.y;
+                const headLength = e.headLength ? e.headLength : 10;
+                const dx = e.end.x - e.start.x;
+                const dy = e.end.y - e.start.y;
                 const angle = Math.atan2(dy, dx);
-                this._draw.moveTo(event.start.x, event.start.y);
-                this._draw.lineTo(event.end.x, event.end.y);
-                this._draw.moveTo(event.end.x - headLength * Math.cos(angle - Math.PI / 6), event.end.y - headLength * Math.sin(angle - Math.PI / 6));
-                this._draw.lineTo(event.end.x, event.end.y);
-                this._draw.lineTo(event.end.x - headLength * Math.cos(angle + Math.PI / 6), event.end.y - headLength * Math.sin(angle + Math.PI / 6));
+                this._draw.moveTo(e.start.x, e.start.y);
+                this._draw.lineTo(e.end.x, e.end.y);
+                this._draw.moveTo(e.end.x - headLength * Math.cos(angle - Math.PI / 6), e.end.y - headLength * Math.sin(angle - Math.PI / 6));
+                this._draw.lineTo(e.end.x, e.end.y);
+                this._draw.lineTo(e.end.x - headLength * Math.cos(angle + Math.PI / 6), e.end.y - headLength * Math.sin(angle + Math.PI / 6));
                 break;
             case 'box':
-                this._draw.strokeRect(event.start.x, event.start.y, event.end.x - event.start.x, event.end.y - event.start.y);
+                this._draw.strokeRect(e.start.x, e.start.y, e.end.x - e.start.x, e.end.y - e.start.y);
                 break;
             case "oval":
-                const center = {x: (event.start.x + event.end.x) / 2, y: (event.start.y + event.end.y) / 2};
-                const height = Math.abs(event.start.y - event.end.y);
-                const width = Math.abs(event.start.x - event.end.x);
+                const center = {x: (e.start.x + e.end.x) / 2, y: (e.start.y + e.end.y) / 2};
+                const height = Math.abs(e.start.y - e.end.y);
+                const width = Math.abs(e.start.x - e.end.x);
                 this._draw.ellipse(center.x, center.y, width / 2, height / 2, 0, 0, Math.PI * 2);
                 break;
         }

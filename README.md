@@ -34,6 +34,7 @@ Division of work approved by Fabio:
 - [x] Index page modal for creating new room [#8](https://github.com/hollandjake/COM3504/issues/8)
 - [x] Socket.io Creating new room [#9](https://github.com/hollandjake/COM3504/issues/9)
 - [x] Annotation tool [#11](https://github.com/hollandjake/COM3504/issues/11)
+- [x] WebRTC [#43](https://github.com/hollandjake/COM3504/issues/43)
 ### Tom
 - [x] Login Page HTML/CSS [#2](https://github.com/hollandjake/COM3504/issues/2)
 - [x] Login with name logic [#6](https://github.com/hollandjake/COM3504/issues/6)
@@ -51,6 +52,3 @@ Division of work approved by Fabio:
 - [x] Socket.io Annotation [#15](https://github.com/hollandjake/COM3504/issues/15)
 - [ ] Swagger documentation [#16](https://github.com/hollandjake/COM3504/issues/16)
 - [x] ServiceWorker [#18](https://github.com/hollandjake/COM3504/issues/18)
-
-### Unassigned / Part 2
-- [x] WebRTC [#43](https://github.com/hollandjake/COM3504/issues/43)

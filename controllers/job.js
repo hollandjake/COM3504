@@ -33,7 +33,7 @@ exports.addJob = async function (jobData) {
  * Adds an image to a job
  * @param jobID
  * @param imageData
- * @returns {Promise<*>}
+ * @returns {Promise<Image>}
  */
 exports.addImage = async function (jobID, imageData) {
     let newImage = await ImageController.addImage(imageData);

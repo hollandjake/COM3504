@@ -105,10 +105,10 @@ async function initialisePage(job) {
  * processes adding a new image to a job
  * @param {Object} formData
  * @param {Object} imageData
- * @param {String} imageData.image_creator
- * @param {String} imageData.image_description
- * @param {String} imageData.image_title
- * @param {String} imageData.image_type
+ * @param {string} imageData.image_creator
+ * @param {string} imageData.image_description
+ * @param {string} imageData.image_title
+ * @param {string} imageData.image_type
  * @param {Object} imageData.image_source
  * @param {string} jobId
  */
@@ -138,13 +138,13 @@ function updateCarouselArrows() {
 /**
  * creates an image HTML element for a job
  * @param {Object} image
- * @param {String} image.creator
- * @param {String} image.description
- * @param {String} image.id
- * @param {String} image.imageData
- * @param {String} image.title
- * @param {String} image.type
- * @param {String} image.url
+ * @param {string} image.creator
+ * @param {string} image.description
+ * @param {string} image.id
+ * @param {string} image.imageData
+ * @param {string} image.title
+ * @param {string} image.type
+ * @param {string} image.url
  * @param {int} image.__v
  * @param {int} image._id
  * @returns {Object} imageElement
@@ -296,12 +296,12 @@ async function createImageElement(image) {
 /**
  * creates a knowledge graph card/element from an object of properties
  * @param {Object} JSONLD
- * @param {String} JSONLD.@id
- * @param {String} JSONLD.name
- * @param {String} JSONLD.detailedDescription.articleBody
- * @param {String} JSONLD.url
+ * @param {string} JSONLD.@id
+ * @param {string} JSONLD.name
+ * @param {string} JSONLD.detailedDescription.articleBody
+ * @param {string} JSONLD.url
  * @param {int} imageId
- * @param {String} color
+ * @param {string} color
  * @returns {Object} knowledgeGraphCard
  */
 function createKnowledgeGraphElement(JSONLD, imageId, color) {
@@ -336,7 +336,7 @@ function createKnowledgeGraphElement(JSONLD, imageId, color) {
  * adds a chat message to the page
  * @param {Object} imageChat
  * @param {Object} imageChat.chatButton
- * @param {String} imageChat.container
+ * @param {string} imageChat.container
  * @param {Object} messageElement
  */
 function addMessage(imageChat, messageElement) {
@@ -353,8 +353,8 @@ function addMessage(imageChat, messageElement) {
  * handles an incoming socket.io event of a new message
  * @param {int} imageId
  * @param {Object} chatObj
- * @param {String} chatObj.message
- * @param {String} chatObj.sender
+ * @param {string} chatObj.message
+ * @param {string} chatObj.sender
  */
 export function newChatMessage(imageId, chatObj) {
     if (imageId in chats) {
@@ -379,7 +379,7 @@ export function newChatMessage(imageId, chatObj) {
 /**
  * removes a chat bobble
  * @param {int} imageId
- * @param {String} sender
+ * @param {string} sender
  */
 function removeBobble(imageId, sender) {
     if (currentlyTyping[imageId] && currentlyTyping[imageId][sender]) {
@@ -392,7 +392,7 @@ function removeBobble(imageId, sender) {
 /**
  * adds a chat bobble
  * @param {int} imageId
- * @param {String} sender
+ * @param {string} sender
  */
 export function newWritingMessage(imageId, sender) {
     if (!currentlyTyping[imageId]) {
@@ -427,12 +427,12 @@ export function newWritingMessage(imageId, sender) {
 /**
  * handles an incoming socket.io event of a new knowledge graph element
  * @param {Object} JSONLD
- * @param {String} JSONLD.@id
- * @param {String} JSONLD.name
- * @param {String} JSONLD.detailedDescription.articleBody
- * @param {String} JSONLD.url
+ * @param {string} JSONLD.@id
+ * @param {string} JSONLD.name
+ * @param {string} JSONLD.detailedDescription.articleBody
+ * @param {string} JSONLD.url
  * @param {int} imageId
- * @param {String} color
+ * @param {string} color
  */
 export function newKnowledgeGraph(JSONLD, imageId, color) {
     let knowledgeGraphElement = createKnowledgeGraphElement(JSONLD, imageId, color);
@@ -442,8 +442,8 @@ export function newKnowledgeGraph(JSONLD, imageId, color) {
 /**
  * handles an incoming socket.io event of colour for a knowledge graph element
  * @param {int} imageId
- * @param {String} graphId
- * @param {String} color
+ * @param {string} graphId
+ * @param {string} color
  */
 export function updateKnowledgeGraphColor(imageId, graphId, color) {
     graphId = graphId.replaceAll('/','');
@@ -453,7 +453,7 @@ export function updateKnowledgeGraphColor(imageId, graphId, color) {
 /**
  * handles an incoming socket.io event of the removal of a knowledge graph element
  * @param {int} imageId
- * @param {String} graphId
+ * @param {string} graphId
  */
 export function deleteKnowledgeGraph(imageId, graphId) {
     $('#knowledge-graph-results-container-'+imageId+' #'+graphId).remove();

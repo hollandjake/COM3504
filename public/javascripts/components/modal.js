@@ -88,7 +88,7 @@ $(() => {
     /**
      * loads the camera
      * @param {jQuery} videoElement
-     * @returns {Promise<boolean>}
+     * @returns {Promise<boolean>} successful
      */
     async function loadCam(videoElement) {
         videoElement.hide();
@@ -144,15 +144,15 @@ $(() => {
 /**
  * gets the modal data
  * @param {jQuery} modal
- * @param {{}} extraFields
+ * @param {Object} extraFields
  * @returns {Object} data
  * @returns {form} data.finalData
- * @returns {Object} data.finalData
- * @returns {String} data.finalData.image_creator
- * @returns {String} data.finalData.image_description
- * @returns {String} data.finalData.image_title
- * @returns {String} data.finalData.image_type
- * @returns {Object} data.finalData.image_source
+ * @returns {FormData} data.finalData
+ * @returns {string} data.finalData.image_creator
+ * @returns {string} data.finalData.image_description
+ * @returns {string} data.finalData.image_title
+ * @returns {string} data.finalData.image_type
+ * @returns {string|File} data.finalData.image_source
  */
 export async function getModalData(modal, extraFields = {}) {
     let finalData = {};
