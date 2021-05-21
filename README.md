@@ -52,5 +52,5 @@ Division of work approved by Fabio:
 - [x] ServiceWorker [#18](https://github.com/hollandjake/COM3504/issues/18)
 
 ### Unassigned / Part 2
-- [ ] Knowledge graph image [#23](https://github.com/hollandjake/COM3504/issues/23)
+- [x] Knowledge graph image [#23](https://github.com/hollandjake/COM3504/issues/23)
 - [x] WebRTC [#43](https://github.com/hollandjake/COM3504/issues/43)
