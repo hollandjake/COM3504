@@ -4,6 +4,7 @@ import {error} from "../components/error.js";
 import {getModalData} from "../components/modal.js";
 
 let loadedJobs = {};
+let noJobs = false;
 
 /**
  * initialises index page events and gets a list of all the jobs
@@ -102,6 +103,7 @@ async function addAllJobs(jobsData) {
     let newJobsElements = {};
 
     if (!jobsData || jobsData.length === 0) {
+        jobListElement.empty();
         let element = $(`<div class="card">` +
             '<div class="card-body">' +
             `<h5 class="card-text mb-0 text-center">No Jobs Available</h5>` +

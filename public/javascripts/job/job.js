@@ -89,8 +89,9 @@ async function initialisePage(job) {
     for (let i = 0; i < job.imageSequence.length; i++) {
         try {
             let imageData = await new Promise((resolve, reject) => getImage(job.imageSequence[i], resolve, reject));
-            let element = await createImageElement(imageData);
+            let [element, postProcessing] = await createImageElement(imageData);
             imageListElement.append(element);
+            postProcessing();
         } catch (ignored) {}
     }
     $('.carousel-item:first').addClass('active');
@@ -188,8 +189,8 @@ async function createImageElement(image) {
                     <form class="chat-submit input-group pt-2">
                         <input name="message" type="text" class="form-control" placeholder="Type here">
                         <div class="input-group-append">
-                            <button type="submit" class="btn btn-dark">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
+                            <button type="submit" class="btn btn-dark btn-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 0 24 24" width="16" ><path d="M0 0h24v24H0z" fill="none"/><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg>
                             </button>
                         </div>
                     </form>
@@ -223,8 +224,8 @@ async function createImageElement(image) {
                     <div class="input-group pt-2">
                         <input id="knowledge-graph-search-${image._id}" type="text" class="form-control knowledge-graph-search" placeholder="Search knowledge graph...">
                         <div class="input-group-append">
-                            <div class="btn btn-dark">
-                                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"></path><path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3z"></path></svg>
+                            <div class="btn btn-dark btn-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 0 24 24" width="16" fill="#FFFFFF"><path d="M0 0h24v24H0z" fill="none"></path><path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3z"></path></svg>
                             </div>
                         </div>
                     </div>
@@ -248,7 +249,7 @@ async function createImageElement(image) {
 
     //Updates the 'type' for which the knowledge uses to search
     let knowledgeGraphContainer = imageElement.find('#knowledge-graph-results-container-'+image._id);
-    imageElement.find('#knowledge-graph-type-'+image._id).on("change", function() {
+    imageElement.find('#knowledge-graph-type-'+image._id).on("change load", function() {
         let config = {
             'limit': 10,
             'languages': ['en'],
@@ -263,8 +264,9 @@ async function createImageElement(image) {
         if (this.value !== "All") {
             config['types'] = [this.value];
         }
-        KGSearchWidget(apiKey, document.getElementById('knowledge-graph-search-'+image._id), config);
+        KGSearchWidget(apiKey, imageElement.find('#knowledge-graph-search-'+image._id).get()[0], config);
     });
+    imageElement.find('#knowledge-graph-type-'+image._id).trigger("load")
 
     let chatContainer = imageElement.find(".chat-container");
     chatContainer.empty();
@@ -290,7 +292,7 @@ async function createImageElement(image) {
         }
     }).observe(imageElement.get(0), {attributeFilter: ['class'], attributeOldValue: true});
 
-    return imageElement;
+    return [imageElement, () => knowledgeGraphChange()];
 }
 
 /**
