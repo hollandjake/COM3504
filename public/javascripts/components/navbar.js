@@ -33,7 +33,6 @@ $(async function () {
                     registration.update();
                 } else {
                     navigator.serviceWorker.register('./service-worker.js');
-                    console.log('Service Worker Registered');
                 }
             });
     }
