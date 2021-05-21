@@ -593,7 +593,6 @@ export async function pushingToServer(onerror) {
                 reject
             );
         });
-
     }
 
     let onlineJobs = await getAllFromCache(JOBS);
@@ -622,7 +621,7 @@ export async function pushingToServer(onerror) {
                         await idMigration(jobImage, data.image._id)
                         await deleteFromCache(OFFLINE_IMAGES, jobImage);
                         resolve()
-                    }, async (cachedData) => {
+                    }, async () => {
                         resolve()
                     }, reject);
                 });
@@ -631,6 +630,9 @@ export async function pushingToServer(onerror) {
             }
         }
     }
+
+    //We don't know why but this works
+    await new Promise(resolve => setTimeout(() => resolve(),100));
 
     $(document).trigger("jobsUpdated", [updatedJobs])
 
