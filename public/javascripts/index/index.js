@@ -104,7 +104,7 @@ async function addAllJobs(jobsData) {
 
     if (!jobsData || jobsData.length === 0) {
         jobListElement.empty();
-        let element = $(`<div class="card">` +
+        let element = $(`<div class="card" id="no-jobs">` +
             '<div class="card-body">' +
             `<h5 class="card-text mb-0 text-center">No Jobs Available</h5>` +
             '</div>' +
