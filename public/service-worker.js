@@ -50,9 +50,11 @@ let filesToCache = [
 
 
 /**
- * installation event: it adds all the files to be cached
+ * installation event: it adds all the files to be cached, also forces the old service worker to suspend execution.
  */
 self.addEventListener('install', function (e) {
+    //Cache name is dynamically generated ensuring the service worker is never using the same cache as the old one
+    //(else the activation stage would delete all the cached files)
     cacheName += Date.now();
 
     e.waitUntil([
@@ -62,7 +64,7 @@ self.addEventListener('install', function (e) {
 });
 
 /**
- * activation of service worker: it removes all cashed files if necessary
+ * activation of service worker: it removes all cached files if necessary
  */
 self.addEventListener('activate', function (e) {
     e.waitUntil([
@@ -71,21 +73,28 @@ self.addEventListener('activate', function (e) {
     ]);
 });
 
+/**
+ * catching the fetch requests and routing them through the cache.
+ */
 self.addEventListener('fetch', function (e) {
 
+    // If url is from external then just skip it
     if (!e.request.url.startsWith(e.currentTarget.origin)) {
         return
     }
 
+    //Ignore any of the API requests as these shouldn't be cached. instead these are stored in the idb
     let ignoreUrls = ['/socket.io/?', '/job/', '/image']
 
     if (!(ignoreUrls.some(url => e.request.url.startsWith(e.currentTarget.origin + url)))) {
+
+        //Collecting all the job pages into one request so that you can open any job and the page content will still render.
         let shouldIgnore = false;
         if (e.request.url.includes('job?')) {
             shouldIgnore = true;
         }
 
-        //stale while revalidate
+        //stale-if-error
         e.respondWith(
             caches.open(cacheName).then(
                 cache => cache.match(e.request, {ignoreSearch: shouldIgnore})
@@ -104,6 +113,11 @@ self.addEventListener('fetch', function (e) {
 });
 
 
+/**
+ * Implementing a custom request timeout
+ * @param {int} delay - ms
+ * @returns {Promise<Response>} rejecting promise triggered after delay ms
+ */
 function timeout(delay) {
     return new Promise(function (resolve, reject) {
         setTimeout(function () {

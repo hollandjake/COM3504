@@ -7,6 +7,10 @@ const upload = multer({storage: multer.memoryStorage()});
 const jobController = require("../controllers/job");
 const imageController = require('../controllers/image');
 
+/*
+List all available jobs (used with the idb to preload all images in the background)
+with optional filter to get data for a specific job
+*/
 router.get('/list', async function (req, res) {
     if ("id" in req.query) {
         let foundJob = await jobController.get(req.query['id']);
@@ -20,6 +24,7 @@ router.get('/list', async function (req, res) {
     }
 });
 
+/* Create a new job including the initial image */
 router.post('/create', upload.any(), async function (req, res) {
     try {
         let jobImage = await imageController.parseImage(req);
@@ -51,6 +56,7 @@ router.post('/create', upload.any(), async function (req, res) {
     }
 })
 
+/* GET the rendered view for a job */
 router.get('/', async function (req, res) {
     if ("id" in req.query) {
         res.render('job', {title: `Job`, jobID: req.query['id']});
@@ -59,6 +65,11 @@ router.get('/', async function (req, res) {
     }
 })
 
+/*
+add an image to a job
+
+Also triggers the socket event to inform people of a new Image
+*/
 router.post('/add-image', upload.any(), async function (req, res) {
     try {
         let jobImage = await imageController.parseImage(req);
