@@ -46,6 +46,7 @@ let filesToCache = [
     '/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css',
     '/bootstrap-colorpicker/dist/js/bootstrap-colorpicker.min.js',
     '/images/favicon.svg',
+    '/axios/dist/axios.min.js'
 ];
 
 
