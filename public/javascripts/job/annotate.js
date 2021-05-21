@@ -3,6 +3,19 @@ import {sendAnnotation} from "./jobSocket.js";
 import {getAnnotationDataForImage, saveAnnotationDataForImage} from "../databases/database.js";
 
 export default class Annotate {
+    /**
+     * constructor for the annotate class
+     * @param {Object} image
+     * @param {string} image.creator
+     * @param {string} image.description
+     * @param {string} image.id
+     * @param {string} image.imageData
+     * @param {string} image.title
+     * @param {string} image.type
+     * @param {string} image.url
+     * @param {string} imageClasses
+     * @param {string} containerClasses
+     */
     constructor(image, imageClasses, containerClasses) {
         this._image = image;
         this._imageClasses = imageClasses;
@@ -10,18 +23,32 @@ export default class Annotate {
         this._colorPicker = null;
     }
 
+    /**
+     * gets the annotation container element
+     * @returns {Element} _container;
+     */
     get container() {
         return this._container;
     }
 
+    /**
+     * @returns {CanvasRenderingContext2D} _draw;
+     */
     get draw() {
         return this._draw;
     }
 
+    /**
+     * @returns {Object} _colorPicker;
+     */
     get colorPicker() {
         return this._colorPicker;
     }
 
+    /**
+     * initialises the canvas
+     * @returns {Object} this;
+     */
     async init() {
         const [container, canvas, ctx, imageSize] = await this.createCanvas(this._image, this._imageClasses, this._containerClasses);
         this._container = container;
@@ -41,6 +68,25 @@ export default class Annotate {
         return this;
     }
 
+    /**
+     * creates a canvas
+     * @param {Object} image
+     * @param {string} image.creator
+     * @param {string} image.description
+     * @param {string} image.id
+     * @param {string} image.imageData
+     * @param {string} image.title
+     * @param {string} image.type
+     * @param {string} image.url
+     * @param {string} imageClasses
+     * @param {string} containerClasses
+     * @returns {Element} annotationContainer
+     * @returns {Element} canvas
+     * @returns {CanvasRenderingContext2D} ctx
+     * @returns {Object} imageSize
+     * @returns {int} imageSize.width
+     * @returns {int} imageSize.height
+     */
     async createCanvas(image, imageClasses, containerClasses) {
         const imageObject = await loadImage(image.imageData, image.title, imageClasses);
 
@@ -71,6 +117,9 @@ export default class Annotate {
         return [annotationContainer, canvas, ctx, {width: width, height: height}];
     }
 
+    /**
+     * initialises the annotation events
+     */
     initEvents() {
         const annotation = this;
         try {
@@ -89,6 +138,10 @@ export default class Annotate {
         }
     }
 
+    /**
+     * handles the start of a drawing event e.g. mouse press
+     * @params {Event} e;
+     */
     startDrawing(e) {
         e.preventDefault();
         if (!this._is_drawing) {
@@ -120,6 +173,10 @@ export default class Annotate {
         }
     }
 
+    /**
+     * handles the end of a drawing event e.g. mouse up
+     * @params {Event} e;
+     */
     endDrawing(e) {
         e.preventDefault();
         if (this._is_drawing) {
@@ -151,6 +208,10 @@ export default class Annotate {
         }
     }
 
+    /**
+     * handles the drag of a drawing event e.g. mouse drag
+     * @params {Event} e;
+     */
     onDrag(e) {
         e.stopImmediatePropagation();
         if (this._is_drawing) {
@@ -179,42 +240,46 @@ export default class Annotate {
         }
     }
 
-    onNetworkEvent(event) {
+    /**
+     * handles incoming socket.io drawing events
+     * @params {Event} e;
+     */
+    onNetworkEvent(e) {
         this._draw.translate(0.5, 0.5);
         this._draw.beginPath();
-        this._draw.strokeStyle = event.color;
-        this._draw.lineWidth = event.thickness;
+        this._draw.strokeStyle = e.color;
+        this._draw.lineWidth = e.thickness;
         this._draw.globalCompositeOperation = 'source-over';
-        switch (event.type) {
+        switch (e.type) {
             case 'eraser':
                 this._draw.globalCompositeOperation = 'destination-out';
                 this._draw.lineCap = 'round';
-                this._draw.moveTo(event.start.x, event.start.y);
-                this._draw.lineTo(event.end.x, event.end.y);
+                this._draw.moveTo(e.start.x, e.start.y);
+                this._draw.lineTo(e.end.x, e.end.y);
                 break;
             case 'line':
                 this._draw.lineCap = 'round';
-                this._draw.moveTo(event.start.x, event.start.y);
-                this._draw.lineTo(event.end.x, event.end.y);
+                this._draw.moveTo(e.start.x, e.start.y);
+                this._draw.lineTo(e.end.x, e.end.y);
                 break;
             case 'arrow':
-                const headLength = event.headLength ? event.headLength : 10;
-                const dx = event.end.x - event.start.x;
-                const dy = event.end.y - event.start.y;
+                const headLength = e.headLength ? e.headLength : 10;
+                const dx = e.end.x - e.start.x;
+                const dy = e.end.y - e.start.y;
                 const angle = Math.atan2(dy, dx);
-                this._draw.moveTo(event.start.x, event.start.y);
-                this._draw.lineTo(event.end.x, event.end.y);
-                this._draw.moveTo(event.end.x - headLength * Math.cos(angle - Math.PI / 6), event.end.y - headLength * Math.sin(angle - Math.PI / 6));
-                this._draw.lineTo(event.end.x, event.end.y);
-                this._draw.lineTo(event.end.x - headLength * Math.cos(angle + Math.PI / 6), event.end.y - headLength * Math.sin(angle + Math.PI / 6));
+                this._draw.moveTo(e.start.x, e.start.y);
+                this._draw.lineTo(e.end.x, e.end.y);
+                this._draw.moveTo(e.end.x - headLength * Math.cos(angle - Math.PI / 6), e.end.y - headLength * Math.sin(angle - Math.PI / 6));
+                this._draw.lineTo(e.end.x, e.end.y);
+                this._draw.lineTo(e.end.x - headLength * Math.cos(angle + Math.PI / 6), e.end.y - headLength * Math.sin(angle + Math.PI / 6));
                 break;
             case 'box':
-                this._draw.strokeRect(event.start.x, event.start.y, event.end.x - event.start.x, event.end.y - event.start.y);
+                this._draw.strokeRect(e.start.x, e.start.y, e.end.x - e.start.x, e.end.y - e.start.y);
                 break;
             case "oval":
-                const center = {x: (event.start.x + event.end.x) / 2, y: (event.start.y + event.end.y) / 2};
-                const height = Math.abs(event.start.y - event.end.y);
-                const width = Math.abs(event.start.x - event.end.x);
+                const center = {x: (e.start.x + e.end.x) / 2, y: (e.start.y + e.end.y) / 2};
+                const height = Math.abs(e.start.y - e.end.y);
+                const width = Math.abs(e.start.x - e.end.x);
                 this._draw.ellipse(center.x, center.y, width / 2, height / 2, 0, 0, Math.PI * 2);
                 break;
         }
@@ -231,6 +296,10 @@ export default class Annotate {
         }, 100); //Save after 100ms of inactivity
     }
 
+    /**
+     * gets the position of the mouse cursor
+     * @params {Event} e;
+     */
     getPoint(e) {
         this.updateSize();
         if (e instanceof TouchEvent) {
@@ -242,10 +311,17 @@ export default class Annotate {
         }
     }
 
+    /**
+     * updates the size of the resolution
+     */
     updateSize() {
         this._renderResolution = this._canvas.getBoundingClientRect();
     }
 
+    /**
+     * adds the canvas buttons and their events
+     * @params {Element} headerElement - container to put the buttons inside
+     */
     addButtons(headerElement) {
         const buttonContainer = $(`<div class="btn-group btn-group-toggle" data-toggle="buttons"></div>`).appendTo(headerElement);
         const controlContainer = $(`<div class="float-right"></div>`).appendTo(headerElement);

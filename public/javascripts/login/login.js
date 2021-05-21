@@ -1,5 +1,8 @@
 import {getPID, savePID} from "../databases/database.js";
 
+/**
+ * if user already has a name then send them to the index page
+ */
 $(async function () {
     //if they already have a name send them to index
     let name = await getPID('name');
@@ -8,6 +11,9 @@ $(async function () {
     }
 })
 
+/**
+ * initialises login submit button event
+ */
 $(function() {
     $('#login-form').submit(function(e) {
         e.preventDefault();

@@ -14,15 +14,30 @@ const KNOWLEDGE_GRAPH = 'store_knowledge_graph';
 const OFFLINE_JOBS = 'store_offline_jobs';
 const OFFLINE_IMAGES = 'store_offline_images';
 
+/**
+ * gets a PID
+ * @param {string} key
+ * @returns {Promise<Object|null>}
+ */
 export async function getPID(key) {
     let cacheData = await getFromCache(PIDS, key);
     return cacheData ? cacheData.value : null;
 }
 
+/**
+ * saves a PID
+ * @param {string} key
+ * @param {string} value
+ * @returns {Promise<void>}
+ */
 export function savePID(key, value) {
     return saveToCache(PIDS, key, {key, value});
 }
 
+/**
+ * gets the jobs
+ * @param {function} onsuccess - callback
+ */
 export function getJobs(onsuccess) {
     if (onsuccess) {
         getAllFromCache(JOBS)
@@ -61,6 +76,12 @@ export function getJobs(onsuccess) {
     }
 }
 
+/**
+ * gets a job
+ * @param {string} jobId
+ * @param {function} onsuccess - callback
+ * @param {function} onerror - callback
+ */
 export function getJob(jobId, onsuccess, onerror) {
     jobId = String(jobId);
 
@@ -105,6 +126,20 @@ export function getJob(jobId, onsuccess, onerror) {
     }
 }
 
+/**
+ * saves a job
+ * @param {form} jobForm
+ * @param {Object} jobData
+ * @param {string} jobData.image_creator
+ * @param {string} jobData.image_description
+ * @param {string} jobData.image_title
+ * @param {string} jobData.image_type
+ * @param {File} jobData.image_source
+ * @param {string} jobData.job_creator
+ * @param {string} jobData.job_name
+ * @param {function} onsuccess - callback
+ * @param {function} onerror - callback
+ */
 export function saveJob(jobForm, jobData, onsuccess, onerror) {
     ajaxRequest(
         'POST',
@@ -140,6 +175,10 @@ export function saveJob(jobForm, jobData, onsuccess, onerror) {
     );
 }
 
+/**
+ * gets images
+ * @param {function} onsuccess - callback
+ */
 export function getImages(onsuccess) {
     if (onsuccess) {
         getAllFromCache(IMAGES)
@@ -182,6 +221,20 @@ export function getImages(onsuccess) {
     );
 }
 
+/**
+ * saves an image
+ * @param {form} imageForm
+ * @param {Object} imageData
+ * @param {string} imageData.image_creator
+ * @param {string} imageData.image_description
+ * @param {string} imageData.image_title
+ * @param {string} imageData.image_type
+ * @param {File} imageData.image_source
+ * @param {string} imageData.job_creator
+ * @param {string} imageData.job_name
+ * @param {function} onsuccess - callback
+ * @param {function} onerror - callback
+ */
 export function saveImage(imageForm, imageData, onsuccess, onerror) {
     ajaxRequest(
         'POST',
@@ -204,6 +257,12 @@ export function saveImage(imageForm, imageData, onsuccess, onerror) {
     )
 }
 
+/**
+ * gets an image
+ * @param {int} imageId
+ * @param {function} onsuccess - callback
+ * @param {function} onerror - callback
+ */
 export function getImage(imageId, onsuccess, onerror) {
     if (onsuccess) {
         getFromCache(IMAGES, imageId)
@@ -235,6 +294,20 @@ export function getImage(imageId, onsuccess, onerror) {
     }
 }
 
+/**
+ * saves a job image
+ * @param {int} jobId
+ * @param {FormData} imageForm
+ * @param {Object} imageData
+ * @param {string} imageData.image_creator
+ * @param {string} imageData.image_description
+ * @param {string} imageData.image_title
+ * @param {string} imageData.image_type
+ * @param {File} imageData.image_source
+ * @param {function} onsuccess - callback
+ * @param {function} onoffline - callback
+ * @param {function} onerror - callback
+ */
 export function saveJobImage(jobId, imageForm, imageData, onsuccess, onoffline, onerror) {
     jobId = String(jobId);
     ajaxRequest(
@@ -259,6 +332,21 @@ export function saveJobImage(jobId, imageForm, imageData, onsuccess, onoffline, 
     )
 }
 
+/**
+ * attaches an image to a job
+ * @param {String} jobId
+ * @param {Object} imageData
+ * @param {string} imageData.creator
+ * @param {string} imageData.description
+ * @param {string} imageData.id
+ * @param {string} imageData.imageData
+ * @param {string} imageData.title
+ * @param {string} imageData.type
+ * @param {string} imageData.url
+ * @param {int} imageData.__v
+ * @param {int} imageData._id
+ * @returns {Promise<void>}
+ */
 export async function attachImageToJob(jobId, imageData) {
     jobId = String(jobId);
     let job = await getFromCache(JOBS, jobId);
@@ -272,20 +360,42 @@ export async function attachImageToJob(jobId, imageData) {
     }
 }
 
+/**
+ * gets the annotation data for an image
+ * @param {int} imageId
+ * @returns {Promise<string|null>} annotationObject
+ */
 export async function getAnnotationDataForImage(imageId) {
     const annotationObject = await getFromCache(ANNOTATIONS, imageId);
     return annotationObject ? annotationObject.annotationData : null;
 }
 
+/**
+ * saves the annotation data for an image
+ * @param {int} imageId
+ * @param {string} annotationData - in base64
+ */
 export function saveAnnotationDataForImage(imageId, annotationData) {
     saveToCache(ANNOTATIONS, imageId, {imageId, annotationData});
 }
 
+/**
+ * gets chat data for an image
+ * @param {int} imageId
+ * @returns {Promise<{imageId: int, chatData: [Object]}>}
+ */
 export async function getChatDataForImage(imageId) {
     const chatData = await getFromCache(CHATS, imageId);
     return chatData ? chatData : {imageId: imageId, chatData: []};
 }
 
+/**
+ * saves chat data for image
+ * @param {int} imageId
+ * @param {Object} chatElement
+ * @param {string} chatElement.message
+ * @param {string} chatElement.sender
+ */
 export function saveChatForImage(imageId, chatElement) {
     getChatDataForImage(imageId)
         .then(chatData => {
@@ -294,11 +404,22 @@ export function saveChatForImage(imageId, chatElement) {
         })
 }
 
+/**
+ * gets knowledge graph data for image
+ * @param {int} imageId
+ * @returns {Promise<{imageId: int, knowledgeGraphData: [Object]}>}
+ */
 export async function getKnowledgeGraphDataForImage(imageId) {
     const knowledgeGraphData = await getFromCache(KNOWLEDGE_GRAPH, imageId);
     return knowledgeGraphData ? knowledgeGraphData : {imageId: imageId, knowledgeGraphData: []};
 }
 
+/**
+ * saves knowledge graph data for image
+ * @param {int} imageId
+ * @param {Object} knowledgeGraphJSON
+ * @param {string} color
+ */
 export function saveKnowledgeForImage(imageId, knowledgeGraphJSON, color) {
     getKnowledgeGraphDataForImage(imageId)
         .then(knowledgeGraphData => {
@@ -307,6 +428,12 @@ export function saveKnowledgeForImage(imageId, knowledgeGraphJSON, color) {
         })
 }
 
+/**
+ * updates knowledge graph data for image
+ * @param {int} imageId
+ * @param {Object} knowledgeGraphJSON
+ * @param {string} color
+ */
 export function updateKnowledgeColorForImage(imageId, knowledgeGraphID, color) {
     getKnowledgeGraphDataForImage(imageId)
         .then(knowledgeGraphData => {
@@ -319,6 +446,11 @@ export function updateKnowledgeColorForImage(imageId, knowledgeGraphID, color) {
         })
 }
 
+/**
+ * removes knowledge graph data for image
+ * @param {int} imageId
+ * @param {string} knowledgeGraphID
+ */
 export function removeKnowledgeGraphForImage(imageId, knowledgeGraphID) {
     getKnowledgeGraphDataForImage(imageId)
         .then(knowledgeGraphData => {
@@ -331,6 +463,16 @@ export function removeKnowledgeGraphForImage(imageId, knowledgeGraphID) {
 
 /** UTILITIES **/
 
+/**
+ *
+ * @param {Object} imageData
+ * @param {string} imageData.image_creator
+ * @param {string} imageData.image_description
+ * @param {string} imageData.image_title
+ * @param {string} imageData.image_type
+ * @param {File} imageData.image_source
+ * @returns {Promise<{Object}>}
+ */
 async function generateTempImage(imageData) {
 
     let imageObj = {
@@ -361,6 +503,13 @@ async function generateTempImage(imageData) {
     return imageObj;
 }
 
+/**
+ *
+ * @param {Object} image
+ * @param {string} image.type
+ * @param {Object} imageData
+ * @returns {Promise<Object>}
+ */
 async function toUpload(image) {
     if (image.type === "upload") {
         const imgData = image.imageData;
@@ -372,6 +521,12 @@ async function toUpload(image) {
     return image
 }
 
+/**
+ * migrates IDs
+ * @param {int} oldId
+ * @param {int} newId
+ * @returns {Promise<void>}
+ */
 async function idMigration(oldId, newId) {
     let annotations = await getFromCache(ANNOTATIONS, oldId);
     if (annotations) {
@@ -395,6 +550,11 @@ async function idMigration(oldId, newId) {
     }
 }
 
+/**
+ * pushes offline actions to the server
+ * @param {function} onerror - callback
+ * @returns {Promise<void>}
+ */
 export async function pushingToServer(onerror) {
 
     let cachedJobs = await getAllFromCache(OFFLINE_JOBS);
@@ -476,6 +636,10 @@ export async function pushingToServer(onerror) {
 
 }
 
+/**
+ * generates a temporary ID
+ * @returns {int} s
+ */
 function generateTempId() {
     let num = Date.now();
     let s = '', t;
@@ -489,7 +653,7 @@ function generateTempId() {
 }
 
 /**
- *
+ * sends an ajax request
  * @param {string} type
  * @param {string} url
  * @param {function} onsuccess
@@ -519,6 +683,11 @@ export function ajaxRequest(type, url, onsuccess, onoffline, onerror, data = nul
     }
 }
 
+/**
+ * gets all data from a store
+ * @param {string} storeName
+ * @returns {Promise<[Array]>}
+ */
 export async function getAllFromCache(storeName) {
     let result = [];
 
@@ -542,6 +711,12 @@ export async function getAllFromCache(storeName) {
     return result;
 }
 
+/**
+ * gets an item from a store
+ * @param {string} storeName
+ * @param {int} id
+ * @returns {Object} result
+ */
 async function getFromCache(storeName, id) {
     let result = null;
     await executeOnCache(
@@ -555,6 +730,13 @@ async function getFromCache(storeName, id) {
     return result;
 }
 
+/**
+ * saves an object to a data store
+ * @param {string} storeName
+ * @param {int} id
+ * @param {Object} object
+ * @returns {Promise<void>}
+ */
 async function saveToCache(storeName, id, object) {
     await executeOnCache(storeName, 'readwrite', (store) => {
         store.put(object);
@@ -563,6 +745,12 @@ async function saveToCache(storeName, id, object) {
     })
 }
 
+/**
+ * deletes an item from a store
+ * @param {string} storeName
+ * @param {int} id
+ * @returns {Promise<void>}
+ */
 async function deleteFromCache(storeName, id) {
     await executeOnCache(storeName, 'readwrite', (store) => {
         store.delete(id);
@@ -571,6 +759,14 @@ async function deleteFromCache(storeName, id) {
     })
 }
 
+/**
+ * executes operation on the cache
+ * @param {string} storeName
+ * @param {string} mode
+ * @param {function} idbOperation - callback to apply the operation on idb
+ * @param {function} localStorageOperation - callback to apply the operation on localStorage
+ * @returns {Promise<void>}
+ */
 async function executeOnCache(storeName, mode, idbOperation, localStorageOperation) {
     if (!db) {
         await initDatabase();
@@ -591,7 +787,7 @@ async function executeOnCache(storeName, mode, idbOperation, localStorageOperati
 }
 
 /**
- * it inits the database
+ * it initialises the database
  */
 export async function initDatabase() {
     if (!db && 'indexedDB' in window) {

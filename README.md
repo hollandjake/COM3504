@@ -34,6 +34,7 @@ Division of work approved by Fabio:
 - [x] Index page modal for creating new room [#8](https://github.com/hollandjake/COM3504/issues/8)
 - [x] Socket.io Creating new room [#9](https://github.com/hollandjake/COM3504/issues/9)
 - [x] Annotation tool [#11](https://github.com/hollandjake/COM3504/issues/11)
+- [x] WebRTC [#43](https://github.com/hollandjake/COM3504/issues/43)
 ### Tom
 - [x] Login Page HTML/CSS [#2](https://github.com/hollandjake/COM3504/issues/2)
 - [x] Login with name logic [#6](https://github.com/hollandjake/COM3504/issues/6)
@@ -43,6 +44,7 @@ Division of work approved by Fabio:
 - [x] Socket.io Upload new image [#20](https://github.com/hollandjake/COM3504/issues/20)
 - [x] Store images in indexedDB [#17](https://github.com/hollandjake/COM3504/issues/17)
 - [x] Dynamic cache fetching from indexedDB [#22](https://github.com/hollandjake/COM3504/issues/22)
+- [x] Knowledge graph image [#23](https://github.com/hollandjake/COM3504/issues/23)
 ### Billy
 - [x] Job Page HTML/CSS [#12](https://github.com/hollandjake/COM3504/issues/12)
 - [x] Job Page Image Carousel [#13](https://github.com/hollandjake/COM3504/issues/13)
@@ -50,7 +52,3 @@ Division of work approved by Fabio:
 - [x] Socket.io Annotation [#15](https://github.com/hollandjake/COM3504/issues/15)
 - [x] Swagger documentation [#16](https://github.com/hollandjake/COM3504/issues/16)
 - [x] ServiceWorker [#18](https://github.com/hollandjake/COM3504/issues/18)
-
-### Unassigned / Part 2
-- [x] Knowledge graph image [#23](https://github.com/hollandjake/COM3504/issues/23)
-- [x] WebRTC [#43](https://github.com/hollandjake/COM3504/issues/43)

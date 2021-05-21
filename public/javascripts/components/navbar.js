@@ -1,5 +1,9 @@
 import {getImages, getJobs, getPID, pushingToServer} from "../databases/database.js";
 
+/**
+ * gets the users name, if no name it sends the user to the login page
+ * @returns {Promise<void>}
+ */
 async function loadName() {
     // Get name from IndexedDB and show it on the nav bar
     let name = await getPID('name');
@@ -14,6 +18,9 @@ async function loadName() {
     }
 }
 
+/**
+ * initialises the nav bar and its events
+ */
 $(async function () {
 
     await loadName();
@@ -26,7 +33,6 @@ $(async function () {
                     registration.update();
                 } else {
                     navigator.serviceWorker.register('./service-worker.js');
-                    console.log('Service Worker Registered');
                 }
             });
     }

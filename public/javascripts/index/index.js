@@ -5,7 +5,9 @@ import {getModalData} from "../components/modal.js";
 
 let loadedJobs = {};
 
-// On load
+/**
+ * initialises index page events and gets a list of all the jobs
+ */
 $(async function () {
     //Ajax call to get the list of jobs
     let currentlyRunningAddJobCallback = null;
@@ -42,8 +44,18 @@ $(async function () {
     });
 })
 
-//Preloads the image so that the browser doesnt reflow the content
-
+/**
+ * create a job HTML element
+ * @param {Object} job
+ * @param {string} job.creator
+ * @param {string} job.id
+ * @param {string} job.name
+ * @param {string} job.url
+ * @param {int} job.__v
+ * @param {string} job._id
+ * @param {Array} job.imageSequence
+ * @returns {Element} element
+ */
 export async function createJobElement(job) {
     if (job.imageSequence.length > 0) {
         let imageData = await new Promise((resolve, reject) => getImage(job.imageSequence[0], resolve, reject));
@@ -65,10 +77,25 @@ export async function createJobElement(job) {
     return null;
 }
 
+/**
+ * handles a job creation error
+ */
 function processJobCreationError(e) {
     $("#addJob").append(error(e['responseJSON'].error));
 }
 
+/**
+ * handles adding a list of jobs to the index page
+ * @param {Array} jobsData
+ * @param {Object} jobsData.job
+ * @param {string} jobsData.job.creator
+ * @param {string} jobsData.job.id
+ * @param {string} jobsData.job.name
+ * @param {string} jobsData.job.url
+ * @param {int} jobsData.job.__v
+ * @param {string} jobsData.job._id
+ * @param {Array} jobsData.job.imageSequence
+ */
 async function addAllJobs(jobsData) {
     let jobListElement = $('#job-list-container');
 

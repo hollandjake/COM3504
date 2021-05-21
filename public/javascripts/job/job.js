@@ -19,6 +19,9 @@ let annotationClasses = {};
 let currentlyTyping = new Map();
 const apiKey= 'AIzaSyAG7w627q-djB4gTTahssufwNOImRqdYKM';
 
+/**
+ * initialises job page events and gets the job data
+ */
 $(async function () {
     myself = await getPID("name");
 
@@ -67,6 +70,17 @@ $(async function () {
     });
 })
 
+/**
+ * initialise the job page with job data
+ * @param {Object} job
+ * @param {string} job.creator
+ * @param {string} job.id
+ * @param {string} job.name
+ * @param {string} job.url
+ * @param {int} job.__v
+ * @param {string} job._id
+ * @param {Array} job.imageSequence
+ */
 async function initialisePage(job) {
     let imageListElement = $('#image-container');
 
@@ -87,11 +101,24 @@ async function initialisePage(job) {
     updateCarouselArrows();
 }
 
+/**
+ * processes adding a new image to a job
+ * @param {Object} formData
+ * @param {Object} imageData
+ * @param {string} imageData.image_creator
+ * @param {string} imageData.image_description
+ * @param {string} imageData.image_title
+ * @param {string} imageData.image_type
+ * @param {Object} imageData.image_source
+ * @param {string} jobId
+ */
 function addImage(formData, imageData, jobId) {
     saveJobImage(jobId, formData, imageData, null, (data) => newImageAdded(data._id), processImageCreationError);
 }
 
-//Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
+/**
+ * Hides left or right arrows if no images in that direction and if there are no more images to the right it shows the add button
+ */
 function updateCarouselArrows() {
     let curSlide = $('.carousel-item.active');
     if (curSlide.is(':first-child')) {
@@ -108,6 +135,20 @@ function updateCarouselArrows() {
     }
 }
 
+/**
+ * creates an image HTML element for a job
+ * @param {Object} image
+ * @param {string} image.creator
+ * @param {string} image.description
+ * @param {string} image.id
+ * @param {string} image.imageData
+ * @param {string} image.title
+ * @param {string} image.type
+ * @param {string} image.url
+ * @param {int} image.__v
+ * @param {int} image._id
+ * @returns {Object} imageElement
+ */
 async function createImageElement(image) {
     const annotation = await new Annotate(image, "card-img-top rounded-0", "card-img-top job-image rounded-0").init();
     annotationClasses[image._id] = annotation;
@@ -255,12 +296,13 @@ async function createImageElement(image) {
 /**
  * creates a knowledge graph card/element from an object of properties
  * @param {Object} JSONLD
- * @param {String} JSONLD.@id
- * @param {String} JSONLD.name
- * @param {String} JSONLD.detailedDescription.articleBody
- * @param {String} JSONLD.url
+ * @param {string} JSONLD.@id
+ * @param {string} JSONLD.name
+ * @param {string} JSONLD.detailedDescription.articleBody
+ * @param {string} JSONLD.url
  * @param {int} imageId
- * @param {String} color
+ * @param {string} color
+ * @returns {Object} knowledgeGraphCard
  */
 function createKnowledgeGraphElement(JSONLD, imageId, color) {
     let ID = JSONLD['@id'].replaceAll('/','');
@@ -290,6 +332,13 @@ function createKnowledgeGraphElement(JSONLD, imageId, color) {
     return knowledgeGraphCard;
 }
 
+/**
+ * adds a chat message to the page
+ * @param {Object} imageChat
+ * @param {Object} imageChat.chatButton
+ * @param {string} imageChat.container
+ * @param {Object} messageElement
+ */
 function addMessage(imageChat, messageElement) {
     let scrollHeight = imageChat.container.prop('scrollHeight');
     let scrollPos = imageChat.container.scrollTop() + imageChat.container.innerHeight();
@@ -300,6 +349,13 @@ function addMessage(imageChat, messageElement) {
     }
 }
 
+/**
+ * handles an incoming socket.io event of a new message
+ * @param {int} imageId
+ * @param {Object} chatObj
+ * @param {string} chatObj.message
+ * @param {string} chatObj.sender
+ */
 export function newChatMessage(imageId, chatObj) {
     if (imageId in chats) {
         const imageChat = chats[imageId];
@@ -320,6 +376,11 @@ export function newChatMessage(imageId, chatObj) {
     }
 }
 
+/**
+ * removes a chat bobble
+ * @param {int} imageId
+ * @param {string} sender
+ */
 function removeBobble(imageId, sender) {
     if (currentlyTyping[imageId] && currentlyTyping[imageId][sender]) {
         clearTimeout(currentlyTyping[imageId][sender].timeout);
@@ -328,6 +389,11 @@ function removeBobble(imageId, sender) {
     }
 }
 
+/**
+ * adds a chat bobble
+ * @param {int} imageId
+ * @param {string} sender
+ */
 export function newWritingMessage(imageId, sender) {
     if (!currentlyTyping[imageId]) {
         currentlyTyping[imageId] = {};
@@ -361,12 +427,12 @@ export function newWritingMessage(imageId, sender) {
 /**
  * handles an incoming socket.io event of a new knowledge graph element
  * @param {Object} JSONLD
- * @param {String} JSONLD.@id
- * @param {String} JSONLD.name
- * @param {String} JSONLD.detailedDescription.articleBody
- * @param {String} JSONLD.url
+ * @param {string} JSONLD.@id
+ * @param {string} JSONLD.name
+ * @param {string} JSONLD.detailedDescription.articleBody
+ * @param {string} JSONLD.url
  * @param {int} imageId
- * @param {String} color
+ * @param {string} color
  */
 export function newKnowledgeGraph(JSONLD, imageId, color) {
     let knowledgeGraphElement = createKnowledgeGraphElement(JSONLD, imageId, color);
@@ -376,8 +442,8 @@ export function newKnowledgeGraph(JSONLD, imageId, color) {
 /**
  * handles an incoming socket.io event of colour for a knowledge graph element
  * @param {int} imageId
- * @param {String} graphId
- * @param {String} color
+ * @param {string} graphId
+ * @param {string} color
  */
 export function updateKnowledgeGraphColor(imageId, graphId, color) {
     graphId = graphId.replaceAll('/','');
@@ -387,17 +453,24 @@ export function updateKnowledgeGraphColor(imageId, graphId, color) {
 /**
  * handles an incoming socket.io event of the removal of a knowledge graph element
  * @param {int} imageId
- * @param {String} graphId
+ * @param {string} graphId
  */
 export function deleteKnowledgeGraph(imageId, graphId) {
     $('#knowledge-graph-results-container-'+imageId+' #'+graphId).remove();
 }
 
+/**
+ * handles the image creation error
+ * @param {Object} e
+ */
 function processImageCreationError(e) {
     $("#addImage").append(error(e['responseJSON'].error));
 }
 
-//Closes and clears modal form and moves the carousel to the new image
+/**
+ * closes and clears modal form and moves the carousel to the new image
+ * @param {int} imageId
+ */
 export async function newImageAdded(imageId) {
     getImage(imageId, async (imageData) => {
         attachImageToJob(JOB_ID, imageData);
