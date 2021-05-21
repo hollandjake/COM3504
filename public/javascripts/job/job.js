@@ -89,9 +89,8 @@ async function initialisePage(job) {
     for (let i = 0; i < job.imageSequence.length; i++) {
         try {
             let imageData = await new Promise((resolve, reject) => getImage(job.imageSequence[i], resolve, reject));
-            let [element, postProcessing] = await createImageElement(imageData);
+            let element = await createImageElement(imageData);
             imageListElement.append(element);
-            postProcessing();
         } catch (ignored) {}
     }
     $('.carousel-item:first').addClass('active');
@@ -292,7 +291,7 @@ async function createImageElement(image) {
         }
     }).observe(imageElement.get(0), {attributeFilter: ['class'], attributeOldValue: true});
 
-    return [imageElement, () => knowledgeGraphChange()];
+    return imageElement;
 }
 
 /**
@@ -307,12 +306,12 @@ async function createImageElement(image) {
  * @returns {Object} knowledgeGraphCard
  */
 function createKnowledgeGraphElement(JSONLD, imageId, color) {
-    let ID = JSONLD['@id'].replaceAll('/','');
+    let ID = JSONLD['@id'].replace(/[^a-zA-Z0-9]/g,'');
     let knowledgeGraphCard = $(`
         <div class="card knowledge-card" id="${ID}">
             <div class="card-body">
                 <h5 class="card-title">${JSONLD.name}</h5>
-                <p class="card-text">${JSONLD.detailedDescription.articleBody}</p>
+                <p class="card-text">${JSONLD.detailedDescription ? JSONLD.detailedDescription.articleBody : JSONLD.description}</p>
                 <a href="${JSONLD.url}" target="_blank" class="card-link"><button type="button" class="btn btn-info">Webpage</button></a>
             </div>
         </div>
@@ -448,7 +447,7 @@ export function newKnowledgeGraph(JSONLD, imageId, color) {
  * @param {string} color
  */
 export function updateKnowledgeGraphColor(imageId, graphId, color) {
-    graphId = graphId.replaceAll('/','');
+    graphId = graphId.replace(/[^a-zA-Z0-9]/g,'');
     $('#knowledge-graph-results-container-'+imageId+' #'+graphId).css('border-color', color);
 }
 
@@ -458,6 +457,7 @@ export function updateKnowledgeGraphColor(imageId, graphId, color) {
  * @param {string} graphId
  */
 export function deleteKnowledgeGraph(imageId, graphId) {
+    graphId = graphId.replace(/[^a-zA-Z0-9]/g,'');
     $('#knowledge-graph-results-container-'+imageId+' #'+graphId).remove();
 }
 
