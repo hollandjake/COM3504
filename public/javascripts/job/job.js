@@ -265,7 +265,10 @@ async function createImageElement(image) {
         }
         KGSearchWidget(apiKey, imageElement.find('#knowledge-graph-search-'+image._id).get()[0], config);
     });
-    imageElement.find('#knowledge-graph-type-'+image._id).trigger("load")
+    imageElement.find('#knowledge-graph-type-'+image._id).trigger("load");
+    if (!navigator.onLine) {
+        imageElement.find('#knowledge-graph-search-'+image._id).prop('disabled', true);
+    }
 
     let chatContainer = imageElement.find(".chat-container");
     chatContainer.empty();
