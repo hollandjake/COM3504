@@ -18,8 +18,7 @@ router.post('/create', upload.any(), async function (req, res) {
         if (!image) {
             res.status(400).json({
                 status: 400,
-                error: 'Failed to create Image - No image file specified',
-                job: req.body
+                error: 'Failed to create Image - No image file specified'
             });
             return;
         }
@@ -31,8 +30,7 @@ router.post('/create', upload.any(), async function (req, res) {
     } catch (e) {
         res.status(400).json({
             status: 400,
-            error: 'Failed to create Image',
-            job: req.body
+            error: 'Failed to create Image'
         });
     }
 })

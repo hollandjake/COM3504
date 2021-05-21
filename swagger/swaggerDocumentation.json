@@ -35,7 +35,7 @@
         }
       }
     },
-    "/image?id={}": {
+    "/image": {
       "get": {
         "tags": [
           "Image Operations"
@@ -43,11 +43,14 @@
         "description": "Return an image from its ID",
         "parameters": [
           {
-            "name": "Image ID",
+            "name": "id",
             "in": "query",
             "description": "specifies the image ID",
             "required": true,
-            "example": 3
+            "example": 3,
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -56,7 +59,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Image"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "image": {
+                      "$ref": "#/components/schemas/Image"
+                    }
+                  }
                 }
               }
             }
@@ -69,7 +81,8 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "message": "No image id specified try '/image?id=someid'"
+                  "status": 400,
+                  "error": "No image id specified try '/image?id=someid'"
                 }
               }
             }
@@ -82,7 +95,8 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "message": "Image not found"
+                  "status": 404,
+                  "error": "Image not found"
                 }
               }
             }
@@ -95,43 +109,14 @@
         "tags": [
           "Image Operations"
         ],
-        "description": "Get all images, or a single specified image",
-        "parameters": [
-          {
-            "name": "Image ID",
-            "in": "query",
-            "description": "Specifies the image ID if only returning one image",
-            "required": false,
-            "example": 3
-          }
-        ],
+        "description": "Get all images",
         "responses": {
           "200": {
-            "description": "Image/images correctly returned",
+            "description": "Images correctly returned",
             "content": {
               "application/json": {
                 "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/Image"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ImageArray"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Images not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                },
-                "example": {
-                  "message": "Images not found"
+                  "$ref": "#/components/schemas/ImageArray"
                 }
               }
             }
@@ -161,7 +146,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Image"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "image": {
+                      "$ref": "#/components/schemas/Image"
+                    }
+                  }
                 }
               }
             }
@@ -173,17 +167,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "error": {
-                          "type": "string",
-                          "example": "Failed to create Image"
-                        }
-                      }
+                    "status": {
+                      "type": "integer",
+                      "example": 400
                     },
-                    "imageForm": {
-                      "$ref": "#/components/schemas/ImageForm"
+                    "error": {
+                      "type": "string",
+                      "example": "Failed to create Image"
                     }
                   }
                 }
@@ -193,7 +183,7 @@
         }
       }
     },
-    "/job?id={}": {
+    "/job": {
       "get": {
         "tags": [
           "Job Operations"
@@ -201,11 +191,14 @@
         "description": "Renders the job page for the specified job, or if Job ID is null then renders a blank job page",
         "parameters": [
           {
-            "name": "Job ID",
+            "name": "id",
             "in": "query",
             "description": "specifies the job ID",
             "required": false,
-            "example": 3
+            "example": 3,
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -223,11 +216,14 @@
         "description": "Get all jobs, or a single specified job",
         "parameters": [
           {
-            "name": "Job ID",
+            "name": "id",
             "in": "query",
             "description": "Specifies the job ID if only returning one job",
             "required": false,
-            "example": 3
+            "example": 3,
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -238,7 +234,7 @@
                 "schema": {
                   "oneOf": [
                     {
-                      "$ref": "#/components/schemas/Job"
+                      "$ref": "#/components/schemas/JobResponse"
                     },
                     {
                       "$ref": "#/components/schemas/JobArray"
@@ -253,10 +249,12 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "object",
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "message": "Job not found"
+                  "status": 404,
+                  "error": "Job not found"
                 }
               }
             }
@@ -286,7 +284,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Job"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "job": {
+                      "$ref": "#/components/schemas/Job"
+                    }
+                  }
                 }
               }
             }
@@ -298,17 +305,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "error": {
-                          "type": "string",
-                          "example": "Failed to create Job"
-                        }
-                      }
+                    "status": {
+                      "type": "integer",
+                      "example": 400
                     },
-                    "imageForm": {
-                      "$ref": "#/components/schemas/ImageForm"
+                    "error": {
+                      "type": "string",
+                      "example": "Failed to create Job"
                     }
                   }
                 }
@@ -318,7 +321,7 @@
         }
       }
     },
-    "/job/add-image?id={}": {
+    "/job/add-image": {
       "post": {
         "tags": [
           "Job Operations"
@@ -326,11 +329,14 @@
         "description": "Create a new image",
         "parameters": [
           {
-            "name": "Job ID",
+            "name": "id",
             "in": "query",
             "description": "Specifies the ID of the job to add the image to",
-            "required": false,
-            "example": 3
+            "required": true,
+            "example": 3,
+            "schema": {
+              "type": "integer"
+            }
           }
         ],
         "requestBody": {
@@ -349,7 +355,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Image"
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "example": 200
+                    },
+                    "image": {
+                      "$ref": "#/components/schemas/Image"
+                    }
+                  }
                 }
               }
             }
@@ -361,17 +376,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "error": {
-                          "type": "string",
-                          "example": "Failed to add image"
-                        }
-                      }
+                    "status": {
+                      "type": "integer",
+                      "example": 400
                     },
-                    "imageForm": {
-                      "$ref": "#/components/schemas/ImageForm"
+                    "error": {
+                      "type": "string",
+                      "example": "Failed to add image"
                     }
                   }
                 }
@@ -493,9 +504,18 @@
           },
           "job_name": {
             "$ref": "#/components/schemas/name"
+          }
+        }
+      },
+      "JobResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer",
+            "example": 200
           },
-          "_id": {
-            "$ref": "#/components/schemas/offline_id"
+          "job": {
+            "$ref": "#/components/schemas/Job"
           }
         }
       },
@@ -551,6 +571,9 @@
       "Error": {
         "type": "object",
         "properties": {
+          "status": {
+            "type": "integer"
+          },
           "error": {
             "type": "string"
           }

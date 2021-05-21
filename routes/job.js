@@ -50,8 +50,7 @@ router.post('/create', upload.any(), async function (req, res) {
     } catch (e) {
         res.status(400).json({
             status: 400,
-            error: `Failed to create Job:\n${Object.values(e.errors).map(e => `- ${e.message}`).join("\n")}`,
-            job: req.body
+            error: `Failed to create Job:\n${Object.values(e.errors).map(e => `- ${e.message}`).join("\n")}`
         });
     }
 })
@@ -76,8 +75,7 @@ router.post('/add-image', upload.any(), async function (req, res) {
         if (!jobImage) {
             res.status(400).json({
                 status: 400,
-                error: 'Failed to add Image - No image file specified',
-                image: req.body
+                error: 'Failed to add Image - No image file specified'
             });
             return;
         }
@@ -90,8 +88,7 @@ router.post('/add-image', upload.any(), async function (req, res) {
     } catch (e) {
         res.status(400).json({
             status: 400,
-            error: `Failed to add Image:\n${Object.values(e.errors).map(e => `- ${e.message}`).join("\n")}`,
-            image: req.body
+            error: `Failed to add Image:\n${Object.values(e.errors).map(e => `- ${e.message}`).join("\n")}`
         });
     }
 })
