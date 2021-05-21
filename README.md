@@ -50,5 +50,5 @@ Division of work approved by Fabio:
 - [x] Job Page Image Carousel [#13](https://github.com/hollandjake/COM3504/issues/13)
 - [x] Socket.io Chat box [#14](https://github.com/hollandjake/COM3504/issues/14)
 - [x] Socket.io Annotation [#15](https://github.com/hollandjake/COM3504/issues/15)
-- [ ] Swagger documentation [#16](https://github.com/hollandjake/COM3504/issues/16)
+- [x] Swagger documentation [#16](https://github.com/hollandjake/COM3504/issues/16)
 - [x] ServiceWorker [#18](https://github.com/hollandjake/COM3504/issues/18)
