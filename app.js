@@ -11,6 +11,9 @@ const imageRouter   = require('./routes/image');
 
 const jsonEscaper = require("escape-html-in-json");
 
+const swaggerUi = require('swagger-ui-express');
+const openApiDocumentation = require('./swagger/swaggerDocumentation.json');
+
 
 const app = express();
 require('./databases/jobs');
@@ -31,6 +34,8 @@ app.use('/', indexRouter);
 app.use('/login', loginRouter);
 app.use('/job', jobRouter);
 app.use('/image', imageRouter);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocumentation));
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
